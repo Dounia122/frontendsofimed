@@ -1,0 +1,194 @@
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Styles globaux */
+body {
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Style du logo */
+.logo {
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.logo h1 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1e293b;
+  transition: color 0.3s ease;
+}
+
+/* Style du menu latéral */
+.ant-layout-sider {
+  position: fixed;
+  height: 100vh;
+  left: 0;
+  z-index: 100;
+}
+
+.ant-menu {
+  padding: 12px;
+}
+
+.ant-menu-item {
+  border-radius: 6px;
+  margin: 4px 0 !important;
+}
+
+.ant-menu-item-selected {
+  background: #e0e7ff !important;
+}
+
+.ant-menu-item-selected a {
+  color: #2563eb !important;
+}
+
+.ant-menu-item:hover {
+  background: #f1f5f9 !important;
+}
+
+.ant-menu-item .anticon {
+  font-size: 18px;
+}
+
+/* Style du contenu principal */
+.ant-layout-content {
+  margin-left: 250px; /* Largeur du Sider */
+  min-height: calc(100vh - 64px - 48px) !important; /* 100vh - header - margins */
+  transition: all 0.3s ease;
+  padding: 24px;
+}
+
+/* Style de l'en-tête */
+.ant-layout-header {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 250px;
+  z-index: 99;
+  transition: all 0.3s ease;
+}
+
+/* Menu déroulant du profil */
+.profile-dropdown {
+  min-width: 180px;
+}
+
+.profile-dropdown .ant-dropdown-menu-item {
+  padding: 12px 16px;
+}
+
+/* Animations */
+.page-transition-enter {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.page-transition-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 300ms, transform 300ms;
+}
+
+.page-transition-exit {
+  opacity: 1;
+}
+
+.page-transition-exit-active {
+  opacity: 0;
+  transition: opacity 300ms;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .ant-layout-sider {
+    position: absolute;
+    transform: translateX(-100%);
+  }
+
+  .ant-layout-sider.ant-layout-sider-collapsed {
+    transform: translateX(0);
+  }
+
+  .ant-layout-content {
+    margin-left: 0;
+    padding: 16px;
+  }
+
+  .ant-layout-header {
+    left: 0;
+    padding: 0 16px;
+  }
+}
+
+/* Thème clair personnalisé */
+.ant-layout {
+  background: #f8fafc !important;
+}
+
+.ant-layout-header {
+  background: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* Styles des liens */
+a {
+  color: #2563eb;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+a:hover {
+  color: #1d4ed8;
+}
+
+/* Style des cartes */
+.ant-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: all 0.3s ease;
+}
+
+.ant-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}

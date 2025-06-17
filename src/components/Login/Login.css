@@ -1,0 +1,186 @@
+/* Global */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Arial", sans-serif;
+}
+
+/* Structure principale */
+.login-container {
+  display: flex;
+  height: 100vh;
+  background-color: #f4f7fc;
+}
+
+/* Partie image */
+.image-section {
+  flex: 1;
+  display: none;
+}
+
+.image-section img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  animation: fadeIn 1s ease-in-out;
+}
+
+/* Partie formulaire */
+.form-section {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+}
+
+/* Ajout de l'animation fadeIn manquante */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Card Formulaire - Amélioration de l'animation et de l'ombre */
+.form-card {
+  width: 100%;
+  max-width: 400px;
+  background: white;
+  padding: 2.5rem;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  text-align: center;
+  opacity: 0;
+  transform: translateY(-20px);
+  animation: slideIn 0.8s ease-out forwards;
+}
+
+@keyframes slideIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.logo {
+  height: 60px;
+  margin-bottom: 1.5rem;
+}
+
+/* Titres */
+h1 {
+  font-size: 2rem;
+  color: #333;
+}
+
+/* Message de bienvenue */
+.welcome-message {
+  color: #666;
+  margin-bottom: 1.5rem;
+}
+
+/* Gestion des erreurs */
+.error-message {
+  color: red;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+  background: #ffefef;
+  padding: 10px;
+  border-radius: 6px;
+}
+
+/* Champs de saisie */
+.input-group {
+  text-align: left;
+  margin-bottom: 1.2rem;
+}
+
+.input-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+  color: #333;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 14px;
+  border: 2px solid #eef0f7;
+  border-radius: 10px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background-color: #f8f9fc;
+}
+
+.input-group input:focus {
+  border-color: #007bff;
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.1);
+  background-color: white;
+}
+
+/* Amélioration du bouton de connexion */
+.login-btn {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #0070f3, #0056b3);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.login-btn:hover {
+  background: linear-gradient(135deg, #0056b3, #004494);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(0, 86, 179, 0.2);
+}
+
+.login-btn:active {
+  transform: translateY(0);
+}
+
+/* Amélioration des liens */
+.links {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 2rem;
+}
+
+.links a {
+  color: #0070f3;
+  text-decoration: none;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.links a:hover {
+  color: #0056b3;
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+
+/* Amélioration du responsive */
+@media (max-width: 768px) {
+  .form-section {
+    padding: 1.5rem;
+  }
+  
+  .form-card {
+    padding: 2rem;
+  }
+}
+
+@media (min-width: 1200px) {
+  .form-card {
+    max-width: 450px;
+  }
+}

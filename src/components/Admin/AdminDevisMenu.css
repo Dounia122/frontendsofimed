@@ -1,0 +1,174 @@
+.admin-devis-menu {
+  padding: 24px;
+  background: #ffffff;
+  min-height: 100vh;
+}
+
+.admin-devis-header {
+  margin-bottom: 24px;
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.admin-devis-header h1 {
+  font-size: 24px;
+  color: #1e293b;
+  margin-bottom: 20px;
+  font-weight: 600;
+}
+
+.admin-devis-filters {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.search-input {
+  min-width: 250px;
+}
+
+.status-filter,
+.commercial-filter {
+  min-width: 180px;
+}
+
+.date-filter {
+  min-width: 280px;
+}
+
+/* Style pour le tableau */
+.devis-table {
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.devis-table .ant-table-thead > tr > th {
+  background: #f8fafc;
+  color: #1e293b;
+  font-weight: 600;
+}
+
+.devis-table .ant-table-tbody > tr:hover > td {
+  background: #f1f5f9;
+}
+
+/* Style pour les tags de statut */
+.ant-tag {
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-weight: 500;
+}
+
+/* Style pour les boutons d'action */
+.ant-btn-primary {
+  background: #2563eb;
+  border-color: #2563eb;
+}
+
+.ant-btn-primary:hover {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+}
+
+/* Style pour les tooltips */
+.ant-tooltip {
+  max-width: 300px;
+}
+
+.ant-tooltip-inner {
+  padding: 8px 12px;
+  font-size: 14px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .admin-devis-menu {
+    padding: 16px;
+  }
+
+  .admin-devis-header {
+    padding: 16px;
+  }
+
+  .admin-devis-filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-input,
+  .status-filter,
+  .commercial-filter,
+  .date-filter {
+    width: 100%;
+    min-width: unset;
+  }
+}
+
+/* Animations */
+.admin-devis-menu {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Style pour les icônes dans le tableau */
+.ant-space-item .anticon {
+  color: #64748b;
+}
+
+/* Style pour la pagination */
+.ant-pagination {
+  margin-top: 20px;
+  text-align: right;
+}
+
+/* Style pour le loading state */
+.ant-spin-nested-loading {
+  min-height: 400px;
+}
+
+/* Amélioration du hover sur les lignes */
+.ant-table-tbody > tr:hover {
+  cursor: pointer;
+}
+
+/* Style pour les filtres actifs */
+.ant-select-focused .ant-select-selector,
+.ant-input-focused,
+.ant-input:focus {
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1) !important;
+}
+
+/* Style pour les entêtes de colonnes triables */
+.ant-table-column-sorter {
+  color: #94a3b8;
+}
+
+.ant-table-column-sorter-up.active,
+.ant-table-column-sorter-down.active {
+  color: #2563eb;
+}
+
+/* Animation pour les actions */
+.ant-btn {
+  transition: all 0.2s ease-in-out;
+}
+
+.ant-btn:hover {
+  transform: translateY(-1px);
+} 

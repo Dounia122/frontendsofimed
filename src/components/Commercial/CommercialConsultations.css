@@ -1,0 +1,191 @@
+.commercial-consultations {
+  padding: 20px;
+}
+
+.consultations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.consultation-card {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  background-color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.consultation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 15px;
+}
+
+.client-info h3 {
+  margin: 0;
+  font-size: 1.2em;
+  color: #333;
+}
+
+.company-name {
+  font-size: 0.9em;
+  color: #666;
+}
+
+.status {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.9em;
+  font-weight: 500;
+}
+
+.status.en_cours {
+  background-color: #e3f2fd;
+  color: #1976d2;
+}
+
+.status.termine {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status.en_attente {
+  background-color: #fff3e0;
+  color: #f57c00;
+}
+
+.consultation-content {
+  margin: 15px 0;
+}
+
+.subject {
+  margin: 0 0 10px 0;
+  color: #424242;
+}
+
+.message-box {
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  padding: 15px;
+  margin: 10px 0;
+  display: flex;
+  gap: 10px;
+}
+
+.message-box .icon {
+  color: #666;
+  margin-top: 3px;
+}
+
+.message-box p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.file-section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: #f8f9fa;
+  padding: 10px;
+  border-radius: 6px;
+  margin: 10px 0;
+}
+
+.file-name {
+  flex: 1;
+  color: #444;
+}
+
+.download-button {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  background-color: #1976d2;
+  color: white;
+  cursor: pointer;
+  font-size: 0.9em;
+}
+
+.download-button:hover {
+  background-color: #1565c0;
+}
+
+.response-box {
+  background-color: #e8f5e9;
+  border-radius: 8px;
+  padding: 15px;
+  margin: 15px 0;
+}
+
+.response-box h5 {
+  margin: 0 0 10px 0;
+  color: #2e7d32;
+}
+
+.response-box p {
+  margin: 0;
+  color: #333;
+  line-height: 1.5;
+}
+
+.response-date {
+  display: block;
+  font-size: 0.85em;
+  color: #666;
+  margin-top: 8px;
+}
+
+.reply-section {
+  margin-top: 20px;
+}
+
+.reply-section textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  resize: vertical;
+  font-family: inherit;
+  margin-bottom: 10px;
+}
+
+.reply-button {
+  padding: 8px 16px;
+  background-color: #2e7d32;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.reply-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.consultation-footer {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.date {
+  font-size: 0.9em;
+  color: #666;
+}
+
+.error {
+  color: #d32f2f;
+  padding: 10px;
+  background-color: #ffebee;
+  border-radius: 4px;
+  margin-bottom: 20px;
+}
