@@ -115,8 +115,8 @@ const DemandeDevis = () => {
         id: devis.id,
         title: devis.reference ? `Devis ${devis.reference}` : `Devis #${devis.id}`,
         reference: devis.reference,
-        status: devis.status || 'EN_ATTENTE',
-        createdAt: devis.dateCreation,
+        status: devis.statut || 'EN_ATTENTE',
+        createdAt: devis.createdAt,
         updatedAt: devis.dateModification,
         paymentMethod: devis.paymentMethod,
         commentaire: devis.commentaire || '',
@@ -556,45 +556,47 @@ const DemandeDevis = () => {
                       </div>
 
                       <div className="devis-actions">
-                        <button 
-                          className="action-btn confirm-btn"
-                          onClick={() => handleConfirmOrder(devis)}
-                        >
-                          <CheckCircle size={16} />
-                          Confirmer commande
-                        </button>
+  <button 
+    className="action-btn confirm-btn"
+    onClick={() => handleConfirmOrder(devis)}
+    disabled={devis.status === 'EN_ATTENTE'}
+  >
+    <CheckCircle size={16} />
+    Confirmer commande
+  </button>
 
-                        <button 
-                          className="action-btn view-commercial-btn"
-                          onClick={() => handleViewCommercialDetails(devis.commercial)}
-                          disabled={!devis.commercial}
-                        >
-                          <User size={16} />
-                          Voir commercial
-                        </button>
+  <button 
+    className="action-btn view-commercial-btn"
+    onClick={() => handleViewCommercialDetails(devis.commercial)}
+    disabled={!devis.commercial}
+  >
+    <User size={16} />
+    Voir commercial
+  </button>
 
-                        <button 
-                          className="action-btn details-btn"
-                          onClick={() => handleViewCart(devis)}
-                        >
-                          <Eye size={16} />
-                          Voir détails
-                        </button>
+  <button 
+    className="action-btn details-btn"
+    onClick={() => handleViewCart(devis)}
+    disabled={devis.status === 'EN_ATTENTE'}
+  >
+    <Eye size={16} />
+    Voir détails
+  </button>
 
-                        <button 
-                          className="action-btn chat-btn"
-                          onClick={() => handleOpenChat(devis)}
-                          disabled={!devis.commercial}
-                        >
-                          <MessageCircle size={16} />
-                          Contacter
-                          {getUnreadMessagesCount(devis) > 0 && (
-                            <span className="unread-badge">
-                              {getUnreadMessagesCount(devis)}
-                            </span>
-                          )}
-                        </button>
-                      </div>
+  <button 
+    className="action-btn chat-btn"
+    onClick={() => handleOpenChat(devis)}
+    disabled={!devis.commercial}
+  >
+    <MessageCircle size={16} />
+    Contacter
+    {getUnreadMessagesCount(devis) > 0 && (
+      <span className="unread-badge">
+        {getUnreadMessagesCount(devis)}
+      </span>
+    )}
+  </button>
+</div>
                     </div>
                   ))}
                 </div>

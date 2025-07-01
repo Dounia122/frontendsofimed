@@ -11,6 +11,7 @@ import DemandeConsultation from './DemandeConsultation';
 import DemandeDevis from './DemandeDevis';
 import SockJS from 'sockjs-client';
 import { Client as StompClient } from '@stomp/stompjs';
+import CommandeSuivi from './CommandeSuivi';
 
 const ClientDashboard = () => {
   const location = useLocation();
@@ -236,7 +237,7 @@ const ClientDashboard = () => {
               <MessageCircle className="nav-icon" size={18} />
               <span>Réclamations</span>
             </li>
-            <li className="nav-item">
+            <li className="nav-item" onClick={() => navigate('suivi-commandes')}>
               <Truck className="nav-icon" size={18} />
               <span>Suivi de commande</span>
             </li>
@@ -281,6 +282,7 @@ const ClientDashboard = () => {
           <Route path="/panier" element={<Panier />} />
           <Route path="/consultation" element={<DemandeConsultation />} />
           <Route path="/devis" element={<DemandeDevis />} />
+          <Route path="/suivi-commandes" element={<CommandeSuivi clientId={userData?.id} />} />
           {/* Add route for the shopping cart */}
           <Route path="/" element={
             <>

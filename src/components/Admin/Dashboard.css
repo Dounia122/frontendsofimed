@@ -1,24 +1,33 @@
 :root {
-  --primary: #3B82F6;
-  --primary-light: #EFF6FF;
-  --primary-dark: #2563EB;
-  --secondary: #10B981;
-  --secondary-light: #ECFDF5;
-  --danger: #EF4444;
-  --danger-light: #FEF2F2;
-  --warning: #F59E0B;
-  --info: #6366F1;
-  --text-primary: #1F2937;
-  --text-secondary: #6B7280;
-  --text-tertiary: #9CA3AF;
-  --border: #E5E7EB;
-  --background: #F9FAFB;
+  --primary: #64B5F6; /* Bleu ciel doux */
+  --primary-light: #E3F2FD; /* Bleu ciel très pâle */
+  --primary-dark: #42A5F5; /* Bleu ciel légèrement plus soutenu */
+  
+  --secondary: #81C784; /* Vert menthe doux */
+  --secondary-light: #E8F5E9; /* Vert très pâle */
+  
+  --danger: #FF7043; /* Corail adouci */
+  --danger-light: #FFF3E0; /* Orange très pâle */
+  
+  --warning: #FFD54F; /* Jaune doré clair */
+  --info: #90CAF9; /* Bleu ciel plus clair */
+  
+  /* Textes avec gris doux */
+  --text-primary: #37474F; /* Gris-bleu foncé */
+  --text-secondary: #78909C; /* Gris-bleu moyen */
+  --text-tertiary: #B0BEC5; /* Gris-bleu clair */
+  
+  --border: #E0E0E0; /* Gris très clair */
+  --background: #FAFAFA; /* Blanc cassé très léger */
   --white: #FFFFFF;
+  
   --sidebar-width: 280px;
-  --success-bg: #ECFDF5;
-  --success-text: #065F46;
-  --error-bg: #FEF2F2;
-  --error-text: #B91C1C;
+  
+  /* Couleurs de statut rafraîchies */
+  --success-bg: #E8F5E9; /* Vert très pâle */
+  --success-text: #2E7D32; /* Vert doux */
+  --error-bg: #FFEBEE; /* Rouge très pâle */
+  --error-text: #D32F2F; /* Rouge doux */
 }
 
 * {

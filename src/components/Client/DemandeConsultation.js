@@ -1,87 +1,132 @@
-import React, { useState, useEffect } from 'react';
-import { FileUp, Send, AlertCircle, CheckCircle, Loader, MessageCircle, Clock, Download, ThumbsUp, Calendar, RefreshCw, CheckCircle2 } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+  FileUp, Send, AlertCircle, CheckCircle, Loader, 
+  MessageCircle, Clock, Download, ThumbsUp, 
+  Calendar, RefreshCw, CheckCircle2, X, FileText
+} from 'lucide-react';
 import axios from 'axios';
 import './DemandeConsultation.css';
 
 const DemandeConsultation = () => {
+  // États
   const [userData, setUserData] = useState(null);
-  const [subject, setSubject] = useState('');
-  const [message, setMessage] = useState('');
-  const [file, setFile] = useState(null);
+  const [formData, setFormData] = useState({
+    subject: '',
+    message: '',
+    file: null
+  });
   const [fileName, setFileName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [consultations, setConsultations] = useState([]);
-  const [refreshInterval, setRefreshInterval] = useState(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [readResponses, setReadResponses] = useState(new Set());
+  const [activeTab, setActiveTab] = useState('all');
+  const [searchTerm, setSearchTerm] = useState('');
 
+  // Récupérer l'utilisateur au montage
   useEffect(() => {
-    // Get user data from localStorage
     const user = JSON.parse(localStorage.getItem('user'));
-    if (user) {
-      setUserData(user);
-    }
-    
-    // Fetch previous consultations
+    if (user) setUserData(user);
     fetchConsultations();
+  }, []);
 
-    // Configurer le rafraîchissement automatique
-    const interval = setInterval(() => {
-      fetchConsultations();
-    }, 30000);
+  // Rafraîchissement automatique
+  useEffect(() => {
+    const interval = setInterval(fetchConsultations, 30000); // 30s au lieu de 5s
+    return () => clearInterval(interval);
+  }, []);
 
-    // Cleanup function
-    return () => {
-      clearInterval(interval);
-    };
-  }, []); // Dépendances vides car nous voulons que cela se produise uniquement au montage
-
-  const fetchConsultations = async () => {
+  // Fonction pour récupérer les consultations
+  const fetchConsultations = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get('http://localhost:8080/api/consultations', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+        headers: { 'Authorization': `Bearer ${token}` }
       });
-      setConsultations(response.data);
+      
+      const consultationsWithResponses = await Promise.all(
+        response.data.map(async (consultation) => {
+          try {
+            const responseRes = await axios.get(
+              `http://localhost:8080/api/consultations/${consultation.id}/response`,
+              { headers: { 'Authorization': `Bearer ${token}` } }
+            );
+            
+            return {
+              ...consultation,
+              response: responseRes.data.response,
+              responseDate: responseRes.data.responseDate,
+              status: responseRes.data.status || 'PENDING'
+            };
+          } catch (error) {
+            return { ...consultation, status: consultation.status || 'PENDING' };
+          }
+        })
+      );
+      
+      setConsultations(consultationsWithResponses);
     } catch (err) {
       console.error('Erreur lors du chargement des consultations:', err);
+      setError('Impossible de charger les consultations. Veuillez réessayer.');
     }
+  }, []);
+
+  // Gestion des changements de formulaire
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    setError('');
   };
 
+  // Gestion des fichiers
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
-    if (selectedFile) {
-      // Vérification de la taille (limite à 5MB)
-      if (selectedFile.size > 5 * 1024 * 1024) {
-        setError('Le fichier est trop volumineux. Taille maximale: 5MB');
-        return;
-      }
-      
-      // Vérification du type de fichier
-      const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-      if (!allowedTypes.includes(selectedFile.type)) {
-        setError('Type de fichier non supporté. Types acceptés: PDF, DOCX, JPG, PNG');
-        return;
-      }
-      
-      setFile(selectedFile);
-      setFileName(selectedFile.name);
-      setError('');
+    if (!selectedFile) return;
+
+    // Validation du fichier
+    if (selectedFile.size > 5 * 1024 * 1024) {
+      setError('Le fichier est trop volumineux (max 5MB)');
+      return;
     }
+    
+    const allowedTypes = [
+      'application/pdf', 
+      'image/jpeg', 
+      'image/png', 
+      'application/msword', 
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    ];
+    
+    if (!allowedTypes.includes(selectedFile.type)) {
+      setError('Type de fichier non supporté (PDF, DOCX, JPG, PNG uniquement)');
+      return;
+    }
+    
+    setFormData(prev => ({ ...prev, file: selectedFile }));
+    setFileName(selectedFile.name);
+    setError('');
   };
 
+  // Supprimer le fichier sélectionné
+  const removeFile = () => {
+    setFormData(prev => ({ ...prev, file: null }));
+    setFileName('');
+  };
+
+  // Soumission du formulaire
   const handleSubmit = async (e) => {
     e.preventDefault();
   
-    if (!subject.trim()) {
-      setError('Veuillez saisir un sujet pour votre demande');
+    // Validation
+    if (!formData.subject.trim()) {
+      setError('Veuillez saisir un sujet');
       return;
     }
   
-    if (!message.trim()) {
-      setError('Veuillez saisir un message pour votre demande');
+    if (!formData.message.trim()) {
+      setError('Veuillez saisir un message');
       return;
     }
   
@@ -89,49 +134,42 @@ const DemandeConsultation = () => {
     setError('');
   
     try {
-      const formData = new FormData();
-      formData.append('subject', subject);
-      formData.append('message', message);
-      if (file) {
-        formData.append('file', file);
-      }
+      const data = new FormData();
+      data.append('subject', formData.subject);
+      data.append('message', formData.message);
+      if (formData.file) data.append('file', formData.file);
       
-      // Ajout des infos utilisateur
       if (userData) {
-        formData.append('userId', userData.id);
-        formData.append('username', userData.username);
+        data.append('userId', userData.id);
+        data.append('username', userData.username);
       }
-  
+
       const token = localStorage.getItem('token');
-      const response = await axios.post('http://localhost:8080/api/consultations', formData, {
+      await axios.post('http://localhost:8080/api/consultations', data, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'multipart/form-data'
         }
       });
-  
+      
+      // Réinitialisation et feedback
       setSuccess(true);
-      setSubject('');
-      setMessage('');
-      setFile(null);
+      setFormData({ subject: '', message: '', file: null });
       setFileName('');
-  
-      // Rafraîchir la liste des consultations
       await fetchConsultations();
-  
-      setTimeout(() => {
-        setSuccess(false);
-      }, 3000);
+      
+      setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
-      console.error('Erreur lors de l\'envoi de la demande:', err);
-      setError(err.response?.data || 'Une erreur est survenue lors de l\'envoi de votre demande');
+      console.error('Erreur:', err);
+      setError(err.response?.data?.message || 'Une erreur est survenue');
     } finally {
       setLoading(false);
     }
   };
   
-
+  // Fonctions utilitaires
   const formatDate = (dateString) => {
+    if (!dateString) return 'Non spécifié';
     const date = new Date(dateString);
     return new Intl.DateTimeFormat('fr-FR', {
       day: '2-digit',
@@ -143,79 +181,86 @@ const DemandeConsultation = () => {
   };
 
   const getStatusIcon = (status) => {
-    switch (status) {
-      case 'PENDING':
-        return <Clock size={14} />;
-      case 'IN_PROGRESS':
-        return <RefreshCw size={14} />;
+    switch (status?.toUpperCase()) {
       case 'COMPLETED':
+      case 'TERMINE':
         return <CheckCircle2 size={14} />;
       default:
-        return null;
+        return <Clock size={14} />;
     }
   };
 
   const getStatusText = (status) => {
-    switch (status) {
-      case 'PENDING':
-        return 'En attente';
-      case 'IN_PROGRESS':
-        return 'En traitement';
+    switch (status?.toUpperCase()) {
       case 'COMPLETED':
-        return 'Complétée';
+      case 'TERMINE':
+        return 'Répondu';
       default:
-        return 'Fermée';
+        return 'En attente';
     }
   };
 
-  // Ajouter un état pour gérer les réponses lues
-  const [readResponses, setReadResponses] = useState(new Set());
-
-  // Marquer une réponse comme lue
-  const markResponseAsRead = (responseId) => {
-    setReadResponses(prev => new Set([...prev, responseId]));
+  const markResponseAsRead = (consultationId) => {
+    setReadResponses(prev => new Set([...prev, consultationId]));
   };
 
-  // Vérifier si une réponse est nouvelle (non lue)
-  const isResponseNew = (responseId) => {
-    return !readResponses.has(responseId);
+  const isResponseNew = (consultationId) => {
+    return consultationId && !readResponses.has(consultationId);
   };
 
-  const [isRefreshing, setIsRefreshing] = useState(false);
-
-  const handleRefreshConsultations = async () => {
+  const handleRefresh = async () => {
     setIsRefreshing(true);
     try {
       await fetchConsultations();
-    } catch (error) {
-      console.error('Erreur lors du rafraîchissement:', error);
     } finally {
       setIsRefreshing(false);
     }
   };
 
-  // Dans la section des consultations précédentes, ajouter le bouton de rafraîchissement
+  // Filtrage des consultations amélioré
+  const filteredConsultations = consultations.filter(consultation => {
+    const searchTermNormalized = searchTerm.toLowerCase().trim();
+    const status = consultation.status?.toUpperCase() || 'PENDING';
+
+    // Filtre par statut
+    const matchesStatus = 
+      activeTab === 'all' ||
+      (activeTab === 'pending' && status !== 'COMPLETED' && status !== 'TERMINE') ||
+      (activeTab === 'completed' && (status === 'COMPLETED' || status === 'TERMINE'));
+
+    if (!matchesStatus) return false;
+
+    // Si pas de terme de recherche, retourner le résultat du filtre par statut
+    if (!searchTermNormalized) return true;
+
+    // Recherche dans tous les champs pertinents
+    const searchableFields = [
+      consultation.subject?.toLowerCase() || '',
+      consultation.message?.toLowerCase() || '',
+      consultation.response?.toLowerCase() || '',
+      formatDate(consultation.createdAt)?.toLowerCase() || '',
+      formatDate(consultation.responseDate)?.toLowerCase() || ''
+    ];
+
+    return searchableFields.some(field => field.includes(searchTermNormalized));
+  });
+
+  // Tri des consultations par date
+  const sortedConsultations = [...filteredConsultations].sort((a, b) => {
+    return new Date(b.createdAt) - new Date(a.createdAt);
+  });
+
+  // Dans le rendu, remplacer filteredConsultations par sortedConsultations
   return (
     <div className="consultation-container">
       <header className="consultation-header">
-        <h2>Demande de Consultation</h2>
-        <button 
-          className="refresh-all-button" 
-          onClick={handleRefreshConsultations}
-          disabled={isRefreshing}
-        >
-          {isRefreshing ? (
-            <>
-              <Loader size={16} className="spinner" />
-              <span>Rafraîchissement...</span>
-            </>
-          ) : (
-            <>
-              <RefreshCw size={16} />
-              <span>Rafraîchir les réponses</span>
-            </>
-          )}
-        </button>
+        <h2>
+          <MessageCircle size={24} />
+          <span>Demandes de consultation</span>
+        </h2>
+        <div className="header-actions">
+       
+        </div>
       </header>
       
       <div className="consultation-content">
@@ -223,14 +268,14 @@ const DemandeConsultation = () => {
           <h3>Nouvelle demande</h3>
           
           {success && (
-            <div className="success-message">
+            <div className="alert success">
               <CheckCircle size={20} />
-              <span>Votre demande a été envoyée avec succès!</span>
+              <span>Demande envoyée avec succès!</span>
             </div>
           )}
           
           {error && (
-            <div className="error-message">
+            <div className="alert error">
               <AlertCircle size={20} />
               <span>{error}</span>
             </div>
@@ -238,30 +283,33 @@ const DemandeConsultation = () => {
           
           <form onSubmit={handleSubmit} className="consultation-form">
             <div className="form-group">
-              <label htmlFor="subject">Sujet</label>
+              <label htmlFor="subject">Sujet *</label>
               <input
                 type="text"
                 id="subject"
-                value={subject}
-                onChange={(e) => setSubject(e.target.value)}
+                name="subject"
+                value={formData.subject}
+                onChange={handleInputChange}
                 placeholder="Ex: Demande d'information sur les pompes industrielles"
                 disabled={loading}
+                required
               />
             </div>
             
             <div className="form-group">
-              <label htmlFor="message">Message</label>
+              <label htmlFor="message">Message *</label>
               <textarea
                 id="message"
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
+                name="message"
+                value={formData.message}
+                onChange={handleInputChange}
                 placeholder="Décrivez votre demande en détail..."
                 rows={6}
                 disabled={loading}
+                required
               />
             </div>
             
-            // Dans le rendu du composant, modifier la section d'upload de fichier :
             <div className="form-group">
               <label htmlFor="file">Pièce jointe (optionnel)</label>
               <div className="file-upload-container">
@@ -272,25 +320,23 @@ const DemandeConsultation = () => {
                   className="file-input"
                   disabled={loading}
                   accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                  style={{ display: 'none' }}
                 />
-                <div 
-                  className="file-upload-button"
-                  onClick={() => document.getElementById('file').click()}
-                >
-                  <FileUp size={20} />
-                  <span>Sélectionner un fichier</span>
-                </div>
+                <label htmlFor="file" className="file-upload-button">
+                  <FileUp size={18} />
+                  <span>{fileName || 'Sélectionner un fichier'}</span>
+                </label>
                 {fileName && (
-                  <div className="file-name">
-                    <FileUp size={16} />
-                    <span>{fileName}</span>
-                  </div>
+                  <button type="button" onClick={removeFile} className="file-remove">
+                    <X size={16} />
+                  </button>
                 )}
               </div>
-              <p className="file-info">
-                Formats acceptés: PDF, DOCX, JPG, PNG (Max: 5MB)
-              </p>
+              <div className="file-info">
+                <small>Formats: PDF, DOCX, JPG, PNG (Max: 5MB)</small>
+                {formData.file && (
+                  <small>Taille: {(formData.file.size / 1024 / 1024).toFixed(2)} MB</small>
+                )}
+              </div>
             </div>
             
             <button 
@@ -300,7 +346,7 @@ const DemandeConsultation = () => {
             >
               {loading ? (
                 <>
-                  <Loader size={18} className="spinner" />
+                  <Loader size={18} className="spin" />
                   <span>Envoi en cours...</span>
                 </>
               ) : (
@@ -313,137 +359,120 @@ const DemandeConsultation = () => {
           </form>
         </div>
         
-        <div className="previous-consultations">
-          <h3>Mes demandes précédentes</h3>
+        <div className="consultation-list-container">
+          <div className="list-header">
+            <h3>Historique des demandes</h3>
+            <div className="list-controls">
+              <div className="search-box">
+                <input
+                  type="text"
+                  placeholder="Rechercher..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              <div className="tabs">
+                <button 
+                  className={activeTab === 'all' ? 'active' : ''}
+                  onClick={() => setActiveTab('all')}
+                >
+                  Toutes
+                </button>
+                <button 
+                  className={activeTab === 'pending' ? 'active' : ''}
+                  onClick={() => setActiveTab('pending')}
+                >
+                  En attente
+                </button>
+                <button 
+                  className={activeTab === 'completed' ? 'active' : ''}
+                  onClick={() => setActiveTab('completed')}
+                >
+                  Répondues
+                </button>
+              </div>
+            </div>
+          </div>
           
-          {consultations.length === 0 ? (
-            <div className="empty-consultations">
-              <MessageCircle size={32} />
-              <p>Vous n'avez pas encore effectué de demande de consultation.</p>
+          {filteredConsultations.length === 0 ? (
+            <div className="empty-list">
+              <FileText size={48} />
+              <p>Aucune demande trouvée</p>
             </div>
           ) : (
-            <div className="consultations-list">
-              {consultations.map((consultation) => (
-                <div key={consultation.id} className="consultation-card">
-                  <div className="consultation-card-header">
-                    <div className="consultation-card-title">
-                      {consultation.subject}
+            <div className="consultation-list">
+              {filteredConsultations.map((consultation) => (
+                <div 
+                  key={consultation.id} 
+                  className={`consultation-card ${consultation.status?.toLowerCase()}`}
+                >
+                  <div className="card-header">
+                    <div className="card-title">
+                      <h4>{consultation.subject}</h4>
+                      <div className="card-meta">
+                        <span className="date">
+                          <Calendar size={14} />
+                          {formatDate(consultation.createdAt)}
+                        </span>
+                        <span className={`status ${consultation.status?.toLowerCase()}`}>
+                          {getStatusIcon(consultation.status)}
+                          <span>{getStatusText(consultation.status)}</span>
+                        </span>
+                      </div>
                     </div>
-                    <span className={`status ${consultation.status.toLowerCase()}`}>
-                      {getStatusIcon(consultation.status)}
-                      <span>{getStatusText(consultation.status)}</span>
-                    </span>
                   </div>
                   
-                  <div className="consultation-card-content">
-                    <div className="consultation-meta">
-                      <div className="consultation-meta-item">
-                        <Calendar size={14} />
-                        <span>Créée le {formatDate(consultation.createdAt)}</span>
-                      </div>
-                      {consultation.updatedAt !== consultation.createdAt && (
-                        <div className="consultation-meta-item">
-                          <RefreshCw size={14} />
-                          <span>Mise à jour le {formatDate(consultation.updatedAt)}</span>
-                        </div>
-                      )}
-                    </div>
-                    
-                    <div className="consultation-message">
-                      {consultation.message}
+                  <div className="card-content">
+                    <div className="message">
+                      <p className="label">Message :</p>
+                      <p>{consultation.message}</p>
                     </div>
                     
                     {consultation.fileUrl && (
-                      <div className="consultation-attachments">
+                      <div className="attachments">
                         <a 
                           href={`http://localhost:8080/api/consultations/files/${consultation.id}`}
                           className="attachment-link"
                           target="_blank"
                           rel="noopener noreferrer"
+                          download
                         >
-                          <FileUp size={14} />
-                          <span>Pièce jointe de la demande</span>
+                          <Download size={14} />
+                          <span>Télécharger la pièce jointe</span>
                         </a>
                       </div>
                     )}
 
-                    {consultation.responses && consultation.responses.length > 0 ? (
-                      <div className="consultation-responses">
-                        <div className="responses-header">
-                          <h4 className="responses-title">
-                            <MessageCircle size={16} />
-                            <span>Réponses ({consultation.responses.length})</span>
-                          </h4>
-                          <button 
-                            className="refresh-button" 
-                            onClick={() => fetchConsultations()}
-                            title="Rafraîchir les réponses"
-                          >
-                            <RefreshCw size={14} />
-                          </button>
-                        </div>
-                        {consultation.responses.map((response, index) => (
-                          <div 
-                            key={response.id || index} 
-                            className={`consultation-response ${isResponseNew(response.id) ? 'new-response' : ''}`}
-                            onClick={() => markResponseAsRead(response.id)}
-                          >
-                            <div className="consultation-response-header">
-                              <div className="consultation-response-title">
-                                <div className="response-author">
-                                  <ThumbsUp size={14} />
-                                  <span>{response.author || 'Commercial'}</span>
-                                </div>
-                                {isResponseNew(response.id) && (
-                                  <span className="new-response-badge">Nouveau</span>
-                                )}
-                              </div>
-                              <span className="consultation-response-date">
-                                {formatDate(response.createdAt)}
-                              </span>
+                    {consultation.response ? (
+                      <div 
+                        className={`response ${isResponseNew(consultation.id) ? 'new' : ''}`}
+                        onClick={() => markResponseAsRead(consultation.id)}
+                      >
+                        <div className="response-header">
+                          <div className="response-title">
+                            <div className="author">
+                              <ThumbsUp size={14} />
+                              <span>Réponse du commercial</span>
                             </div>
-                            
-                            <div className="consultation-response-content">
-                              <p>{response.content}</p>
-                            </div>
-
-                            {response.attachments && response.attachments.length > 0 && (
-                              <div className="response-attachments">
-                                <h5 className="attachments-title">
-                                  <FileUp size={14} />
-                                  <span>Pièces jointes</span>
-                                </h5>
-                                <div className="attachments-grid">
-                                  {response.attachments.map((attachment, i) => (
-                                    <a
-                                      key={i}
-                                      href={`http://localhost:8080/api/consultations/files/${attachment.id}`}
-                                      className="attachment-card"
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                    >
-                                      <div className="attachment-icon">
-                                        <FileUp size={24} />
-                                      </div>
-                                      <div className="attachment-info">
-                                        <span className="attachment-name">{attachment.name}</span>
-                                        <span className="attachment-size">{formatFileSize(attachment.size)}</span>
-                                      </div>
-                                      <Download size={16} className="download-icon" />
-                                    </a>
-                                  ))}
-                                </div>
-                              </div>
+                            {isResponseNew(consultation.id) && (
+                              <span className="badge">Nouveau</span>
                             )}
                           </div>
-                        ))}
+                          <span className="response-date">
+                            {formatDate(consultation.responseDate)}
+                          </span>
+                        </div>
+                        
+                        <div className="response-content">
+                          <p>{consultation.response}</p>
+                        </div>
                       </div>
-                    ) : consultation.status === 'PENDING' ? (
+                    ) : (
                       <div className="awaiting-response">
                         <Clock size={14} />
-                        <span>En attente d'une réponse de notre équipe...</span>
+                        <span>En attente de réponse...</span>
                       </div>
-                    ) : null}
+                    )}
                   </div>
                 </div>
               ))}
@@ -456,11 +485,3 @@ const DemandeConsultation = () => {
 };
 
 export default DemandeConsultation;
-
-// Fonction utilitaire pour formater la taille des fichiers
-const formatFileSize = (bytes) => {
-  if (!bytes) return '0 B';
-  const sizes = ['B', 'KB', 'MB', 'GB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(1024));
-  return `${(bytes / Math.pow(1024, i)).toFixed(1)} ${sizes[i]}`;
-};

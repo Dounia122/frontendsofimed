@@ -102,7 +102,6 @@ const ConsultationCard = ({
   onReply
 }) => {
   const [replyText, setReplyText] = useState('');
-
   return (
     <div className="consultation-card">
       <div className="consultation-header">
@@ -350,6 +349,7 @@ const CommercialConsultations = () => {
           <FontAwesomeIcon icon={faComments} className="title-icon" />
           <h1>Mes Consultations</h1>
         </div>
+        
         <div className="filter-controls">
           <div className="search-input-wrapper">
             <FontAwesomeIcon icon={faSearch} className="search-icon" />
