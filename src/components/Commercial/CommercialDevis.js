@@ -1309,8 +1309,8 @@ const LoadingState = () => (
 
   // Dans le rendu du tableau, modifiez la structure pour ajouter la nouvelle colonne
   return (
-    <div className="commercial-devis-container">
-      <div className="commercial-devis-content">
+    <div className="">
+      <div className="">
         <header className="devis-header">
           <div className="devis-header-left">
             
@@ -1840,7 +1840,8 @@ const PrixModal = ({ devis, onClose, onUpdate }) => {
               imageUrl: item.imageUrl,
               prixApresRemise: prixApresRemise,
               totalItem: item.totalItem,
-              remisePourcentage: parseFloat(remisePourcentage.toFixed(2))
+              remisePourcentage: parseFloat(remisePourcentage.toFixed(2)),
+              dernierPrixAchat: 0 // Initialiser à 0, sera mis à jour plus tard
             };
           });
           setProduits(produitsData);
@@ -1855,15 +1856,55 @@ const PrixModal = ({ devis, onClose, onUpdate }) => {
           // Calculer le prix total
           const total = produitsData.reduce((sum, item) => sum + item.totalItem, 0);
           setTotalPrice(total);
+          
+          // Récupérer les derniers prix d'achat pour tous les produits
+          const productIds = produitsData.map(produit => produit.id);
+          try {
+            // Récupérer d'abord les informations du client
+            const clientResponse = await axios.get(`http://localhost:8080/api/devis/${devis.id}/client`, {
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+            
+            if (clientResponse.data && clientResponse.data.id) {
+              const clientId = clientResponse.data.id;
+              setClientInfo(clientResponse.data);
+              
+              // Appeler l'API avec l'ID du client dans le chemin
+              const lastPricesResponse = await axios.post(
+                `http://localhost:8080/api/products/last-purchase-prices/${clientId}`,
+                productIds,
+                { headers: { 'Authorization': `Bearer ${token}` } }
+              );
+              
+              if (lastPricesResponse.data) {
+                const lastPrices = lastPricesResponse.data;
+                const updatedProduits = produitsData.map(produit => ({
+                  ...produit,
+                  dernierPrixAchat: lastPrices[produit.id] || 0
+                }));
+                setProduits(updatedProduits);
+              }
+            }
+          } catch (priceErr) {
+            console.error('Erreur lors de la récupération des derniers prix d\'achat:', priceErr);
+            // Ne pas bloquer le chargement si cette partie échoue
+          }
         }
 
-        // Récupérer les informations du client
-        const clientResponse = await axios.get(`http://localhost:8080/api/devis/${devis.id}/client`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
+        // Si on a déjà récupéré les informations du client plus haut, ne pas les récupérer à nouveau
+        if (!clientInfo) {
+          // Récupérer les informations du client
+          try {
+            const clientResponse = await axios.get(`http://localhost:8080/api/devis/${devis.id}/client`, {
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
 
-        if (clientResponse.data) {
-          setClientInfo(clientResponse.data);
+            if (clientResponse.data) {
+              setClientInfo(clientResponse.data);
+            }
+          } catch (clientErr) {
+            console.error('Erreur lors de la récupération des informations client:', clientErr);
+          }
         }
       } catch (err) {
         console.error('Erreur lors de la récupération des données:', err);
@@ -1956,6 +1997,133 @@ const PrixModal = ({ devis, onClose, onUpdate }) => {
     document.body.appendChild(modal);
     modal.querySelector('.close').addEventListener('click', () => modal.remove());
     return modal;
+  };
+  
+  // Fonction pour analyser la probabilité de vente avec l'IA
+  const analyzeProbability = async () => {
+    let modal = null;
+
+    try {
+      // Affichage de la modale de chargement
+      modal = createModal('Analyse de probabilité IA', `
+        <div class="analysis-loading">
+          <div class="loading-spinner">
+            <div class="spinner-track"></div>
+            <div class="spinner-fill"></div>
+          </div>
+          <div class="loading-progress">
+            <div class="loading-progress-bar"></div>
+          </div>
+          <p class="loading-percentage">Analyse en cours...</p>
+          <h4 class="loading-title">Analyse de probabilité pour ${devis.reference}</h4>
+          <p class="loading-subtitle">Calcul des probabilités de vente basé sur l'IA</p>
+        </div>
+      `);
+
+      // Simuler un appel API (à remplacer par un vrai appel API)
+      setTimeout(async () => {
+        try {
+          // Simuler une réponse API
+          const data = {
+            probability: Math.floor(Math.random() * 41) + 60, // Entre 60% et 100%
+            conversionRate: (Math.random() * 0.3 + 0.4).toFixed(2), // Entre 0.4 et 0.7
+            decisionTime: Math.floor(Math.random() * 5) + 2, // Entre 2 et 7 jours
+            confidenceIndex: Math.floor(Math.random() * 21) + 80, // Entre 80 et 100
+            recommendations: [
+              "Proposer une remise de 5% pour augmenter les chances de conversion",
+              "Mettre en avant la garantie de qualité pour rassurer le client",
+              "Suggérer une livraison express pour accélérer la décision"
+            ]
+          };
+
+          // Mise à jour avec les résultats
+          modal.querySelector('.modal-body').innerHTML = `
+            <div class="probability-result">
+              <div class="probability-header">
+                <h4>Analyse de probabilité pour ${devis.reference}</h4>
+                <p>Basée sur l'historique client et les tendances du marché</p>
+              </div>
+
+              <div class="probability-gauge">
+                <div class="gauge-container">
+                  <div class="gauge-value" style="width: ${data.probability}%;"></div>
+                </div>
+                <div class="gauge-label">
+                  <span>Probabilité de vente</span>
+                  <strong>${data.probability}%</strong>
+                </div>
+              </div>
+
+              <div class="probability-stats-grid">
+                <div class="stat-card">
+                  <i class="icon">⚡</i>
+                  <span>Taux de conversion</span>
+                  <strong>${data.conversionRate}</strong>
+                </div>
+
+                <div class="stat-card">
+                  <i class="icon">⏱️</i>
+                  <span>Temps de décision estimé</span>
+                  <strong>${data.decisionTime} jours</strong>
+                </div>
+
+                <div class="stat-card">
+                  <i class="icon">📊</i>
+                  <span>Indice de confiance</span>
+                  <strong>${data.confidenceIndex}%</strong>
+                </div>
+              </div>
+
+              <div class="recommendations-section">
+                <h5>Recommandations IA</h5>
+                <ul class="recommendations-list">
+                  ${data.recommendations.map(rec => `<li>${rec}</li>`).join('')}
+                </ul>
+              </div>
+
+              <div class="actions">
+                <button class="close-btn">Fermer</button>
+              </div>
+            </div>
+          `;
+
+          // Gestionnaire pour le bouton de fermeture
+          modal.querySelector('.close-btn').addEventListener('click', () => modal.remove());
+
+        } catch (error) {
+          const errorMsg = error.message || "Une erreur est survenue lors de l'analyse";
+          modal.querySelector('.modal-body').innerHTML = `
+            <div class="error-state">
+              <i class="error-icon">⚠️</i>
+              <h4>Erreur d'analyse</h4>
+              <p>${errorMsg}</p>
+              <button class="retry-btn">Réessayer</button>
+            </div>
+          `;
+          modal.querySelector('.retry-btn').addEventListener('click', () => {
+            modal.remove();
+            analyzeProbability();
+          });
+        }
+      }, 2000); // Simuler un délai de 2 secondes
+
+    } catch (error) {
+      const errorMsg = error.message || "Une erreur est survenue lors de l'analyse";
+      if (modal) {
+        modal.querySelector('.modal-body').innerHTML = `
+          <div class="error-state">
+            <i class="error-icon">⚠️</i>
+            <h4>Erreur d'analyse</h4>
+            <p>${errorMsg}</p>
+            <button class="retry-btn">Réessayer</button>
+          </div>
+        `;
+        modal.querySelector('.retry-btn').addEventListener('click', () => {
+          modal.remove();
+          analyzeProbability();
+        });
+      }
+    }
   };
   
   const createLoadingBody = (produit) => `
@@ -2209,6 +2377,11 @@ const handleFormSubmit = async () => {
               {devis.status ? devis.status.replace('_', ' ') : 'Status inconnu'}
             </span>
           </div>
+          
+          {/* Bouton d'analyse de probabilité IA */}
+          <div className="devis-info-row ai-probability-container">
+           
+          </div>
         </div>
 
         <div className="produits-list-container">
@@ -2240,6 +2413,7 @@ const handleFormSubmit = async () => {
                     <th>Prix après remise</th>
                     <th>Quantité</th>
                     <th>Total</th>
+                    <th>Dernier prix d'achat</th>
                     <th>Étude de marché</th>
                   </tr>
                 </thead>
@@ -2288,18 +2462,21 @@ const handleFormSubmit = async () => {
                       </td>
                       <td>{produit.quantity || 0}</td>
                       <td>{formatNumber(produit.totalItem || (getPrixApresRemise(produit) * produit.quantity))}</td>
+                      <td className="dernier-prix-achat">
+                        {formatNumber(produit.dernierPrixAchat || 0)}
+                      </td>
                       <td>
-                      <button className="market-study-btn" onClick={() => analyzePrices(produit.nom, produit)}>
-  <ChartBar size={14} />
-  Étude marché
-</button>
+                        <button className="market-study-btn" onClick={() => analyzePrices(produit.nom, produit)}>
+                          <ChartBar size={14} />
+                          Étude marché
+                        </button>
                       </td>
                     </tr>
                   ))}
                 </tbody>
                 <tfoot>
                   <tr>
-                    <td colSpan="7" className="total-label">Total</td>
+                    <td colSpan="8" className="total-label">Total</td>
                     <td className="total-value">{formatTotalPrice(totalPrice)}</td>
                   </tr>
                 </tfoot>
@@ -2339,6 +2516,10 @@ const handleFormSubmit = async () => {
                   onClick={onClose}
                 >
                   Annuler
+                </button>
+                <button className="ai-probability-btn" onClick={analyzeProbability}>
+                  <ChartBar size={16} />
+                  Probabilité IA
                 </button>
                 <button 
                   className="btn btn-primary"

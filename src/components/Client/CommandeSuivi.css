@@ -215,6 +215,7 @@ body {
   font-weight: 600;
   padding: 15px 20px;
   border-bottom: 1px solid #e2e8f0;
+  align-items: center; /* Ajouté */
 }
 
 .header-cell {

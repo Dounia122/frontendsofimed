@@ -256,19 +256,51 @@ const CommercialDashboard = () => {
 
                 <div className="stats-grid">
                   {[ 
-                    { icon: Users, label: "Clients actifs", value: "45", change: "+3 ce mois", positive: true },
-                    { icon: FileText, label: "Devis en attente", value: "12", change: "À traiter" },
-                    { icon: ChartBar, label: "Taux de conversion", value: "68%", change: "+5% ce mois", positive: true },
-                    { icon: MessageCircle, label: "Consultations", value: unreadMessages.toString(), change: unreadMessages > 0 ? "Messages non lus" : "Aucun message" }
+                    { 
+                      icon: Users, 
+                      label: "Clients actifs", 
+                      value: "45", 
+                      change: "+3 ce mois", 
+                      positive: true,
+                      bgColor: "rgba(29, 78, 216, 0.1)",
+                      iconColor: "#1D4ED8"
+                    },
+                    { 
+                      icon: FileText, 
+                      label: "Devis en attente", 
+                      value: "12", 
+                      change: "À traiter",
+                      bgColor: "rgba(16, 185, 129, 0.1)",
+                      iconColor: "#10B981"
+                    },
+                    { 
+                      icon: ChartBar, 
+                      label: "Taux de conversion", 
+                      value: "68%", 
+                      change: "+5% ce mois", 
+                      positive: true,
+                      bgColor: "rgba(99, 102, 241, 0.1)",
+                      iconColor: "#6366F1"
+                    },
+                    { 
+                      icon: MessageCircle, 
+                      label: "Consultations", 
+                      value: unreadMessages.toString(), 
+                      change: unreadMessages > 0 ? "Messages non lus" : "Aucun message",
+                      bgColor: "rgba(236, 72, 153, 0.1)",
+                      iconColor: "#EC4899"
+                    }
                   ].map((stat, index) => (
                     <div key={index} className="stat-card">
-                      <div className="stat-icon">
-                        <stat.icon size={20} color={stat.color} />
+                      <div className="stat-icon" style={{ background: stat.bgColor }}>
+                        <stat.icon size={24} color={stat.iconColor} />
                       </div>
                       <div className="stat-info">
                         <p className="stat-label">{stat.label}</p>
                         <p className="stat-value">{stat.value}</p>
-                        <p className={`stat-change ${stat.positive ? 'positive' : ''}`}>{stat.change}</p>
+                        <p className={`stat-change ${stat.positive ? 'positive' : ''}`}>
+                          {stat.change}
+                        </p>
                       </div>
                     </div>
                   ))}

@@ -12,6 +12,7 @@ import DemandeDevis from './DemandeDevis';
 import SockJS from 'sockjs-client';
 import { Client as StompClient } from '@stomp/stompjs';
 import CommandeSuivi from './CommandeSuivi';
+import axios from 'axios'; // <-- Import axios
 
 const ClientDashboard = () => {
   const location = useLocation();
@@ -23,6 +24,8 @@ const ClientDashboard = () => {
   const [stompClient, setStompClient] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [sessionId, setSessionId] = useState(null); // <-- Add state for session ID
+  const [sessionDuration, setSessionDuration] = useState(0);
 
   useEffect(() => {
     // Get user data from navigation state or localStorage
@@ -34,18 +37,50 @@ const ClientDashboard = () => {
     }
     
     setUserData(user);
-    
+
+    // Start session tracking
+    const startUserSession = async () => {
+      if (user?.id) {
+        try {
+          const response = await axios.post(`http://localhost:8080/api/sessions/start?userId=${user.id}`);
+          setSessionId(response.data.id);
+        } catch (error) {
+          console.error("Error starting session:", error);
+        }
+      }
+    };
+
+    startUserSession();
+
     // Load cart data from localStorage
     const savedCart = localStorage.getItem('cart');
     if (savedCart) {
-      const parsedCart = JSON.parse(savedCart);
-      setCartItems(parsedCart);
+      setCartItems(JSON.parse(savedCart));
     }
-    // Ajout : Récupérer le nombre de messages non lus au chargement
+
     if (user) {
       fetchUnreadMessages(user.id);
     }
-  }, [navigate, location]);
+
+    // Cleanup function to end the session
+    return () => {
+      const endUserSession = async (id) => {
+        if (id) {
+          try {
+            // Use navigator.sendBeacon for reliability on page unload
+            const data = new FormData(); // Though not strictly needed, it's a common pattern
+            navigator.sendBeacon(`http://localhost:8080/api/sessions/${id}/end`, data);
+          } catch (error) {
+            console.error("Error ending session:", error);
+          }
+        }
+      };
+      // The session ID from state might be stale in the cleanup function,
+      // so we pass it directly.
+      endUserSession(sessionId);
+    };
+
+  }, [navigate, location, sessionId]); // sessionId is added to dependencies
 
   // Add effect to update cart count when localStorage changes
   useEffect(() => {
@@ -78,9 +113,17 @@ const ClientDashboard = () => {
     };
   }, [cartItems]);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    if (sessionId) {
+        try {
+            await axios.put(`http://localhost:8080/api/sessions/${sessionId}/end`);
+        } catch (error) {
+            console.error("Error ending session on logout:", error);
+        }
+    }
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    localStorage.removeItem('cart'); // Also clear cart on logout
     navigate('/login');
   };
 
@@ -89,7 +132,7 @@ const ClientDashboard = () => {
     return cartItems.reduce((total, item) => total + item.quantity, 0);
   };
 
-  // Fonction pour récupérer le nombre de messages non lus
+  // Fonction pour récupérer le nombre de messages non lus au chargement
   const fetchUnreadMessages = async (userId) => {
     try {
       const token = localStorage.getItem('token');
@@ -197,6 +240,45 @@ const ClientDashboard = () => {
     }
   };
 
+  // Ajouter cette fonction pour formater la durée
+  const formatDuration = (seconds) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const remainingSeconds = seconds % 60;
+    
+    const parts = [];
+    if (hours > 0) parts.push(`${hours}h`);
+    if (minutes > 0) parts.push(`${minutes}m`);
+    if (remainingSeconds > 0 || parts.length === 0) parts.push(`${remainingSeconds}s`);
+    
+    return parts.join(' ');
+  };
+
+  // Ajouter cette fonction pour mettre à jour la durée
+  const updateSessionDuration = () => {
+    if (sessionId) {
+      const token = localStorage.getItem('token');
+      axios.get(`http://localhost:8080/api/sessions/${sessionId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      .then(response => {
+        if (response.data.sessionDuration) {
+          setSessionDuration(response.data.sessionDuration);
+        }
+      })
+      .catch(error => console.error("Erreur lors de la récupération de la durée de session:", error));
+    }
+  };
+
+  // Ajouter cet effet pour mettre à jour la durée périodiquement
+  useEffect(() => {
+    if (sessionId) {
+      const interval = setInterval(updateSessionDuration, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [sessionId]);
+
+  // Dans le rendu, ajouter une nouvelle carte statistique
   return (
     <div className="dashboard-container">
       {/* Sidebar */}

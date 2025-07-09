@@ -1,15 +1,15 @@
 :root {
-  --primary: #1D4ED8; /* Bleu plus foncé */
-  --primary-light: #DBEAFE;
-  --primary-dark: #1E3A8A; /* Bleu encore plus foncé */
-  --secondary: #10B981;
-  --text-primary: #1F2937;
-  --text-secondary: #6B7280;
+  --primary: #93C5FD; /* Bleu très clair */
+  --primary-light: #EFF8FF;
+  --secondary: #6EE7B7; /* Vert très clair */
+  --text-primary: #4B5563;
+  --text-secondary: #9CA3AF;
   --border: #E5E7EB;
-  --background: #F9FAFB;
+  --background: #F8FAFC;
   --white: #FFFFFF;
   --sidebar-width: 280px;
-  
+  --glow-effect: 0 0 15px rgba(96, 165, 250, 0.2);
+  --soft-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 }
 
 .dashboard-container {
@@ -55,52 +55,281 @@
   margin: 1rem 0;
 }
 
+/* Nouveau style pour les séparateurs */
+.divider-gradient {
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(96, 165, 250, 0.3), transparent);
+  margin: 1.5rem 0;
+}
+
 /* Styles spécifiques au dashboard commercial */
 .sidebar-subtitle {
   color: var(--primary);
   font-weight: 600;
 }
 
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
 .stat-card {
-  background: var(--white);
-  border-radius: 12px;
-  padding: 1.5rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  padding: 1.75rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  transition: all 0.3s ease;
+  border: 1px solid rgba(96, 165, 250, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Effet de verre amélioré pour les cartes */
+.glass-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: var(--soft-shadow), var(--glow-effect);
+}
+
+/* Effet de profondeur 3D */
+.card-3d {
+  transform-style: preserve-3d;
+  perspective: 1000px;
+}
+
+.card-3d:hover {
+  transform: rotateY(5deg) rotateX(2deg) translateY(-5px);
+}
+
+.loading-shimmer {
+  background: linear-gradient(90deg, #f0f4ff 25%, #e0e9ff 50%, #f0f4ff 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Effet de vague pour les sections */
+.wave-section {
+  position: relative;
+  overflow: hidden;
+}
+
+.wave-section::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 20px;
+  background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 1200 120" xmlns="http://www.w3.org/2000/svg"><path d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z" opacity=".25" fill="%2360A5FA"/><path d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60-41.34,36-53.26,55.47-114,61.13-172.41,20.55-45.76,31.49-97.3,36.37-149.4H0Z" opacity=".5" fill="%2360A5FA"/><path d="M0,0V5.63C149.93,59,314.09,71.32,475.83,42.57c43-7.64,84.23-20.12,127.61-26.46,59-8.63,112.48,12.24,165.56,35.4C827.93,77.22,886,95.24,951.2,90c86.53-7,172.46-45.71,248.8-84.81V0Z" fill="%2360A5FA"/></svg>');
+  background-size: cover;
+  z-index: 1;
+}
+
+/* Effet de parallaxe pour les images */
+.parallax-bg {
+  background-attachment: fixed;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+/* Nouveau style pour les tooltips */
+.tooltip {
+  position: relative;
+}
+
+.tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  opacity: 0;
+  transition: all 0.3s ease;
+  pointer-events: none;
+}
+
+.tooltip:hover::after {
+  opacity: 1;
+  transform: translateX(-50%) translateY(-5px);
+}
+
+/* Animation de rebond pour les éléments interactifs */
+.bounce-effect:hover {
+  animation: bounce 0.5s ease;
 }
 
 .stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(96, 165, 250, 0.15);
+  border-color: rgba(96, 165, 250, 0.2);
 }
 
-/* Styles pour les boutons d'action */
+.stat-icon {
+  background: linear-gradient(135deg, var(--primary-light) 0%, rgba(96, 165, 250, 0.2) 100%);
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover .stat-icon {
+  transform: scale(1.05);
+  background: linear-gradient(135deg, rgba(96, 165, 250, 0.2) 0%, var(--primary-light) 100%);
+}
+
+.stat-info {
+  flex: 1;
+}
+
+.stat-label {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.stat-value {
+  color: var(--text-primary);
+  font-size: 1.75rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  line-height: 1.2;
+}
+
+.stat-change {
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--text-secondary);
+}
+
+.stat-change.positive {
+  color: var(--secondary);
+}
+
+.welcome-card {
+  background: linear-gradient(135deg, #93C5FD 0%, #60A5FA 100%);
+  border-radius: 20px;
+  padding: 2.5rem;
+  color: white;
+  margin-bottom: 2rem;
+  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.15);
+  position: relative;
+  overflow: hidden;
+}
+
+.welcome-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, transparent 0%, rgba(255, 255, 255, 0.1) 100%);
+  pointer-events: none;
+}
+
+.welcome-card h1 {
+  font-size: 2rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  line-height: 1.2;
+}
+
+.welcome-text {
+  font-size: 1.1rem;
+  opacity: 0.9;
+  margin-bottom: 2rem;
+  line-height: 1.5;
+}
+
+.card-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
 .btn {
+  background: linear-gradient(135deg, var(--primary) 0%, #60A5FA 100%);
+  color: white;
+  border-radius: 12px;
+  padding: 0.75rem 1.5rem;
+  transition: all 0.3s ease;
+  border: none;
+  position: relative;
+  overflow: hidden;
   display: inline-flex;
   align-items: center;
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
+  gap: 0.5rem;
   font-weight: 500;
-  transition: all 0.2s ease;
+  font-size: 0.95rem;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, transparent 0%, rgba(255, 255, 255, 0.1) 100%);
+  transition: all 0.3s ease;
+  transform: translateY(100%);
+}
+
+.btn:hover::before {
+  transform: translateY(0);
+}
+
+.btn svg {
+  transition: transform 0.3s ease;
+}
+
+.btn:hover svg {
+  transform: scale(1.1);
 }
 
 .btn-primary {
-  background-color: var(--primary);
-  color: var(--white);
+  background: white;
+  color: var(--primary);
 }
 
 .btn-primary:hover {
-  background-color: var(--primary-dark);
+  background: rgba(255, 255, 255, 0.9);
+  transform: translateY(-2px);
 }
 
 .btn-secondary {
-  background-color: var(--white);
-  color: var(--primary);
-  border: 1px solid var(--primary);
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  backdrop-filter: blur(8px);
 }
 
 .btn-secondary:hover {
-  background-color: var(--primary-light);
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
 }
 .dashboard-sidebar {
   width: var(--sidebar-width);
@@ -127,28 +356,50 @@
   transition: var(--transition);
 }
 
+/* Ajout d'animations et d'effets visuels */
+@keyframes slideIn {
+  from { transform: translateX(-20px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+/* Amélioration de la navigation */
 .nav-item {
+  background: transparent;
+  border-radius: 12px;
+  margin-bottom: 0.5rem;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
   display: flex;
   align-items: center;
   padding: 0.875rem 1.25rem;
-  color: var(--white);
-  border-radius: 0.75rem;
-  margin-bottom: 0.5rem;
-  transition: var(--transition);
   cursor: pointer;
-  opacity: 0.8;
+  color: var(--text-primary);
 }
 
 .nav-item:hover {
-  background: var(--glass-effect);
-  opacity: 1;
+  background: rgba(147, 197, 253, 0.1);
   transform: translateX(4px);
 }
 
 .nav-item.active {
-  background: var(--white);
+  background: linear-gradient(135deg, var(--primary-light) 0%, rgba(96, 165, 250, 0.2) 100%);
   color: var(--primary);
-  opacity: 1;
 }
 
 .nav-item svg {
@@ -157,9 +408,2615 @@
   margin-right: 1rem;
 }
 
+.nav-item::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background-color: var(--primary);
+  transition: width 0.3s ease;
+}
+
+.nav-item:hover::after {
+  width: 100%;
+}
+
+.nav-item svg {
+  transition: transform 0.3s ease;
+}
+
+.nav-item:hover svg {
+  transform: scale(1.1);
+}
+
+/* Amélioration des cartes statistiques */
+.stat-card {
+  position: relative;
+  overflow: hidden;
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, transparent 0%, rgba(255, 255, 255, 0.1) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.stat-card:hover::before {
+  opacity: 1;
+}
+
+/* Amélioration des notifications */
+.notif-btn {
+  position: relative;
+  padding: 0.5rem;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.notif-btn:hover {
+  background-color: var(--primary-light);
+  transform: translateY(-2px);
+}
+
+.notif-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background-color: var(--danger);
+  color: white;
+  border-radius: 50%;
+  padding: 0.25rem;
+  min-width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: bold;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+/* Amélioration de la carte de bienvenue */
+.welcome-card {
+  position: relative;
+  overflow: hidden;
+  animation: fadeIn 0.6s ease-out;
+}
+
+.welcome-card::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 60%);
+  transform: rotate(45deg);
+  transition: all 0.6s ease;
+}
+
+.welcome-card:hover::after {
+  transform: rotate(45deg) translate(-30%, -30%);
+}
+
+/* Amélioration des boutons */
+.btn {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+  z-index: -1;
+}
+
+.btn:hover::before {
+  width: 300%;
+  height: 300%;
+}
+
+/* Amélioration du profil utilisateur */
+.user-profile {
+  transition: transform 0.3s ease;
+}
+
+.user-profile:hover {
+  transform: translateY(-2px);
+}
+
+.avatar {
+  transition: transform 0.3s ease;
+}
+
+.avatar:hover {
+  transform: rotate(360deg);
+}
+
+/* Amélioration des éléments du footer */
+.footer-item {
+  transition: all 0.3s ease;
+}
+
+.footer-item:hover {
+  transform: translateX(5px);
+  color: var(--primary);
+}
+
+.footer-item:hover svg {
+  transform: scale(1.1);
+  color: var(--primary);
+}
+
 .dashboard-main {
   flex: 1;
   margin-left: var(--sidebar-width);
   padding: 2rem;
 }
+.btn {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+  z-index: -1;
+}
+
+.btn:hover::before {
+  width: 300%;
+  height: 300%;
+}
+
+/* Amélioration du profil utilisateur */
+.user-profile {
+  transition: transform 0.3s ease;
+}
+
+.user-profile:hover {
+  transform: translateY(-2px);
+}
+
+.avatar {
+  transition: transform 0.3s ease;
+}
+
+.avatar:hover {
+  transform: rotate(360deg);
+}
+
+/* Amélioration des éléments du footer */
+.footer-item {
+  transition: all 0.3s ease;
+}
+
+.footer-item:hover {
+  transform: translateX(5px);
+  color: var(--primary);
+}
+
+.footer-item:hover svg {
+  transform: scale(1.1);
+  color: var(--primary);
+}
+
+.dashboard-main {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  padding: 2rem;
+}
+.btn {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+  z-index: -1;
+}
+
+.btn:hover::before {
+  width: 300%;
+  height: 300%;
+}
+
+/* Amélioration du profil utilisateur */
+.user-profile {
+  transition: transform 0.3s ease;
+}
+
+.user-profile:hover {
+  transform: translateY(-2px);
+}
+
+.avatar {
+  transition: transform 0.3s ease;
+}
+
+.avatar:hover {
+  transform: rotate(360deg);
+}
+
+/* Amélioration des éléments du footer */
+.footer-item {
+  transition: all 0.3s ease;
+}
+
+.footer-item:hover {
+  transform: translateX(5px);
+  color: var(--primary);
+}
+
+.footer-item:hover svg {
+  transform: scale(1.1);
+  color: var(--primary);
+}
+
+.dashboard-main {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  padding: 2rem;
+}
+.btn {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+  z-index: -1;
+}
+
+.btn:hover::before {
+  width: 300%;
+  height: 300%;
+}
+
+/* Amélioration du profil utilisateur */
+.user-profile {
+  transition: transform 0.3s ease;
+}
+
+.user-profile:hover {
+  transform: translateY(-2px);
+}
+
+.avatar {
+  transition: transform 0.3s ease;
+}
+
+.avatar:hover {
+  transform: rotate(360deg);
+}
+
+/* Amélioration des éléments du footer */
+.footer-item {
+  transition: all 0.3s ease;
+}
+
+.footer-item:hover {
+  transform: translateX(5px);
+  color: var(--primary);
+}
+
+.footer-item:hover svg {
+  transform: scale(1.1);
+  color: var(--primary);
+}
+
+.dashboard-main {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  padding: 2rem;
+}
+.btn {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+  z-index: -1;
+}
+
+.btn:hover::before {
+  width: 300%;
+  height: 300%;
+}
+
+/* Amélioration du profil utilisateur */
+.user-profile {
+  transition: transform 0.3s ease;
+}
+
+.user-profile:hover {
+  transform: translateY(-2px);
+}
+
+.avatar {
+  transition: transform 0.3s ease;
+}
+
+.avatar:hover {
+  transform: rotate(360deg);
+}
+
+/* Amélioration des éléments du footer */
+.footer-item {
+  transition: all 0.3s ease;
+}
+
+.footer-item:hover {
+  transform: translateX(5px);
+  color: var(--primary);
+}
+
+.footer-item:hover svg {
+  transform: scale(1.1);
+  color: var(--primary);
+}
+
+.dashboard-main {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  padding: 2rem;
+}
+.btn {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+  z-index: -1;
+}
+
+.btn:hover::before {
+  width: 300%;
+  height: 300%;
+}
+
+/* Amélioration du profil utilisateur */
+.user-profile {
+  transition: transform 0.3s ease;
+}
+
+.user-profile:hover {
+  transform: translateY(-2px);
+}
+
+.avatar {
+  transition: transform 0.3s ease;
+}
+
+.avatar:hover {
+  transform: rotate(360deg);
+}
+
+/* Amélioration des éléments du footer */
+.footer-item {
+  transition: all 0.3s ease;
+}
+
+.footer-item:hover {
+  transform: translateX(5px);
+  color: var(--primary);
+}
+
+.footer-item:hover svg {
+  transform: scale(1.1);
+  color: var(--primary);
+}
+
+.dashboard-main {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  padding: 2rem;
+}
+.btn {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+  z-index: -1;
+}
+
+.btn:hover::before {
+  width: 300%;
+  height: 300%;
+}
+
+/* Amélioration du profil utilisateur */
+.user-profile {
+  transition: transform 0.3s ease;
+}
+
+.user-profile:hover {
+  transform: translateY(-2px);
+}
+
+.avatar {
+  transition: transform 0.3s ease;
+}
+
+.avatar:hover {
+  transform: rotate(360deg);
+}
+
+/* Amélioration des éléments du footer */
+.footer-item {
+  transition: all 0.3s ease;
+}
+
+.footer-item:hover {
+  transform: translateX(5px);
+  color: var(--primary);
+}
+
+.footer-item:hover svg {
+  transform: scale(1.1);
+  color: var(--primary);
+}
+
+.dashboard-main {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  padding: 2rem;
+}
+.btn {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+  z-index: -1;
+}
+
+.btn:hover::before {
+  width: 300%;
+  height: 300%;
+}
+
+/* Amélioration du profil utilisateur */
+.user-profile {
+  transition: transform 0.3s ease;
+}
+
+.user-profile:hover {
+  transform: translateY(-2px);
+}
+
+.avatar {
+  transition: transform 0.3s ease;
+}
+
+.avatar:hover {
+  transform: rotate(360deg);
+}
+
+/* Amélioration des éléments du footer */
+.footer-item {
+  transition: all 0.3s ease;
+}
+
+.footer-item:hover {
+  transform: translateX(5px);
+  color: var(--primary);
+}
+
+.footer-item:hover svg {
+  transform: scale(1.1);
+  color: var(--primary);
+}
+
+.dashboard-main {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  padding: 2rem;
+}
+.btn {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+  z-index: -1;
+}
+
+.btn:hover::before {
+  width: 300%;
+  height: 300%;
+}
+
+/* Amélioration du profil utilisateur */
+.user-profile {
+  transition: transform 0.3s ease;
+}
+
+.user-profile:hover {
+  transform: translateY(-2px);
+}
+
+.avatar {
+  transition: transform 0.3s ease;
+}
+
+.avatar:hover {
+  transform: rotate(360deg);
+}
+
+/* Amélioration des éléments du footer */
+.footer-item {
+  transition: all 0.3s ease;
+}
+
+.footer-item:hover {
+  transform: translateX(5px);
+  color: var(--primary);
+}
+
+.footer-item:hover svg {
+  transform: scale(1.1);
+  color: var(--primary);
+}
+
+.dashboard-main {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  padding: 2rem;
+}
+.btn {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+  z-index: -1;
+}
+
+.btn:hover::before {
+  width: 300%;
+  height: 300%;
+}
+
+/* Amélioration du profil utilisateur */
+.user-profile {
+  transition: transform 0.3s ease;
+}
+
+.user-profile:hover {
+  transform: translateY(-2px);
+}
+
+.avatar {
+  transition: transform 0.3s ease;
+}
+
+.avatar:hover {
+  transform: rotate(360deg);
+}
+
+/* Amélioration des éléments du footer */
+.footer-item {
+  transition: all 0.3s ease;
+}
+
+.footer-item:hover {
+  transform: translateX(5px);
+  color: var(--primary);
+}
+
+.footer-item:hover svg {
+  transform: scale(1.1);
+  color: var(--primary);
+}
+
+.dashboard-main {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  padding: 2rem;
+}
+.btn {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+  z-index: -1;
+}
+
+.btn:hover::before {
+  width: 300%;
+  height: 300%;
+}
+
+/* Amélioration du profil utilisateur */
+.user-profile {
+  transition: transform 0.3s ease;
+}
+
+.user-profile:hover {
+  transform: translateY(-2px);
+}
+
+.avatar {
+  transition: transform 0.3s ease;
+}
+
+.avatar:hover {
+  transform: rotate(360deg);
+}
+
+/* Amélioration des éléments du footer */
+.footer-item {
+  transition: all 0.3s ease;
+}
+
+.footer-item:hover {
+  transform: translateX(5px);
+  color: var(--primary);
+}
+
+.footer-item:hover svg {
+  transform: scale(1.1);
+  color: var(--primary);
+}
+
+.dashboard-main {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  padding: 2rem;
+}
+.btn {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+  z-index: -1;
+}
+
+.btn:hover::before {
+  width: 300%;
+  height: 300%;
+}
+
+/* Amélioration du profil utilisateur */
+.user-profile {
+  transition: transform 0.3s ease;
+}
+
+.user-profile:hover {
+  transform: translateY(-2px);
+}
+
+.avatar {
+  transition: transform 0.3s ease;
+}
+
+.avatar:hover {
+  transform: rotate(360deg);
+}
+
+/* Amélioration des éléments du footer */
+.footer-item {
+  transition: all 0.3s ease;
+}
+
+.footer-item:hover {
+  transform: translateX(5px);
+  color: var(--primary);
+}
+
+.footer-item:hover svg {
+  transform: scale(1.1);
+  color: var(--primary);
+}
+
+.dashboard-main {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  padding: 2rem;
+}
+.btn {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+  z-index: -1;
+}
+
+.btn:hover::before {
+  width: 300%;
+  height: 300%;
+}
+
+/* Amélioration du profil utilisateur */
+.user-profile {
+  transition: transform 0.3s ease;
+}
+
+.user-profile:hover {
+  transform: translateY(-2px);
+}
+
+.avatar {
+  transition: transform 0.3s ease;
+}
+
+.avatar:hover {
+  transform: rotate(360deg);
+}
+
+/* Amélioration des éléments du footer */
+.footer-item {
+  transition: all 0.3s ease;
+}
+
+.footer-item:hover {
+  transform: translateX(5px);
+  color: var(--primary);
+}
+
+.footer-item:hover svg {
+  transform: scale(1.1);
+  color: var(--primary);
+}
+
+.dashboard-main {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  padding: 2rem;
+}
+.btn {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+  z-index: -1;
+}
+
+.btn:hover::before {
+  width: 300%;
+  height: 300%;
+}
+
+/* Amélioration du profil utilisateur */
+.user-profile {
+  transition: transform 0.3s ease;
+}
+
+.user-profile:hover {
+  transform: translateY(-2px);
+}
+
+.avatar {
+  transition: transform 0.3s ease;
+}
+
+.avatar:hover {
+  transform: rotate(360deg);
+}
+
+/* Amélioration des éléments du footer */
+.footer-item {
+  transition: all 0.3s ease;
+}
+
+.footer-item:hover {
+  transform: translateX(5px);
+  color: var(--primary);
+}
+
+.footer-item:hover svg {
+  transform: scale(1.1);
+  color: var(--primary);
+}
+
+.dashboard-main {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  padding: 2rem;
+}
+.btn {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+  z-index: -1;
+}
+
+.btn:hover::before {
+  width: 300%;
+  height: 300%;
+}
+
+/* Amélioration du profil utilisateur */
+.user-profile {
+  transition: transform 0.3s ease;
+}
+
+.user-profile:hover {
+  transform: translateY(-2px);
+}
+
+.avatar {
+  transition: transform 0.3s ease;
+}
+
+.avatar:hover {
+  transform: rotate(360deg);
+}
+
+/* Amélioration des éléments du footer */
+.footer-item {
+  transition: all 0.3s ease;
+}
+
+.footer-item:hover {
+  transform: translateX(5px);
+  color: var(--primary);
+}
+
+.footer-item:hover svg {
+  transform: scale(1.1);
+  color: var(--primary);
+}
+
+.dashboard-main {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  padding: 2rem;
+}
+.btn {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+  z-index: -1;
+}
+
+.btn:hover::before {
+  width: 300%;
+  height: 300%;
+}
+
+/* Amélioration du profil utilisateur */
+.user-profile {
+  transition: transform 0.3s ease;
+}
+
+.user-profile:hover {
+  transform: translateY(-2px);
+}
+
+.avatar {
+  transition: transform 0.3s ease;
+}
+
+.avatar:hover {
+  transform: rotate(360deg);
+}
+
+/* Amélioration des éléments du footer */
+.footer-item {
+  transition: all 0.3s ease;
+}
+
+.footer-item:hover {
+  transform: translateX(5px);
+  color: var(--primary);
+}
+
+.footer-item:hover svg {
+  transform: scale(1.1);
+  color: var(--primary);
+}
+
+.dashboard-main {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  padding: 2rem;
+}
+.btn {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+  z-index: -1;
+}
+
+.btn:hover::before {
+  width: 300%;
+  height: 300%;
+}
+
+/* Amélioration du profil utilisateur */
+.user-profile {
+  transition: transform 0.3s ease;
+}
+
+.user-profile:hover {
+  transform: translateY(-2px);
+}
+
+.avatar {
+  transition: transform 0.3s ease;
+}
+
+.avatar:hover {
+  transform: rotate(360deg);
+}
+
+/* Amélioration des éléments du footer */
+.footer-item {
+  transition: all 0.3s ease;
+}
+
+.footer-item:hover {
+  transform: translateX(5px);
+  color: var(--primary);
+}
+
+.footer-item:hover svg {
+  transform: scale(1.1);
+  color: var(--primary);
+}
+
+.dashboard-main {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  padding: 2rem;
+}
+.btn {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+  z-index: -1;
+}
+
+.btn:hover::before {
+  width: 300%;
+  height: 300%;
+}
+
+/* Amélioration du profil utilisateur */
+.user-profile {
+  transition: transform 0.3s ease;
+}
+
+.user-profile:hover {
+  transform: translateY(-2px);
+}
+
+.avatar {
+  transition: transform 0.3s ease;
+}
+
+.avatar:hover {
+  transform: rotate(360deg);
+}
+
+/* Amélioration des éléments du footer */
+.footer-item {
+  transition: all 0.3s ease;
+}
+
+.footer-item:hover {
+  transform: translateX(5px);
+  color: var(--primary);
+}
+
+.footer-item:hover svg {
+  transform: scale(1.1);
+  color: var(--primary);
+}
+
+.dashboard-main {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  padding: 2rem;
+}
+.btn {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+  z-index: -1;
+}
+
+.btn:hover::before {
+  width: 300%;
+  height: 300%;
+}
+
+/* Amélioration du profil utilisateur */
+.user-profile {
+  transition: transform 0.3s ease;
+}
+
+.user-profile:hover {
+  transform: translateY(-2px);
+}
+
+.avatar {
+  transition: transform 0.3s ease;
+}
+
+.avatar:hover {
+  transform: rotate(360deg);
+}
+
+/* Amélioration des éléments du footer */
+.footer-item {
+  transition: all 0.3s ease;
+}
+
+.footer-item:hover {
+  transform: translateX(5px);
+  color: var(--primary);
+}
+
+.footer-item:hover svg {
+  transform: scale(1.1);
+  color: var(--primary);
+}
+
+.dashboard-main {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  padding: 2rem;
+}
+.btn {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+  z-index: -1;
+}
+
+.btn:hover::before {
+  width: 300%;
+  height: 300%;
+}
+
+/* Amélioration du profil utilisateur */
+.user-profile {
+  transition: transform 0.3s ease;
+}
+
+.user-profile:hover {
+  transform: translateY(-2px);
+}
+
+.avatar {
+  transition: transform 0.3s ease;
+}
+
+.avatar:hover {
+  transform: rotate(360deg);
+}
+
+/* Amélioration des éléments du footer */
+.footer-item {
+  transition: all 0.3s ease;
+}
+
+.footer-item:hover {
+  transform: translateX(5px);
+  color: var(--primary);
+}
+
+.footer-item:hover svg {
+  transform: scale(1.1);
+  color: var(--primary);
+}
+
+.dashboard-main {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  padding: 2rem;
+}
+.btn {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+  z-index: -1;
+}
+
+.btn:hover::before {
+  width: 300%;
+  height: 300%;
+}
+
+/* Amélioration du profil utilisateur */
+.user-profile {
+  transition: transform 0.3s ease;
+}
+
+.user-profile:hover {
+  transform: translateY(-2px);
+}
+
+.avatar {
+  transition: transform 0.3s ease;
+}
+
+.avatar:hover {
+  transform: rotate(360deg);
+}
+
+/* Amélioration des éléments du footer */
+.footer-item {
+  transition: all 0.3s ease;
+}
+
+.footer-item:hover {
+  transform: translateX(5px);
+  color: var(--primary);
+}
+
+.footer-item:hover svg {
+  transform: scale(1.1);
+  color: var(--primary);
+}
+
+.dashboard-main {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  padding: 2rem;
+}
+.btn {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+  z-index: -1;
+}
+
+.btn:hover::before {
+  width: 300%;
+  height: 300%;
+}
+
+/* Amélioration du profil utilisateur */
+.user-profile {
+  transition: transform 0.3s ease;
+}
+
+.user-profile:hover {
+  transform: translateY(-2px);
+}
+
+.avatar {
+  transition: transform 0.3s ease;
+}
+
+.avatar:hover {
+  transform: rotate(360deg);
+}
+
+/* Amélioration des éléments du footer */
+.footer-item {
+  transition: all 0.3s ease;
+}
+
+.footer-item:hover {
+  transform: translateX(5px);
+  color: var(--primary);
+}
+
+.footer-item:hover svg {
+  transform: scale(1.1);
+  color: var(--primary);
+}
+
+.dashboard-main {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  padding: 2rem;
+}
+.btn {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+  z-index: -1;
+}
+
+.btn:hover::before {
+  width: 300%;
+  height: 300%;
+}
+
+/* Amélioration du profil utilisateur */
+.user-profile {
+  transition: transform 0.3s ease;
+}
+
+.user-profile:hover {
+  transform: translateY(-2px);
+}
+
+.avatar {
+  transition: transform 0.3s ease;
+}
+
+.avatar:hover {
+  transform: rotate(360deg);
+}
+
+/* Amélioration des éléments du footer */
+.footer-item {
+  transition: all 0.3s ease;
+}
+
+.footer-item:hover {
+  transform: translateX(5px);
+  color: var(--primary);
+}
+
+.footer-item:hover svg {
+  transform: scale(1.1);
+  color: var(--primary);
+}
+
+.dashboard-main {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  padding: 2rem;
+}
+.btn {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+  z-index: -1;
+}
+
+.btn:hover::before {
+  width: 300%;
+  height: 300%;
+}
+
+/* Amélioration du profil utilisateur */
+.user-profile {
+  transition: transform 0.3s ease;
+}
+
+.user-profile:hover {
+  transform: translateY(-2px);
+}
+
+.avatar {
+  transition: transform 0.3s ease;
+}
+
+.avatar:hover {
+  transform: rotate(360deg);
+}
+
+/* Amélioration des éléments du footer */
+.footer-item {
+  transition: all 0.3s ease;
+}
+
+.footer-item:hover {
+  transform: translateX(5px);
+  color: var(--primary);
+}
+
+.footer-item:hover svg {
+  transform: scale(1.1);
+  color: var(--primary);
+}
+
+.dashboard-main {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  padding: 2rem;
+}
+.btn {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+  z-index: -1;
+}
+
+.btn:hover::before {
+  width: 300%;
+  height: 300%;
+}
+
+/* Amélioration du profil utilisateur */
+.user-profile {
+  transition: transform 0.3s ease;
+}
+
+.user-profile:hover {
+  transform: translateY(-2px);
+}
+
+.avatar {
+  transition: transform 0.3s ease;
+}
+
+.avatar:hover {
+  transform: rotate(360deg);
+}
+
+/* Amélioration des éléments du footer */
+.footer-item {
+  transition: all 0.3s ease;
+}
+
+.footer-item:hover {
+  transform: translateX(5px);
+  color: var(--primary);
+}
+
+.footer-item:hover svg {
+  transform: scale(1.1);
+  color: var(--primary);
+}
+
+.dashboard-main {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  padding: 2rem;
+}
+.btn {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+  z-index: -1;
+}
+
+.btn:hover::before {
+  width: 300%;
+  height: 300%;
+}
+
+/* Amélioration du profil utilisateur */
+.user-profile {
+  transition: transform 0.3s ease;
+}
+
+.user-profile:hover {
+  transform: translateY(-2px);
+}
+
+.avatar {
+  transition: transform 0.3s ease;
+}
+
+.avatar:hover {
+  transform: rotate(360deg);
+}
+
+/* Amélioration des éléments du footer */
+.footer-item {
+  transition: all 0.3s ease;
+}
+
+.footer-item:hover {
+  transform: translateX(5px);
+  color: var(--primary);
+}
+
+.footer-item:hover svg {
+  transform: scale(1.1);
+  color: var(--primary);
+}
+
+.dashboard-main {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  padding: 2rem;
+}
+.btn {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+  z-index: -1;
+}
+
+.btn:hover::before {
+  width: 300%;
+  height: 300%;
+}
+
+/* Amélioration du profil utilisateur */
+.user-profile {
+  transition: transform 0.3s ease;
+}
+
+.user-profile:hover {
+  transform: translateY(-2px);
+}
+
+.avatar {
+  transition: transform 0.3s ease;
+}
+
+.avatar:hover {
+  transform: rotate(360deg);
+}
+
+/* Amélioration des éléments du footer */
+.footer-item {
+  transition: all 0.3s ease;
+}
+
+.footer-item:hover {
+  transform: translateX(5px);
+  color: var(--primary);
+}
+
+.footer-item:hover svg {
+  transform: scale(1.1);
+  color: var(--primary);
+}
+
+.dashboard-main {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  padding: 2rem;
+}
+.btn {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+  z-index: -1;
+}
+
+.btn:hover::before {
+  width: 300%;
+  height: 300%;
+}
+
+/* Amélioration du profil utilisateur */
+.user-profile {
+  transition: transform 0.3s ease;
+}
+
+.user-profile:hover {
+  transform: translateY(-2px);
+}
+
+.avatar {
+  transition: transform 0.3s ease;
+}
+
+.avatar:hover {
+  transform: rotate(360deg);
+}
+
+/* Amélioration des éléments du footer */
+.footer-item {
+  transition: all 0.3s ease;
+}
+
+.footer-item:hover {
+  transform: translateX(5px);
+  color: var(--primary);
+}
+
+.footer-item:hover svg {
+  transform: scale(1.1);
+  color: var(--primary);
+}
+
+.dashboard-main {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  padding: 2rem;
+}
+.btn {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+  z-index: -1;
+}
+
+.btn:hover::before {
+  width: 300%;
+  height: 300%;
+}
+
+/* Amélioration du profil utilisateur */
+.user-profile {
+  transition: transform 0.3s ease;
+}
+
+.user-profile:hover {
+  transform: translateY(-2px);
+}
+
+.avatar {
+  transition: transform 0.3s ease;
+}
+
+.avatar:hover {
+  transform: rotate(360deg);
+}
+
+/* Amélioration des éléments du footer */
+.footer-item {
+  transition: all 0.3s ease;
+}
+
+.footer-item:hover {
+  transform: translateX(5px);
+  color: var(--primary);
+}
+
+.footer-item:hover svg {
+  transform: scale(1.1);
+  color: var(--primary);
+}
+
+.dashboard-main {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  padding: 2rem;
+}
+.btn {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+  z-index: -1;
+}
+
+.btn:hover::before {
+  width: 300%;
+  height: 300%;
+}
+
+/* Amélioration du profil utilisateur */
+.user-profile {
+  transition: transform 0.3s ease;
+}
+
+.user-profile:hover {
+  transform: translateY(-2px);
+}
+
+.avatar {
+  transition: transform 0.3s ease;
+}
+
+.avatar:hover {
+  transform: rotate(360deg);
+}
+
+/* Amélioration des éléments du footer */
+.footer-item {
+  transition: all 0.3s ease;
+}
+
+.footer-item:hover {
+  transform: translateX(5px);
+  color: var(--primary);
+}
+
+.footer-item:hover svg {
+  transform: scale(1.1);
+  color: var(--primary);
+}
+
+.dashboard-main {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  padding: 2rem;
+}
+.btn {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+  z-index: -1;
+}
+
+.btn:hover::before {
+  width: 300%;
+  height: 300%;
+}
+
+/* Amélioration du profil utilisateur */
+.user-profile {
+  transition: transform 0.3s ease;
+}
+
+.user-profile:hover {
+  transform: translateY(-2px);
+}
+
+.avatar {
+  transition: transform 0.3s ease;
+}
+
+.avatar:hover {
+  transform: rotate(360deg);
+}
+
+/* Amélioration des éléments du footer */
+.footer-item {
+  transition: all 0.3s ease;
+}
+
+.footer-item:hover {
+  transform: translateX(5px);
+  color: var(--primary);
+}
+
+.footer-item:hover svg {
+  transform: scale(1.1);
+  color: var(--primary);
+}
+
+.dashboard-main {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  padding: 2rem;
+}
+.btn {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+  z-index: -1;
+}
+
+.btn:hover::before {
+  width: 300%;
+  height: 300%;
+}
+
+/* Amélioration du profil utilisateur */
+.user-profile {
+  transition: transform 0.3s ease;
+}
+
+.user-profile:hover {
+  transform: translateY(-2px);
+}
+
+.avatar {
+  transition: transform 0.3s ease;
+}
+
+.avatar:hover {
+  transform: rotate(360deg);
+}
+
+/* Amélioration des éléments du footer */
+.footer-item {
+  transition: all 0.3s ease;
+}
+
+.footer-item:hover {
+  transform: translateX(5px);
+  color: var(--primary);
+}
+
+.footer-item:hover svg {
+  transform: scale(1.1);
+  color: var(--primary);
+}
+
+.dashboard-main {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  padding: 2rem;
+}
+.btn {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+  z-index: -1;
+}
+
+.btn:hover::before {
+  width: 300%;
+  height: 300%;
+}
+
+/* Amélioration du profil utilisateur */
+.user-profile {
+  transition: transform 0.3s ease;
+}
+
+.user-profile:hover {
+  transform: translateY(-2px);
+}
+
+.avatar {
+  transition: transform 0.3s ease;
+}
+
+.avatar:hover {
+  transform: rotate(360deg);
+}
+
+/* Amélioration des éléments du footer */
+.footer-item {
+  transition: all 0.3s ease;
+}
+
+.footer-item:hover {
+  transform: translateX(5px);
+  color: var(--primary);
+}
+
+.footer-item:hover svg {
+  transform: scale(1.1);
+  color: var(--primary);
+}
+
+.dashboard-main {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  padding: 2rem;
+}
+.btn {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+  z-index: -1;
+}
+
+.btn:hover::before {
+  width: 300%;
+  height: 300%;
+}
+
+/* Amélioration du profil utilisateur */
+.user-profile {
+  transition: transform 0.3s ease;
+}
+
+.user-profile:hover {
+  transform: translateY(-2px);
+}
+
+.avatar {
+  transition: transform 0.3s ease;
+}
+
+.avatar:hover {
+  transform: rotate(360deg);
+}
+
+/* Amélioration des éléments du footer */
+.footer-item {
+  transition: all 0.3s ease;
+}
+
+.footer-item:hover {
+  transform: translateX(5px);
+  color: var(--primary);
+}
+
+.footer-item:hover svg {
+  transform: scale(1.1);
+  color: var(--primary);
+}
+
+.dashboard-main {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  padding: 2rem;
+}
+.btn {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+  z-index: -1;
+}
+
+.btn:hover::before {
+  width: 300%;
+  height: 300%;
+}
+
+/* Amélioration du profil utilisateur */
+.user-profile {
+  transition: transform 0.3s ease;
+}
+
+.user-profile:hover {
+  transform: translateY(-2px);
+}
+
+.avatar {
+  transition: transform 0.3s ease;
+}
+
+.avatar:hover {
+  transform: rotate(360deg);
+}
+
+/* Amélioration des éléments du footer */
+.footer-item {
+  transition: all 0.3s ease;
+}
+
+.footer-item:hover {
+  transform: translateX(5px);
+  color: var(--primary);
+}
+
+.footer-item:hover svg {
+  transform: scale(1.1);
+  color: var(--primary);
+}
+
+.dashboard-main {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  padding: 2rem;
+}
+.btn {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+  z-index: -1;
+}
+
+.btn:hover::before {
+  width: 300%;
+  height: 300%;
+}
+
+/* Amélioration du profil utilisateur */
+.user-profile {
+  transition: transform 0.3s ease;
+}
+
+.user-profile:hover {
+  transform: translateY(-2px);
+}
+
+.avatar {
+  transition: transform 0.3s ease;
+}
+
+.avatar:hover {
+  transform: rotate(360deg);
+}
+
+/* Amélioration des éléments du footer */
+.footer-item {
+  transition: all 0.3s ease;
+}
+
+.footer-item:hover {
+  transform: translateX(5px);
+  color: var(--primary);
+}
+
+.footer-item:hover svg {
+  transform: scale(1.1);
+  color: var(--primary);
+}
+
+.dashboard-main {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  padding: 2rem;
+}
+.btn {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+  z-index: -1;
+}
+
+.btn:hover::before {
+  width: 300%;
+  height: 300%;
+}
+
+/* Amélioration du profil utilisateur */
+.user-profile {
+  transition: transform 0.3s ease;
+}
+
+.user-profile:hover {
+  transform: translateY(-2px);
+}
+
+.avatar {
+  transition: transform 0.3s ease;
+}
+
+.avatar:hover {
+  transform: rotate(360deg);
+}
+
+/* Amélioration des éléments du footer */
+.footer-item {
+  transition: all 0.3s ease;
+}
+
+.footer-item:hover {
+  transform: translateX(5px);
+  color: var(--primary);
+}
+
+.footer-item:hover svg {
+  transform: scale(1.1);
+  color: var(--primary);
+}
+
+.dashboard-main {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  padding: 2rem;
+}
+.btn {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+  z-index: -1;
+}
+
+.btn:hover::before {
+  width: 300%;
+  height: 300%;
+}
+
+/* Amélioration du profil utilisateur */
+.user-profile {
+  transition: transform 0.3s ease;
+}
+
+.user-profile:hover {
+  transform: translateY(-2px);
+}
+
+.avatar {
+  transition: transform 0.3s ease;
+}
+
+.avatar:hover {
+  transform: rotate(360deg);
+}
+
+/* Amélioration des éléments du footer */
+.footer-item {
+  transition: all 0.3s ease;
+}
+
+.footer-item:hover {
+  transform: translateX(5px);
+  color: var(--primary);
+}
+
+.footer-item:hover svg {
+  transform: scale(1.1);
+  color: var(--primary);
+}
+
+.dashboard-main {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  padding: 2rem;
+}
+.btn {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+  z-index: -1;
+}
+
+.btn:hover::before {
+  width: 300%;
+  height: 300%;
+}
+
+/* Amélioration du profil utilisateur */
+.user-profile {
+  transition: transform 0.3s ease;
+}
+
+.user-profile:hover {
+  transform: translateY(-2px);
+}
+
+.avatar {
+  transition: transform 0.3s ease;
+}
+
+.avatar:hover {
+  transform: rotate(360deg);
+}
+
+/* Amélioration des éléments du footer */
+.footer-item {
+  transition: all 0.3s ease;
+}
+
+.footer-item:hover {
+  transform: translateX(5px);
+  color: var(--primary);
+}
+
+.footer-item:hover svg {
+  transform: scale(1.1);
+  color: var(--primary);
+}
+
+.dashboard-main {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  padding: 2rem;
+}
+.btn {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+  z-index: -1;
+}
+
+.btn:hover::before {
+  width: 300%;
+  height: 300%;
+}
+
+/* Amélioration du profil utilisateur */
+.user-profile {
+  transition: transform 0.3s ease;
+}
+
+.user-profile:hover {
+  transform: translateY(-2px);
+}
+
+.avatar {
+  transition: transform 0.3s ease;
+}
+
+.avatar:hover {
+  transform: rotate(360deg);
+}
+
+/* Amélioration des éléments du footer */
+.footer-item {
+  transition: all 0.3s ease;
+}
+
+.footer-item:hover {
+  transform: translateX(5px);
+  color: var(--primary);
+}
+
+.footer-item:hover svg {
+  transform: scale(1.1);
+  color: var(--primary);
+}
+
+.dashboard-main {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  padding: 2rem;
+}
+.btn {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width 0.6s ease, height 0.6s ease;
+  z-index: -1;
+}
+
+
 

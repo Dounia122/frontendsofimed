@@ -37,7 +37,7 @@ const CommandeSuivi = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('TOUS');
   const [sortConfig, setSortConfig] = useState({ 
-    field: 'createdAt', // Correction du champ initial
+    field: 'dateCreation', // Changed from 'createdAt' to match backend
     direction: 'desc' 
   });
   const [expandedRow, setExpandedRow] = useState(null);
@@ -114,14 +114,15 @@ const CommandeSuivi = () => {
         params.append('page', pagination.currentPage - 1);
         params.append('size', pagination.pageSize);
         
-        if (sortConfig.field) {
-          params.append('sort', `${sortConfig.field},${sortConfig.direction}`);
-        }
+        // Add sorting according to backend expected format
+        params.append('sort', `${sortConfig.field},${sortConfig.direction}`);
         
+        // Status filter
         if (statusFilter !== 'TOUS') {
           params.append('status', statusFilter);
         }
         
+        // Reference filter
         if (debouncedSearchTerm) {
           params.append('reference', debouncedSearchTerm);
         }
@@ -186,20 +187,25 @@ const CommandeSuivi = () => {
   const formatCurrency = (amount) => {
     if (amount === null || amount === undefined) return 'N/A';
     try {
-      return new Intl.NumberFormat('fr-FR', {
+      return new Intl.NumberFormat('fr-MA', {
         style: 'currency',
-        currency: 'EUR',
+        currency: 'MAD',
         minimumFractionDigits: 2
       }).format(amount);
     } catch (e) {
       console.error('Erreur de formatage monétaire:', e);
-      return '€0.00';
+      return '0,00 MAD';
     }
   };
 
   const getStatusIcon = (status) => {
     const statusInfo = statusOptions.find(opt => opt.value === status);
     return statusInfo ? <FontAwesomeIcon icon={statusInfo.icon} /> : null;
+  };
+
+  const getStatusLabel = (status) => {
+    const statusInfo = statusOptions.find(opt => opt.value === status);
+    return statusInfo ? statusInfo.label : status;
   };
 
   const toggleRowDetails = (id) => {
@@ -210,12 +216,10 @@ const CommandeSuivi = () => {
     try {
       const headers = "Référence,Statut,Date création,Montant,Livraison,Commercial\n";
       
-      // Correction du mapping des statuts pour l'export
       const csvRows = commandes.map(c => {
-        const statusInfo = statusOptions.find(opt => opt.value === c.devis?.statut);
-        const statutLabel = statusInfo ? statusInfo.label : c.devis?.statut || 'N/A';
+        const statutLabel = getStatusLabel(c.status);
         
-        return `"${c.devis?.reference || 'N/A'}","${statutLabel}","${formatDate(c.devis?.createdAt)}","${c.totalTTC || 'N/A'}","${formatDate(c.dateLivraisonSouhaitee)}","${c.commercial?.fullName || 'N/A'}"`
+        return `"${c.reference || 'N/A'}","${statutLabel}","${formatDate(c.dateCreation)}","${c.totalTTC || 'N/A'}","${formatDate(c.dateLivraisonSouhaitee)}","${c.commercial?.fullName || 'N/A'}"`
       });
       
       const csvContent = "data:text/csv;charset=utf-8," + headers + csvRows.join("\n");
@@ -250,7 +254,7 @@ const CommandeSuivi = () => {
   const resetFilters = () => {
     setSearchTerm('');
     setStatusFilter('TOUS');
-    setSortConfig({ field: 'createdAt', direction: 'desc' }); // Correction du champ initial
+    setSortConfig({ field: 'dateCreation', direction: 'desc' });
   };
 
   if (loading && !clientId) {
@@ -347,7 +351,6 @@ const CommandeSuivi = () => {
         {pagination.totalElements} commande{pagination.totalElements !== 1 ? 's' : ''} trouvée{pagination.totalElements !== 1 ? 's' : ''}
       </div>
 
-      {/* Conteneur pour l'overlay de chargement */}
       <div className="table-and-pagination">
         {loading && clientId && (
           <div className="loading-overlay">
@@ -374,10 +377,10 @@ const CommandeSuivi = () => {
             <div className="header-cell">Statut</div>
             <div 
               className="header-cell sortable" 
-              onClick={() => handleSort('createdAt')}
+              onClick={() => handleSort('dateCreation')}
             >
               Date création
-              {sortConfig.field === 'createdAt' ? (
+              {sortConfig.field === 'dateCreation' ? (
                 <FontAwesomeIcon 
                   icon={sortConfig.direction === 'asc' ? faSortUp : faSortDown} 
                   className="sort-icon"
@@ -422,21 +425,18 @@ const CommandeSuivi = () => {
                   <div className="commande-row">
                     <div className="data-cell reference-cell">
                       <span className="mobile-label">Référence:</span>
-                      {commande.devis?.reference || 'N/A'}
+                      {commande.reference || 'N/A'}
                     </div>
                     <div className="data-cell">
                       <span className="mobile-label">Statut:</span>
-                      <span className={`status-badge ${commande.devis?.statut?.toLowerCase() || 'unknown'}`}>
-                        {getStatusIcon(commande.devis?.statut)}
-                        {commande.devis?.statut === 'EN_ATTENTE' && 'En attente'}
-                        {commande.devis?.statut === 'VALIDEE' && 'Validée'}
-                        {commande.devis?.statut === 'REJETEE' && 'Rejetée'}
-                        {commande.devis?.statut === 'EN_COURS' && 'En cours'}
+                      <span className={`status-badge ${commande.status?.toLowerCase() || 'unknown'}`}>
+                        {getStatusIcon(commande.status)}
+                        {getStatusLabel(commande.status)}
                       </span>
                     </div>
                     <div className="data-cell">
                       <span className="mobile-label">Création:</span>
-                      {formatDate(commande.devis?.createdAt)}
+                      {formatDate(commande.dateCreation)}
                     </div>
                     <div className="data-cell amount-cell">
                       <span className="mobile-label">Montant:</span>
@@ -460,7 +460,7 @@ const CommandeSuivi = () => {
                   </div>
 
                   {expandedRow === commande.id && (
-                    <div className="commande-details">
+                    <div className="commande-detailss">
                       <div className="detail-section">
                         <h4>Informations client</h4>
                         <p>
@@ -478,12 +478,23 @@ const CommandeSuivi = () => {
                       </div>
                       
                       <div className="detail-section">
-                        <h4>Détails du devis</h4>
-                        <p><strong>Référence:</strong> {commande.devis?.reference || 'N/A'}</p>
-                        <p><strong>Méthode de paiement:</strong> {commande.devis?.paymentMethod || 'N/A'}</p>
-                        <p><strong>Statut:</strong> {commande.devis?.statut || 'N/A'}</p>
-                        <p><strong>Commentaire:</strong> {commande.devis?.commentaire || 'Aucun'}</p>
+                        <h4>Détails de la commande</h4>
+                        <p><strong>Référence:</strong> {commande.reference || 'N/A'}</p>
+                        <p><strong>Statut:</strong> {getStatusLabel(commande.status)}</p>
+                        <p><strong>Date création:</strong> {formatDate(commande.dateCreation)}</p>
+                        <p><strong>Total HT:</strong> {commande.totalHT ? formatCurrency(commande.totalHT) : 'N/A'}</p>
+                        <p><strong>TVA:</strong> {commande.montantTVA ? formatCurrency(commande.montantTVA) : 'N/A'}</p>
+                        <p><strong>Total TTC:</strong> {commande.totalTTC ? formatCurrency(commande.totalTTC) : 'N/A'}</p>
                       </div>
+                      
+                      {commande.devis && (
+                        <div className="detail-section">
+                          <h4>Détails du devis</h4>
+                          <p><strong>Référence:</strong> {commande.devis.reference || 'N/A'}</p>
+                          <p><strong>Méthode de paiement:</strong> {commande.devis.paymentMethod || 'N/A'}</p>
+                          <p><strong>Commentaire:</strong> {commande.devis.commentaire || 'Aucun'}</p>
+                        </div>
+                      )}
                     </div>
                   )}
                 </React.Fragment>
@@ -492,7 +503,6 @@ const CommandeSuivi = () => {
           </div>
         </div>
 
-        {/* Pagination */}
         {pagination.totalPages > 1 && (
           <div className="pagination-controls">
             <div className="pagination-info">

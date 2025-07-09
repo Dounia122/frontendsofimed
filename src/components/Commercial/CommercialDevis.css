@@ -15,7 +15,7 @@ table {
 
 th {
   background: #f8fafc;
-  color: #1e40af;
+  color: #60A5FA;
   font-weight: 600;
   padding: 1rem;
   text-align: left;
@@ -185,7 +185,7 @@ th {
 
 .reference-cell {
   font-weight: 500;
-  color: #93c5fd;
+  color: #60A5FA;
 }
 
 .client-cell {
@@ -325,7 +325,7 @@ th {
   align-items: center;
   gap: 6px;
   padding: 8px 12px;
-  background: linear-gradient(to right, #60A5FA, #818CF8);
+  background: linear-gradient(to right, #60A5FA, #93c5fd);
   color: white;
   border: none;
   border-radius: 6px;
@@ -340,7 +340,7 @@ th {
 .market-study-btn:hover {
   transform: translateY(-1px);
   box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
-  background: linear-gradient(to right, #60A5FA, #818CF8);
+  background: linear-gradient(to right, #93c5fd, #60A5FA);
 }
 
 .market-study-btn:active {
@@ -380,8 +380,8 @@ th {
 }
 
 .offer-source {
-  font-weight: 600;
-  color: #4a5568;
+  font-weight: bold;
+  color: #60A5FA;
 }
 
 .offer-price {
@@ -1179,13 +1179,13 @@ th {
 }
 
 .apply-suggestion-btn {
-  background: #3b82f6;
+  background: #60A5FA;
   color: white;
   flex: 1;
 }
 
 .apply-suggestion-btn:hover {
-  background: #2563eb;
+  background: #93c5fd;
 }
 
 .close-modal-btn {
@@ -1320,7 +1320,7 @@ th {
 }
 
 .product-reference {
-  color: var(--primary);
+  color: #60A5FA;
   font-weight: 600;
   font-size: 1rem;
   letter-spacing: 0.5px;
@@ -2569,13 +2569,13 @@ th {
   color: var(--text);
   font-weight: 600;
   text-align: left;
-  padding: 12px 16px;
+  padding: 10px 8px;
   font-size: 0.9rem;
   border-bottom: 2px solid var(--border);
 }
 
 .produits-table td {
-  padding: 12px 16px;
+  padding: 10px 8px;
   border-bottom: 1px solid var(--border);
   color: var(--text);
   font-size: 0.9rem;
@@ -2629,20 +2629,33 @@ th {
 
 .produits-table th:nth-child(5), 
 .produits-table td:nth-child(5) {
-  width: 15%; /* Colonne prix après remise */
+  width: 10%; /* Colonne prix après remise */
   text-align: right;
 }
 
 .produits-table th:nth-child(6), 
 .produits-table td:nth-child(6) {
-  width: 0%; /* Colonne quantité */
-  text-align: center;
+  width: 2cm; /* Colonne quantité */
+  text-align: right;
 }
 
 .produits-table th:nth-child(7), 
 .produits-table td:nth-child(7) {
-  width: 20%; /* Colonne total */
+  width: 10%; /* Colonne total */
   text-align: right;
+}
+
+/* Styles pour la colonne du dernier prix d'achat */
+.dernier-prix-achat {
+  font-weight: 700;
+  color: #2c3e50;
+  text-align: right;
+  padding-right: 10px;
+}
+
+/* Ajuster la largeur des colonnes du tableau */
+.produits-table th, .produits-table td {
+  padding: 10px 8px;
 }
 
 /* Style pour le total */
@@ -2905,7 +2918,7 @@ th {
   background: var(--white);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
-  margin-bottom: 1.5rem;
+  margin-top: 0%;
   padding: 1.5rem;
 }
 

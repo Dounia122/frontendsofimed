@@ -370,62 +370,65 @@ const DemandeDevis = () => {
     }
   };
 
-  const handleUploadAndConfirm = async () => {
-    if (!activeDevis || !deliveryDate) {
-      alert('Veuillez sélectionner une date de livraison souhaitée');
-      return;
-    }
+ const handleUploadAndConfirm = async () => {
+  if (!activeDevis || !deliveryDate) {
+    alert('Veuillez sélectionner une date de livraison souhaitée');
+    return;
+  }
 
+  try {
+    const token = localStorage.getItem('token');
+
+    const commandeData = {
+      client: {
+        id: activeDevis.clientDetails.id
+      },
+      commercial: {
+        id: activeDevis.commercial.id
+      },
+      devis: {
+        id: activeDevis.id
+      },
+      totalHT: activeDevis.totalHT,
+      tauxTVA: 20.00, // ⚠️ CHANGER "tva" → "tauxTVA" pour correspondre à ton backend
+      dateLivraisonSouhaitee: deliveryDate,
+      status: 'EN_ATTENTE',
+      notes: 'Commande créée depuis le devis'
+    };
+
+    // ✅ Appel vers le bon endpoint "/save"
+    await axios.post('http://localhost:8080/api/commandes/save', commandeData, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      withCredentials: true // si Spring Boot attend des cookies
+    });
+
+    // ✅ Confirmation du devis (facultatif)
     try {
-      const token = localStorage.getItem('token');
-      const commandeData = {
-        client: {
-          id: activeDevis.clientDetails.id
-        },
-        commercial: {
-          id: activeDevis.commercial.id
-        },
-        devis: {
-          id: activeDevis.id
-        },
-        totalHT: activeDevis.totalHT,
-        tva: 20.00,
-        dateLivraisonSouhaitee: deliveryDate,
-        status: 'EN_ATTENTE',
-        notes: 'Commande créée depuis le devis'
-      };
-
-      // Envoi de la commande au backend
-      await axios.post('http://localhost:8080/api/commandes', commandeData, {
+      await axios.post(`http://localhost:8080/api/devis/${activeDevis.id}/confirm`, {
+        deliveryDate: deliveryDate
+      }, {
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          'Authorization': `Bearer ${token}`
         }
       });
-
-      // Confirmation du devis (ignorer les erreurs)
-      try {
-        await axios.post(`http://localhost:8080/api/devis/${activeDevis.id}/confirm`, {
-          deliveryDate: deliveryDate
-        }, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-      } catch (error) {
-        console.warn('Erreur lors de la confirmation du devis:', error);
-      }
-
-      setShowConfirmModal(false);
-      setDeliveryDate('');
-      fetchDevisList();
-      alert('ENVOYÉ AVEC SUCCÈS');
-      
     } catch (error) {
-      console.error('Erreur:', error);
-      alert('ENVOYÉ AVEC SUCCÈS');
+      console.warn('Erreur lors de la confirmation du devis:', error);
     }
-  };
+
+    setShowConfirmModal(false);
+    setDeliveryDate('');
+    fetchDevisList();
+    alert('Commande envoyée avec succès');
+
+  } catch (error) {
+    console.error('Erreur:', error);
+    alert("Erreur lors de l'envoi de la commande");
+  }
+};
+
 
   // Fonction de filtrage
   const filteredDevisList = devisList.filter(devis => {

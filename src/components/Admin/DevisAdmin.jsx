@@ -5,12 +5,13 @@ import PropTypes from 'prop-types';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faClipboardList, faExclamationCircle, faTimes, faShoppingBag, 
-  faClock, faCheckCircle, faTimesCircle, faEuroSign, 
+  faClock, faCheckCircle, faTimesCircle, 
   faSearch, faFilter, faCalendarAlt, faListOl, 
   faSyncAlt, faEye, faCheck, faFileInvoice, 
   faUser, faIdCard, faEnvelope, faPhone, 
   faMapMarkerAlt, faBriefcase, faUserTie, faIdBadge, 
-  faShoppingCart, faCalculator, faTruck, faCalendarDay
+  faShoppingCart, faCalculator, faTruck, faCalendarDay,
+  faMoneyBill
 } from '@fortawesome/free-solid-svg-icons';
 import './DevisAdmin.css';
 import noImage from '../../assets/no-image.png';
@@ -18,6 +19,14 @@ import noImage from '../../assets/no-image.png';
 const API_BASE_URL = 'http://localhost:8080/api';
 
 const DevisAdmin = () => {
+  // Fonction de formatage MAD
+  const formatMAD = (value) => new Intl.NumberFormat('fr-MA', { 
+    style: 'currency', 
+    currency: 'MAD',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(value || 0);
+  
   const navigate = useNavigate();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -37,6 +46,10 @@ const DevisAdmin = () => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [deliveryDate, setDeliveryDate] = useState('');
   const [activeCommande, setActiveCommande] = useState(null);
+  
+  // Nouveaux états pour la gestion de la date de livraison
+  const [showDateModal, setShowDateModal] = useState(false);
+  const [dateLivraisonAdmin, setDateLivraisonAdmin] = useState('');
 
   const formatDate = useCallback((dateString) => {
     if (!dateString) return 'N/A';
@@ -110,7 +123,8 @@ const DevisAdmin = () => {
           tva: commande.montantTVA || (commande.totalHT * 0.2) || calculateTotalHT(commande.produits) * 0.2,
           totalTTC: commande.totalTTC || (commande.totalHT * 1.2) || calculateTotalHT(commande.produits) * 1.2,
           createdAt: commande.dateCreation || commande.devis?.createdAt,
-          dateLivraisonSouhaitee: commande.dateLivraisonSouhaitee // Ajout de ce champ
+          dateLivraisonSouhaitee: commande.dateLivraisonSouhaitee,
+          dateLivraisonAdmin: commande.dateLivraisonAdmin // Nouveau champ
         }));
 
         setCommandes(transformedData);
@@ -140,11 +154,22 @@ const DevisAdmin = () => {
     fetchCommandes();
   }, [fetchCommandes]);
 
+  // Fonction modifiée pour gérer les changements de statut
   const handleStatusChange = async (commandeId, newStatus) => {
     try {
       setProcessingId(commandeId);
       const token = localStorage.getItem('token');
-      const response = await axios.patch(`${API_BASE_URL}/commandes/${commandeId}/status`, null, {
+
+      if (newStatus === 'VALIDEE') {
+        // Préparer la validation avec date de livraison
+        const commande = commandes.find(c => c.id === commandeId);
+        setActiveCommande(commande);
+        setShowDateModal(true);
+        return;
+      }
+
+      // Pour l'annulation
+      await axios.patch(`${API_BASE_URL}/commandes/${commandeId}/status`, null, {
         params: { newStatus },
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -152,21 +177,73 @@ const DevisAdmin = () => {
         }
       });
       
-      if (response.data) {
-        setCommandes(prevCommandes =>
-          prevCommandes.map(commande =>
-            commande.id === commandeId
-              ? { ...commande, status: newStatus }
-              : commande
-          )
-        );
-      }
+      // Mettre à jour l'état local
+      setCommandes(prevCommandes =>
+        prevCommandes.map(commande =>
+          commande.id === commandeId
+            ? { ...commande, status: newStatus }
+            : commande
+        )
+      );
       
       await fetchCommandes();
+      alert(`Statut mis à jour: ${newStatus === 'ANNULEE' ? 'Annulée' : newStatus}`);
+      
     } catch (err) {
-      setError(err.response?.data?.message || 'Erreur lors de la modification du statut');
+      const errorMessage = err.response?.data?.message || 
+                          err.response?.data || 
+                          err.message || 
+                          'Erreur lors de la modification du statut';
+      setError(errorMessage);
     } finally {
       setProcessingId(null);
+    }
+  };
+
+  // Nouvelle fonction pour gérer la validation avec date
+  const handleValidateWithDate = async () => {
+    if (!dateLivraisonAdmin) {
+      alert('Veuillez sélectionner une date de livraison');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      
+      // Valider la commande avec date de livraison
+      await axios.put(
+        `${API_BASE_URL}/commandes/${activeCommande.id}/valider`,
+        { dateAdmin: dateLivraisonAdmin },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      // Mettre à jour l'état local
+      setCommandes(prevCommandes =>
+        prevCommandes.map(commande =>
+          commande.id === activeCommande.id
+            ? { 
+                ...commande, 
+                status: 'VALIDEE',
+                dateLivraisonAdmin: dateLivraisonAdmin
+              }
+            : commande
+        )
+      );
+
+      setShowDateModal(false);
+      setDateLivraisonAdmin('');
+      setActiveCommande(null);
+      fetchCommandes();
+      alert('Commande validée avec succès');
+      
+    } catch (error) {
+      console.error('Erreur:', error);
+      alert('Erreur lors de la validation de la commande');
     }
   };
 
@@ -184,7 +261,7 @@ const DevisAdmin = () => {
     total: totalCommandes,
     enAttente: commandes.filter(c => c?.status === 'EN_ATTENTE').length,
     valide: commandes.filter(c => c?.status === 'VALIDEE').length,
-    rejetee: commandes.filter(c => c?.status === 'REJETEE').length,
+    annulee: commandes.filter(c => c?.status === 'ANNULEE').length,
     montantTotal: commandes.reduce((sum, c) => sum + (c?.totalHT || 0), 0),
   }), [commandes, totalCommandes]);
 
@@ -259,43 +336,6 @@ const DevisAdmin = () => {
     }
   };
 
-  const handleConfirmCommande = async () => {
-    if (!activeCommande || !deliveryDate) {
-      alert('Veuillez sélectionner une date de livraison');
-      return;
-    }
-
-    try {
-      const token = localStorage.getItem('token');
-      
-      await axios.patch(`${API_BASE_URL}/commandes/${activeCommande.id}/status`, null, {
-        params: { newStatus: 'VALIDEE' },
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-  
-      await axios.patch(`${API_BASE_URL}/commandes/${activeCommande.id}/delivery-date`, null, {
-        params: { deliveryDate: deliveryDate },
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      setShowConfirmModal(false);
-      setDeliveryDate('');
-      setActiveCommande(null);
-      fetchCommandes();
-      alert('Commande validée avec succès');
-      
-    } catch (error) {
-      console.error('Erreur:', error);
-      alert('Erreur lors de la validation de la commande');
-    }
-  };
-
   return (
     <div className="commandes-admin-container">
       <h2 className="page-title">
@@ -333,15 +373,15 @@ const DevisAdmin = () => {
           className="stat-card-success"
         />
         <StatCard 
-          title="Rejetées" 
-          value={stats.rejetee} 
+          title="Annulées" 
+          value={stats.annulee} 
           icon={faTimesCircle}
           className="stat-card-danger"
         />
         <StatCard 
-          title="CA (HT)" 
-          value={`${stats.montantTotal.toFixed(2)} €`} 
-          icon={faEuroSign}
+          title="CA (MAD)" 
+          value={formatMAD(stats.montantTotal)}
+          icon={faMoneyBill}
           className="stat-card-info"
         />
       </div>
@@ -372,7 +412,7 @@ const DevisAdmin = () => {
             <option value="all">Tous</option>
             <option value="EN_ATTENTE">En attente</option>
             <option value="VALIDEE">Validée</option>
-            <option value="REJETEE">Rejetée</option>
+            <option value="ANNULEE">Annulée</option>
           </select>
         </div>
 
@@ -399,9 +439,6 @@ const DevisAdmin = () => {
             }}
           />
         </div>
-
-
-       
       </div>
 
       <div className="table-responsive">
@@ -412,14 +449,15 @@ const DevisAdmin = () => {
               <th>Client</th>
               <th>Commercial</th>
               <th>Date de création</th>
-              <th>Date Livraison Souhaitée </th>
+              <th>Date Livraison Souhaitée</th>
+              
               <th>Statut</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {filteredCommandes.length === 0 ? (
-              <tr><td colSpan="7" className="no-data">Aucune commande trouvée</td></tr>
+              <tr><td colSpan="8" className="no-data">Aucune commande trouvée</td></tr>
             ) : filteredCommandes.map((commande) => (
               <tr key={commande.id} className="table-row">
                 <td className="reference-cell">
@@ -443,6 +481,7 @@ const DevisAdmin = () => {
                 </td>
                 <td className="date-cell">{formatDate(commande.createdAt)}</td>
                 <td className="date-cell">{formatDate(commande.dateLivraisonSouhaitee)}</td>
+                
                 <td><StatusBadge status={commande.status} /></td>
                 <td>
                   <div className="action-buttons">
@@ -461,11 +500,11 @@ const DevisAdmin = () => {
                         </button>
                         <button
                           className="btn-reject"
-                          onClick={() => handleStatusChange(commande.id, 'REJETEE')}
+                          onClick={() => handleStatusChange(commande.id, 'ANNULEE')}
                           disabled={processingId === commande.id}
                         >
                           <FontAwesomeIcon icon={faTimes} />
-                          {processingId === commande.id ? '...' : 'Rejeter'}
+                          {processingId === commande.id ? '...' : 'Annuler'}
                         </button>
                       </>
                     )}
@@ -477,182 +516,65 @@ const DevisAdmin = () => {
         </table>
       </div>
 
-      {showCommandeDetails && selectedCommande && (
+      {/* Modal de confirmation de date */}
+      {showDateModal && activeCommande && (
         <div className="modal-overlay">
-          <div className="modal-content commande-details">
+          <div className="modal-content date-modal">
             <div className="modal-header">
-              <div className="modal-title">
-                <FontAwesomeIcon icon={faFileInvoice} className="modal-title-icon" />
-                <h2>Détails de la Commande</h2>
-                <span className="reference">{selectedCommande.reference}</span>
-              </div>
-              <button className="modal-close" onClick={() => setShowCommandeDetails(false)}>
+              <h3>Confirmation de validation</h3>
+              <button 
+                className="modal-close" 
+                onClick={() => setShowDateModal(false)}
+              >
                 <FontAwesomeIcon icon={faTimes} />
               </button>
             </div>
             
             <div className="modal-body">
-              <div className="modal-sections">
-                <div className="modal-section client-section">
-                  <div className="section-header">
-                    <FontAwesomeIcon icon={faUser} />
-                    <h3>Informations Client</h3>
-                  </div>
-                  <div className="section-content">
-                    <div className="info-grid">
-                      <div className="info-item">
-                        <FontAwesomeIcon icon={faIdCard} />
-                        <span className="label">Nom complet</span>
-                        <span className="value">{selectedCommande.client?.nom}</span>
-                      </div>
-                      <div className="info-item">
-                        <FontAwesomeIcon icon={faEnvelope} />
-                        <span className="label">Email</span>
-                        <span className="value">{selectedCommande.client?.email}</span>
-                      </div>
-                      <div className="info-item">
-                        <FontAwesomeIcon icon={faPhone} />
-                        <span className="label">Téléphone</span>
-                        <span className="value">{selectedCommande.client?.telephone}</span>
-                      </div>
-                      <div className="info-item">
-                        <FontAwesomeIcon icon={faMapMarkerAlt} />
-                        <span className="label">Adresse</span>
-                        <span className="value">{selectedCommande.client?.adresse}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="modal-section commercial-section">
-                  <div className="section-header">
-                    <FontAwesomeIcon icon={faBriefcase} />
-                    <h3>Informations Commercial</h3>
-                  </div>
-                  <div className="section-content">
-                    <div className="info-grid">
-                      <div className="info-item">
-                        <FontAwesomeIcon icon={faUserTie} />
-                        <span className="label">Nom complet</span>
-                        <span className="value">
-                          {selectedCommande.commercial?.firstName} {selectedCommande.commercial?.lastName}
-                        </span>
-                      </div>
-                      <div className="info-item">
-                        <FontAwesomeIcon icon={faEnvelope} />
-                        <span className="label">Email</span>
-                        <span className="value">{selectedCommande.commercial?.email}</span>
-                      </div>
-                      <div className="info-item">
-                        <FontAwesomeIcon icon={faPhone} />
-                        <span className="label">Téléphone</span>
-                        <span className="value">{selectedCommande.commercial?.phone}</span>
-                      </div>
-                      <div className="info-item">
-                        <FontAwesomeIcon icon={faIdBadge} />
-                        <span className="label">Code employé</span>
-                        <span className="value">{selectedCommande.commercial?.employeeCode}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="modal-section products-section">
-                  <div className="section-header">
-                    <FontAwesomeIcon icon={faShoppingCart} />
-                    <h3>Produits</h3>
-                  </div>
-                  <div className="section-content">
-                    <div className="products-table-container">
-                      <table className="products-table">
-                        <thead>
-                          <tr>
-                            <th>Image</th>
-                            <th>Référence</th>
-                            <th>Désignation</th>
-                            <th>Prix unitaire</th>
-                            <th>Quantité</th>
-                            <th>Total</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {selectedCommande.produits?.map((produit, index) => (
-                            <tr key={index}>
-                              <td>
-                                <div className="product-image">
-                                  <img src={produit.imageUrl || noImage} alt={produit.designation} />
-                                </div>
-                              </td>
-                              <td>{produit.reference}</td>
-                              <td>{produit.designation}</td>
-                              <td>{produit.prixUnitaire?.toFixed(2)} €</td>
-                              <td>{produit.quantite}</td>
-                              <td>{produit.totalItem?.toFixed(2)} €</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="modal-section totals-section">
-                  <div className="section-header">
-                    <FontAwesomeIcon icon={faCalculator} />
-                    <h3>Récapitulatif</h3>
-                  </div>
-                  <div className="section-content">
-                    <div className="totals-grid">
-                      <div className="total-item">
-                        <span className="label">Total HT</span>
-                        <span className="value">{selectedCommande.totalHT?.toFixed(2)} €</span>
-                      </div>
-                      <div className="total-item">
-                        <span className="label">TVA (20%)</span>
-                        <span className="value">{selectedCommande.tva?.toFixed(2)} €</span>
-                      </div>
-                      <div className="total-item total-ttc">
-                        <span className="label">Total TTC</span>
-                        <span className="value">{selectedCommande.totalTTC?.toFixed(2)} €</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+              <p>
+                Vous êtes sur le point de valider la commande : 
+                <strong> {activeCommande.reference}</strong>
+              </p>
+              
+              <div className="date-picker-container">
+                <label>
+                  <FontAwesomeIcon icon={faCalendarDay} className="icon" />
+                  Date de livraison administrative:
+                </label>
+                <input
+                  type="date"
+                  value={dateLivraisonAdmin}
+                  onChange={(e) => setDateLivraisonAdmin(e.target.value)}
+                  min={new Date().toISOString().split('T')[0]}
+                />
+              </div>
+              
+              <div className="client-info-summary">
+                <p><strong>Client:</strong> {activeCommande.client?.nom}</p>
+                <p><strong>Date souhaitée:</strong> {formatDate(activeCommande.dateLivraisonSouhaitee)}</p>
               </div>
             </div>
-
-
-<div className="modal-footer">
-  <div className="modal-actions">
-    <button
-      className="modal-btn modal-btn-close"
-      onClick={() => setShowConfirmModal(false)}
-    >
-      <FontAwesomeIcon icon={faTimes} />
-      Fermer
-    </button>
-    <button
-      className="modal-btn modal-btn-validate"
-      onClick={handleConfirmCommande}
-      disabled={!deliveryDate}
-    >
-      <FontAwesomeIcon icon={faCheck} />
-      Valider
-    </button>
-    <button
-      className="modal-btn modal-btn-reject"
-      onClick={() => handleStatusChange(activeCommande.id, 'REJETEE')}
-    >
-      <FontAwesomeIcon icon={faTimes} />
-      Rejeter
-    </button>
-  </div>
-</div>
-
+            
+            <div className="modal-footer">
+              <button 
+                className="btn-cancel"
+                onClick={() => setShowDateModal(false)}
+              >
+                Annuler
+              </button>
+              <button 
+                className="btn-confirm"
+                onClick={handleValidateWithDate}
+                disabled={!dateLivraisonAdmin}
+              >
+                Confirmer avec date
+              </button>
+            </div>
           </div>
         </div>
       )}
 
+      {/* Détails de la commande */}
       {showConfirmModal && activeCommande && (
         <div className="modal-overlay">
           <div className="modal-content commande-details">
@@ -660,7 +582,7 @@ const DevisAdmin = () => {
               <FontAwesomeIcon icon={faTimes} />
             </button>
             
-            <h2><FontAwesomeIcon icon={faShoppingCart} /> Confirmation de Commande</h2>
+            <h2><FontAwesomeIcon icon={faShoppingCart} /> Détails de la Commande</h2>
             <div className="commande-ref">{activeCommande.reference}</div>
             
             <div className="confirm-section client-section">
@@ -719,9 +641,9 @@ const DevisAdmin = () => {
                       <th>Référence</th>
                       <th>Produit</th>
                       <th>Quantité</th>
-                      <th>Prix unitaire</th>
+                      <th>Prix unitaire (MAD)</th>
                       <th>Remise</th>
-                      <th>Total HT</th>
+                      <th>Total HT (MAD)</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -741,9 +663,9 @@ const DevisAdmin = () => {
                         <td className="product-ref">{item.reference}</td>
                         <td className="product-name">{item.nom}</td>
                         <td className="product-qty">{item.quantity}</td>
-                        <td className="product-price">{item.prixUnitaire?.toFixed(2)} MAD</td>
+                        <td className="product-price">{formatMAD(item.prixUnitaire)}</td>
                         <td className="product-discount">{item.remisePourcentage}%</td>
-                        <td className="product-total">{item.totalItem?.toFixed(2)} MAD</td>
+                        <td className="product-total">{formatMAD(item.totalItem)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -752,26 +674,21 @@ const DevisAdmin = () => {
             </div>
         
             <div className="confirm-section totals-section">
-              <h4><FontAwesomeIcon icon={faEuroSign} /> Récapitulatif financier</h4>
+              <h4><FontAwesomeIcon icon={faMoneyBill} /> Récapitulatif financier (MAD)</h4>
               <div className="totals-grid">
                 <div className="total-item">
                   <span className="total-label">Total HT:</span>
-                  <span className="total-value">{activeCommande.totalHT?.toFixed(2)} MAD</span>
+                  <span className="total-value">{formatMAD(activeCommande.totalHT)}</span>
                 </div>
                 <div className="total-item">
                   <span className="total-label">TVA (20%):</span>
-                  <span className="total-value">{activeCommande.tva?.toFixed(2)} MAD</span>
+                  <span className="total-value">{formatMAD(activeCommande.tva)}</span>
                 </div>
                 <div className="total-item grand-total">
                   <span className="total-label">Total TTC:</span>
-                  <span className="total-value">{activeCommande.totalTTC?.toFixed(2)} MAD</span>
+                  <span className="total-value">{formatMAD(activeCommande.totalTTC)}</span>
                 </div>
               </div>
-            </div>
-        
-            <div className="confirm-section delivery-note">
-              <h4><FontAwesomeIcon icon={faTruck} /> Livraison</h4>
-              <p className="delivery-note-text">Livraison à nos soins SOFIMED</p>
             </div>
 
             <div className="modal-actions">
@@ -779,25 +696,6 @@ const DevisAdmin = () => {
                 <FontAwesomeIcon icon={faTimes} />
                 Fermer
               </button>
-              {activeCommande.status === 'EN_ATTENTE' && (
-                <>
-                  <button 
-                    className="modal-btn modal-btn-validate" 
-                    onClick={handleConfirmCommande}
-                    disabled={!activeCommande.dateLivraisonSouhaitee}
-                  >
-                    <FontAwesomeIcon icon={faCheck} />
-                    Valider la commande
-                  </button>
-                  <button 
-                    className="modal-btn modal-btn-reject"
-                    onClick={() => handleStatusChange(activeCommande.id, 'REJETEE')}
-                  >
-                    <FontAwesomeIcon icon={faTimes} />
-                    Rejeter la commande
-                  </button>
-                </>
-              )}
             </div>
           </div>
         </div>
@@ -832,8 +730,8 @@ const StatusBadge = ({ status }) => {
         return { className: 'status-pending', text: 'En attente' };
       case 'VALIDEE':
         return { className: 'status-validated', text: 'Validée' };
-      case 'REJETEE':
-        return { className: 'status-rejected', text: 'Rejetée' };
+      case 'ANNULEE':
+        return { className: 'status-rejected', text: 'Annulée' };
       default:
         return { className: 'status-unknown', text: status };
     }
