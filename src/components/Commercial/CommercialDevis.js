@@ -32,6 +32,17 @@ const CommercialDevis = () => {
   const [selectedClient, setSelectedClient] = useState(null);
   const [currentCartId, setCurrentCartId] = useState(null);
   const [loadingCart, setLoadingCart] = useState(false);
+  const [predictionResult, setPredictionResult] = useState(null);
+  const [isPredicting, setIsPredicting] = useState(false);
+  const [showAIModal, setShowAIModal] = useState(false);
+  const [aiAnalysisStage, setAiAnalysisStage] = useState('initializing');
+  const [aiAnimationProgress, setAiAnimationProgress] = useState(0);
+  const [animationProgress, setAnimationProgress] = useState(0);
+  const [brainPulse, setBrainPulse] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
+  const [predictionSteps, setPredictionSteps] = useState([]);
+  const [confidenceScore, setConfidenceScore] = useState(0);
+  const [analysisMetrics, setAnalysisMetrics] = useState(null);
 
   const UpdateSingleCartItem = () => {
     const handleUpdate = async () => {
@@ -252,10 +263,6 @@ const openProductSelectModal = (items) => {
     });
   });
 };
-
-
-
-
   const handleViewClient = async (devis) => {
     try {
       const token = localStorage.getItem('token');
@@ -1790,6 +1797,8 @@ const PrixModal = ({ devis, onClose, onUpdate }) => {
   const [clientInfo, setClientInfo] = useState(null);
   const [savingPrices, setSavingPrices] = useState(false);
   const [remises, setRemises] = useState({});
+  const [purchaseCounts, setPurchaseCounts] = useState({});
+  const [isPredicting, setIsPredicting] = useState(false);
 
   const styles = {};
 
@@ -1875,6 +1884,20 @@ const PrixModal = ({ devis, onClose, onUpdate }) => {
                 productIds,
                 { headers: { 'Authorization': `Bearer ${token}` } }
               );
+              
+              // Récupérer le nombre d'achats pour chaque produit
+              const purchaseCountPromises = produitsData.map(produit =>
+                axios.get(`http://localhost:8080/api/products/purchase-count/${clientId}/${produit.id}`, {
+                  headers: { 'Authorization': `Bearer ${token}` }
+                })
+              );
+              
+              const purchaseCountsResponses = await Promise.all(purchaseCountPromises);
+              const purchaseCountsData = {};
+              produitsData.forEach((produit, index) => {
+                purchaseCountsData[produit.id] = purchaseCountsResponses[index].data;
+              });
+              setPurchaseCounts(purchaseCountsData);
               
               if (lastPricesResponse.data) {
                 const lastPrices = lastPricesResponse.data;
@@ -2000,132 +2023,187 @@ const PrixModal = ({ devis, onClose, onUpdate }) => {
   };
   
   // Fonction pour analyser la probabilité de vente avec l'IA
-  const analyzeProbability = async () => {
-    let modal = null;
+// ... existing code ...
 
-    try {
-      // Affichage de la modale de chargement
-      modal = createModal('Analyse de probabilité IA', `
-        <div class="analysis-loading">
-          <div class="loading-spinner">
-            <div class="spinner-track"></div>
-            <div class="spinner-fill"></div>
-          </div>
-          <div class="loading-progress">
-            <div class="loading-progress-bar"></div>
-          </div>
-          <p class="loading-percentage">Analyse en cours...</p>
-          <h4 class="loading-title">Analyse de probabilité pour ${devis.reference}</h4>
-          <p class="loading-subtitle">Calcul des probabilités de vente basé sur l'IA</p>
-        </div>
-      `);
+const analyzeProbability = async () => {
+  try {
+    const token = localStorage.getItem('token');
+    const user = JSON.parse(localStorage.getItem('user'));
+    
+    // Get client statistics
+    const clientStats = await axios.get(
+      `http://localhost:8080/api/client-stats/${clientInfo.id}`,
+      { headers: { 'Authorization': `Bearer ${token}` } }
+    );
 
-      // Simuler un appel API (à remplacer par un vrai appel API)
-      setTimeout(async () => {
-        try {
-          // Simuler une réponse API
-          const data = {
-            probability: Math.floor(Math.random() * 41) + 60, // Entre 60% et 100%
-            conversionRate: (Math.random() * 0.3 + 0.4).toFixed(2), // Entre 0.4 et 0.7
-            decisionTime: Math.floor(Math.random() * 5) + 2, // Entre 2 et 7 jours
-            confidenceIndex: Math.floor(Math.random() * 21) + 80, // Entre 80 et 100
-            recommendations: [
-              "Proposer une remise de 5% pour augmenter les chances de conversion",
-              "Mettre en avant la garantie de qualité pour rassurer le client",
-              "Suggérer une livraison express pour accélérer la décision"
-            ]
-          };
-
-          // Mise à jour avec les résultats
-          modal.querySelector('.modal-body').innerHTML = `
-            <div class="probability-result">
-              <div class="probability-header">
-                <h4>Analyse de probabilité pour ${devis.reference}</h4>
-                <p>Basée sur l'historique client et les tendances du marché</p>
-              </div>
-
-              <div class="probability-gauge">
-                <div class="gauge-container">
-                  <div class="gauge-value" style="width: ${data.probability}%;"></div>
-                </div>
-                <div class="gauge-label">
-                  <span>Probabilité de vente</span>
-                  <strong>${data.probability}%</strong>
-                </div>
-              </div>
-
-              <div class="probability-stats-grid">
-                <div class="stat-card">
-                  <i class="icon">⚡</i>
-                  <span>Taux de conversion</span>
-                  <strong>${data.conversionRate}</strong>
-                </div>
-
-                <div class="stat-card">
-                  <i class="icon">⏱️</i>
-                  <span>Temps de décision estimé</span>
-                  <strong>${data.decisionTime} jours</strong>
-                </div>
-
-                <div class="stat-card">
-                  <i class="icon">📊</i>
-                  <span>Indice de confiance</span>
-                  <strong>${data.confidenceIndex}%</strong>
-                </div>
-              </div>
-
-              <div class="recommendations-section">
-                <h5>Recommandations IA</h5>
-                <ul class="recommendations-list">
-                  ${data.recommendations.map(rec => `<li>${rec}</li>`).join('')}
-                </ul>
-              </div>
-
-              <div class="actions">
-                <button class="close-btn">Fermer</button>
-              </div>
-            </div>
-          `;
-
-          // Gestionnaire pour le bouton de fermeture
-          modal.querySelector('.close-btn').addEventListener('click', () => modal.remove());
-
-        } catch (error) {
-          const errorMsg = error.message || "Une erreur est survenue lors de l'analyse";
-          modal.querySelector('.modal-body').innerHTML = `
-            <div class="error-state">
-              <i class="error-icon">⚠️</i>
-              <h4>Erreur d'analyse</h4>
-              <p>${errorMsg}</p>
-              <button class="retry-btn">Réessayer</button>
-            </div>
-          `;
-          modal.querySelector('.retry-btn').addEventListener('click', () => {
-            modal.remove();
-            analyzeProbability();
-          });
-        }
-      }, 2000); // Simuler un délai de 2 secondes
-
-    } catch (error) {
-      const errorMsg = error.message || "Une erreur est survenue lors de l'analyse";
-      if (modal) {
-        modal.querySelector('.modal-body').innerHTML = `
-          <div class="error-state">
-            <i class="error-icon">⚠️</i>
-            <h4>Erreur d'analyse</h4>
-            <p>${errorMsg}</p>
-            <button class="retry-btn">Réessayer</button>
-          </div>
-        `;
-        modal.querySelector('.retry-btn').addEventListener('click', () => {
-          modal.remove();
-          analyzeProbability();
-        });
-      }
+    // Get total time spent in application
+    const sessionResponse = await axios.get(
+      `http://localhost:8080/api/sessions/totalDuration/${user.id}`,
+      { headers: { 'Authorization': `Bearer ${token}` } }
+    );
+    
+    const tempsPasseMinutes = Math.round(sessionResponse.data / (1000 * 60));
+    const nbProduitsDevis = produits.length;
+    const nbProduitsDejaPurchased = produits.filter(p => purchaseCounts[p.id] > 0).length;
+    
+    // Calcul simplifié du délai de traitement
+    let delaiTraitementHeures = 0;
+    
+    if (devis && devis.createdAt) {
+        const currentTime = new Date();
+        const creationDate = new Date(devis.createdAt);
+        console.log('Date de création:', creationDate.toLocaleDateString('fr-FR'));
+        console.log('Date actuelle:', currentTime.toLocaleDateString('fr-FR'));
+        delaiTraitementHeures = Math.floor((currentTime - creationDate) / (1000 * 60 * 60));
+    } else {
+        console.error('Date de création non définie');
     }
-  };
-  
+    
+    console.log('Délai en heures:', delaiTraitementHeures);
+    
+    console.log('Délai en heures:', delaiTraitementHeures);
+    
+    const modelData = {
+      totalCommandes: clientStats.data.totalCommandes,
+      totalDevis: clientStats.data.totalDevis,
+      totalMontantCommandes: clientStats.data.totalMontantCommandes,
+      nb_produits_devis: nbProduitsDevis,
+      nb_produits_deja_achetes: nbProduitsDejaPurchased,
+      temps_dans_application_min: tempsPasseMinutes,
+      temps_reponse_messagerie_min: 2,
+      delai_traitement_devis_hrs: delaiTraitementHeures,
+      taux_conversion: (clientStats.data.totalCommandes / clientStats.data.totalDevis) * 100,
+      moyenne_montant_commande: clientStats.data.totalMontantCommandes / clientStats.data.totalCommandes,
+      ratio_produits_achetes: nbProduitsDejaPurchased / nbProduitsDevis
+    };
+
+    const response = await axios.post(
+      'http://localhost:8080/api/predictions/analyze',
+      modelData,
+      { 
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        } 
+      }
+    );
+
+    const modal = createModal('Analyse IA', `
+      <div class="ai-analysis-result">
+        <div class="prediction-score">
+          <h2>${Math.round(response.data.pourcentageAcceptation)}%</h2>
+          <p>Probabilité d'acceptation</p>
+        </div>
+        <div class="prediction-details">
+          <div class="confidence-level">
+            <span>Niveau de confiance: ${Math.round(response.data.details.confiance * 100)}%</span>
+          </div>
+          <div class="key-factors">
+            <h4>Facteurs clés d'analyse :</h4>
+            <div class="factors-grid">
+              <div class="factor-item">
+                <span class="factor-label">Taux de conversion</span>
+                <span class="factor-value">${modelData.taux_conversion.toFixed(2)}%</span>
+              </div>
+              <div class="factor-item">
+                <span class="factor-label">Produits déjà achetés</span>
+                <span class="factor-value">${modelData.nb_produits_deja_achetes}/${modelData.nb_produits_devis}</span>
+              </div>
+              <div class="factor-item">
+                <span class="factor-label">Temps de réponse messagerie</span>
+                <span class="factor-value">${modelData.temps_reponse_messagerie_min} min</span>
+              </div>
+              <div class="factor-item">
+                <span class="factor-label">Délai de traitement</span>
+                <span class="factor-value">${delaiTraitementHeures} heures (${Math.round(delaiTraitementHeures/24)} jours)</span>
+              </div>
+              <div class="factor-item">
+                <span class="factor-label">Montant moyen des commandes</span>
+                <span class="factor-value">${modelData.moyenne_montant_commande.toFixed(2)} MAD</span>
+              </div>
+              <div class="factor-item">
+                <span class="factor-label">Ratio produits achetés</span>
+                <span class="factor-value">${(modelData.ratio_produits_achetes * 100).toFixed(2)}%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `);
+
+    // Ajouter les styles CSS
+    const style = document.createElement('style');
+    style.textContent = `
+      .ai-analysis-result {
+        padding: 20px;
+        text-align: center;
+      }
+      .prediction-score h2 {
+        font-size: 48px;
+        color: #2196F3;
+        margin: 0;
+      }
+      .prediction-score p {
+        margin: 5px 0 20px;
+        color: #666;
+      }
+      .confidence-level {
+        margin: 15px 0;
+        padding: 10px;
+        background: #f5f5f5;
+        border-radius: 4px;
+      }
+      .factors-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 15px;
+        margin-top: 20px;
+      }
+      .factor-item {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 15px;
+        text-align: left;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      }
+      .factor-label {
+        display: block;
+        color: #666;
+        font-size: 0.9em;
+        margin-bottom: 5px;
+      }
+      .factor-value {
+        display: block;
+        font-size: 1.2em;
+        font-weight: bold;
+        color: #2196F3;
+      }
+    `;
+    document.head.appendChild(style);
+
+  } catch (error) {
+    console.error('Erreur lors de l\'analyse:', error);
+    createModal('Erreur', `
+      <div class="error-message">
+        <p>Une erreur est survenue lors de l'analyse :</p>
+        <p>${error.response?.data?.message || error.message}</p>
+      </div>
+    `);
+  }
+};
+
+// ... existing code ...
+
+// Dans la section des boutons d'action
+<button 
+  className="ai-probability-btn" 
+  onClick={analyzeProbability}
+>
+  <ChartBar size={16} />
+  Probabilité IA
+</button>
+
+// ... existing code ...
   const createLoadingBody = (produit) => `
     <div class="analysis-loading">
       <div class="loading-spinner">
@@ -2413,6 +2491,7 @@ const handleFormSubmit = async () => {
                     <th>Prix après remise</th>
                     <th>Quantité</th>
                     <th>Total</th>
+                    <th>Historique d'achats</th>
                     <th>Dernier prix d'achat</th>
                     <th>Étude de marché</th>
                   </tr>
@@ -2462,6 +2541,12 @@ const handleFormSubmit = async () => {
                       </td>
                       <td>{produit.quantity || 0}</td>
                       <td>{formatNumber(produit.totalItem || (getPrixApresRemise(produit) * produit.quantity))}</td>
+                      <td className="purchase-history">
+                        <div className="purchase-count">
+                          <span className="count-number">{purchaseCounts[produit.id] || 0}</span>
+                          <span className="count-label">achats</span>
+                        </div>
+                      </td>
                       <td className="dernier-prix-achat">
                         {formatNumber(produit.dernierPrixAchat || 0)}
                       </td>
