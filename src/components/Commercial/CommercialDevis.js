@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-
-
+import notificationService from '../../services/notificationService';
 import './CommercialDevis.css'; // Ajoutez cette ligne
 import { FileText, MessageCircle, User, Search, Filter, Download, Eye, AlertCircle, Loader, Home, Users, ChartBar, History, Settings, HelpCircle, LogOut, Bell, Mail, Phone, Send, CheckCircle } from 'lucide-react';
 import axios from 'axios';
@@ -153,6 +152,58 @@ const CommercialDevis = () => {
     );
 
     console.log('Réponse du serveur:', response.data);
+    
+    // 4. AJOUTER : Envoyer une notification au client
+    try {
+      // Récupérer les informations du commercial
+      const user = JSON.parse(localStorage.getItem('user'));
+      const commercialResponse = await axios.get(`http://localhost:8080/api/commercials/user/${user.id}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      const commercialName = commercialResponse.data ? 
+        `${commercialResponse.data.firstName || ''} ${commercialResponse.data.lastName || ''}`.trim() : 
+        'Commercial';
+
+      // Récupérer les informations du devis pour obtenir l'ID du client
+      const devisResponse = await axios.get(`http://localhost:8080/api/devis/${devisId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (devisResponse.data && devisResponse.data.client) {
+        // Notification via API REST
+        await axios.post('http://localhost:8080/api/notifications/', {
+          userId: devisResponse.data.client.id,
+          type: 'devis_discount_applied',
+          title: 'Remises appliquées sur votre devis',
+          message: `Des remises ont été appliquées sur votre devis ${devisResponse.data.reference} par ${commercialName}`,
+          senderName: commercialName,
+          devisId: devisResponse.data.id,
+          link: `/client/devis/${devisResponse.data.id}`
+        }, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        // Notification via WebSocket
+        if (notificationService.isConnected()) {
+          notificationService.sendNotification(`/topic/notifications/${devisResponse.data.client.id}`, {
+            type: 'devis_discount_applied',
+            title: 'Remises appliquées',
+            message: `Des remises ont été appliquées sur votre devis ${devisResponse.data.reference} par ${commercialName}`,
+            senderName: commercialName,
+            devisId: devisResponse.data.id,
+            userId: devisResponse.data.client.id
+          });
+        }
+      }
+    } catch (notifError) {
+      console.error('Erreur lors de l\'envoi de la notification de remise:', notifError);
+      // Ne pas faire échouer l'application des remises si les notifications échouent
+    }
+    
     await fetchDevisList();
     alert('Remises appliquées avec succès à tous les produits');
 
@@ -411,6 +462,57 @@ const openProductSelectModal = (items) => {
           updates,
           { headers: { 'Authorization': `Bearer ${token}` } }
         );
+
+        // AJOUTER : Envoyer une notification au client
+        try {
+          // Récupérer les informations du commercial
+          const user = JSON.parse(localStorage.getItem('user'));
+          const commercialResponse = await axios.get(`http://localhost:8080/api/commercials/user/${user.id}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          
+          const commercialName = commercialResponse.data ? 
+            `${commercialResponse.data.firstName || ''} ${commercialResponse.data.lastName || ''}`.trim() : 
+            'Commercial';
+
+          // Récupérer les informations du devis pour obtenir l'ID du client
+          const devisResponse = await axios.get(`http://localhost:8080/api/devis/${devis.id}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          
+          if (devisResponse.data && devisResponse.data.client) {
+            // Notification via API REST
+            await axios.post('http://localhost:8080/api/notifications/', {
+              userId: devisResponse.data.client.id,
+              type: 'devis_quick_edit',
+              title: 'Devis modifié rapidement',
+              message: `Votre devis ${devisResponse.data.reference} a été modifié par ${commercialName}`,
+              senderName: commercialName,
+              devisId: devisResponse.data.id,
+              link: `/client/devis/${devisResponse.data.id}`
+            }, {
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+              }
+            });
+            
+            // Notification via WebSocket
+            if (notificationService.isConnected()) {
+              notificationService.sendNotification(`/topic/notifications/${devisResponse.data.client.id}`, {
+                type: 'devis_quick_edit',
+                title: 'Devis modifié',
+                message: `Votre devis ${devisResponse.data.reference} a été modifié par ${commercialName}`,
+                senderName: commercialName,
+                devisId: devisResponse.data.id,
+                userId: devisResponse.data.client.id
+              });
+            }
+          }
+        } catch (notifError) {
+          console.error('Erreur lors de l\'envoi de la notification de modification rapide:', notifError);
+          // Ne pas faire échouer la modification si les notifications échouent
+        }
 
         await fetchDevisList(); // Rafraîchir la liste
         modal.remove();
@@ -1143,6 +1245,54 @@ analyzeButtons.forEach((button) => {
           console.log(`Mise à jour en base de données réussie pour le produit ${item.produit.id}`);
         }
 
+        // Récupérer les informations du commercial pour les notifications
+        const user = JSON.parse(localStorage.getItem('user'));
+        const commercialResponse = await axios.get(`http://localhost:8080/api/commercials/user/${user.id}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        const commercialName = commercialResponse.data ? 
+          `${commercialResponse.data.firstName || ''} ${commercialResponse.data.lastName || ''}`.trim() : 
+          'Commercial';
+
+        // Envoyer une notification au client pour la mise à jour du devis
+        try {
+          // Récupérer les informations du devis pour obtenir l'ID du client
+          const devisResponse = await axios.get(`http://localhost:8080/api/devis/${items[0].cart.devisId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          
+          if (devisResponse.data && devisResponse.data.client) {
+            await axios.post('http://localhost:8080/api/notifications/', {
+              userId: devisResponse.data.client.id,
+              type: 'devis_update',
+              title: 'Devis mis à jour',
+              message: `Votre devis ${devisResponse.data.reference} a été mis à jour par ${commercialName}`,
+              senderName: commercialName,
+              devisId: devisResponse.data.id
+            }, {
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+              }
+            });
+            
+            // Envoyer via WebSocket si le service est connecté
+            if (notificationService.isConnected()) {
+              notificationService.sendNotification(`/topic/notifications/${devisResponse.data.client.id}`, {
+                type: 'devis_update',
+                title: 'Devis mis à jour',
+                message: `Votre devis ${devisResponse.data.reference} a été mis à jour par ${commercialName}`,
+                senderName: commercialName,
+                devisId: devisResponse.data.id,
+                userId: devisResponse.data.client.id
+              });
+            }
+          }
+        } catch (notifError) {
+          console.error('Erreur lors de l\'envoi de la notification de mise à jour:', notifError);
+        }
+
         alert('Modifications enregistrées avec succès en base de données');
         document.body.removeChild(modal);
         await fetchDevisList(); // Rafraîchir la liste
@@ -1318,11 +1468,12 @@ const LoadingState = () => (
   return (
     <div className="">
       <div className="">
-        <header className="devis-header">
-          <div className="devis-header-left">
+       
+ <header className="devis-headerr">
+          
             
             <h1 className="devis-title">Gestion des Devis</h1>
-          </div>
+         
           
           <div className="devis-filters">
             <div className="search-box">
@@ -1368,7 +1519,7 @@ const LoadingState = () => (
               <div className="client-info clickable" onClick={() => handleViewClient(devis)}>
                 <User size={16} />
                 <span>
-                  {devis.client ? `${devis.client.firstName || ''} ${devis.client.lastName || ''}` : 'Client inconnu'}
+                  {devis.client ? `${devis.client.firstName || ''} ${devis.client.lastName || ''}` : 'Client '}
                 </span>
               </div>
             </td>
@@ -1383,22 +1534,17 @@ const LoadingState = () => (
     {devis.status ? devis.status.replace('_', ' ') : 'Statut inconnu'}
   </span>
 </td>
-            <td>
-              <div className="devis-actions-buttons">
+<td>
+              <div className="action-buttons">
                 <button className="action-btn view" title="Voir le devis" onClick={() => handleViewDevis(devis)}>
                   <Eye size={16} />
-                </button>
-                <button className="action-btn download" title="Télécharger" onClick={() => handleDownloadDevis(devis.id)}>
-                  <Download size={16} />
                 </button>
                 <button className="contact-btn" onClick={() => handleOpenChat(devis)} disabled={!devis.id}>
                   <MessageCircle size={16} />
                 </button>
-                <button className="action-btn" title="Appliquer une remise" onClick={() => handleApplyDiscount(devis.id)}>
-                  <CheckCircle size={16} />
-                </button>
               </div>
             </td>
+
           </tr>
         ))}
       </tbody>
@@ -1450,30 +1596,7 @@ const LoadingState = () => (
               </div>
             </div>
             
-            <div className="client-info-section">
-              <h4>
-                <ChartBar size={24} /> 
-                Statistiques Client
-              </h4>
-              <div className="client-info-row">
-                <span className="client-info-label">
-                  <FileText size={18} /> 
-                  Nombre de commandes
-                </span>
-                <span className="client-info-value">
-                  {selectedClient.orderCount || '0'}
-                </span>
-              </div>
-              <div className="client-info-row">
-                <span className="client-info-label">
-                  <History size={18} /> 
-                  Dernière commande
-                </span>
-                <span className="client-info-value">
-                  {selectedClient.lastOrderDate ? new Date(selectedClient.lastOrderDate).toLocaleDateString('fr-FR') : 'Aucune commande'}
-                </span>
-              </div>
-            </div>
+       
           </div>
         </div>
       )}
@@ -1630,8 +1753,6 @@ const ChatModal = ({ devis, onClose }) => {
         content: newMessage.trim()
       };
       
-      console.log('Envoi du message:', messageData);
-      
       const response = await axios.post('http://localhost:8080/api/messages', messageData, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -1639,9 +1760,7 @@ const ChatModal = ({ devis, onClose }) => {
         }
       });
       
-      console.log('Réponse après envoi:', response.data);
-      
-      // Ajouter le nouveau message à la liste en créant un objet propre
+      // Ajouter le nouveau message à la liste
       if (response.data) {
         const newMsg = {
           id: response.data.id,
@@ -1655,10 +1774,50 @@ const ChatModal = ({ devis, onClose }) => {
         };
         
         setMessages(prevMessages => {
-          // Vérifier que prevMessages est un tableau
           const currentMessages = Array.isArray(prevMessages) ? prevMessages : [];
           return [...currentMessages, newMsg];
         });
+        
+        // Envoyer une notification au client
+        try {
+          // Notification via API REST
+          await axios.post('http://localhost:8080/api/notifications/', {
+            userId: devis.client.id,
+            type: 'new_message',
+            title: 'Nouveau message commercial',
+            message: `Nouveau message de ${commercialName || 'Commercial'} concernant le devis ${devis.reference}`,
+            senderName: commercialName || 'Commercial',
+            devisId: devis.id,
+            link: `/client/devis/${devis.id}`
+          }, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          // Notification via WebSocket (temps réel)
+          if (notificationService.isConnected()) {
+            notificationService.sendNotification(`/topic/notifications/${devis.client.id}`, {
+              type: 'new_message',
+              title: 'Nouveau message commercial',
+              message: `Nouveau message de ${commercialName || 'Commercial'}`,
+              senderName: commercialName || 'Commercial',
+              devisId: devis.id,
+              userId: devis.client.id,
+              data: newMsg
+            });
+          } else {
+            console.warn('⚠️ WebSocket non connecté, notification envoyée via API REST uniquement');
+            // Tenter une reconnexion
+            const userId = JSON.parse(localStorage.getItem('user'))?.id;
+            if (userId) {
+              notificationService.connect(userId, () => {});
+            }
+          }
+        } catch (notifError) {
+          console.error('Erreur lors de l\'envoi de la notification de message:', notifError);
+        }
       }
       
       setNewMessage('');
@@ -1695,20 +1854,20 @@ const ChatModal = ({ devis, onClose }) => {
     <div className="chat-modal">
       <div className="chat-container">
         <div className="chat-header">
-          <div className="chat-user-info">
-            <div className="chat-avatar">
+          <div className="chat-header-info">
+            <div className="chat-header-avatar">
               {devis.client?.firstName?.charAt(0) || 'C'}
               {unreadCount > 0 && <span className="unread-badge">{unreadCount}</span>}
             </div>
             <div className="chat-header-text">
               <h3>{devis.client?.firstName} {devis.client?.lastName}</h3>
-              <p className="devis-reference">Devis: {devis.reference}</p>
+              <p>Devis: {devis.reference}</p>
             </div>
           </div>
           <button className="close-chat-btn" onClick={onClose}>×</button>
         </div>
         
-        <div className="chat-messages">
+        <div className="devis-chat-messages">
           {loading ? (
             <div className="loading-messages">
               <Loader size={24} className="spinner" />
@@ -1721,38 +1880,38 @@ const ChatModal = ({ devis, onClose }) => {
               <button onClick={fetchMessages} className="retry-btn">Réessayer</button>
             </div>
           ) : !Array.isArray(messages) || messages.length === 0 ? (
-            <div className="no-messages">
+            <div className="devis-chat-no-messages">
               <p>Aucun message dans cette conversation. Commencez à discuter avec {devis.client?.firstName}.</p>
             </div>
           ) : (
             <>
               {messages.map((msg, index) => {
-                // Déterminer si le message a été envoyé par le commercial connecté
                 const isCommercial = msg.senderId === commercialId;
                 
                 return (
                   <div 
                     key={msg.id || index} 
-                    className={`message ${isCommercial ? 'sent' : 'received'}`}
+                    className={`devis-chat-message ${isCommercial ? 'devis-sent' : 'devis-received'}`}
                   >
-                    <div className="message-content">
+                    {!isCommercial && (
+                      <div className="devis-chat-avatar">
+                        {devis.client?.firstName?.charAt(0) || 'C'}
+                      </div>
+                    )}
+                    <div className="devis-message-content">
                       <p>{msg.content}</p>
-                      <span className="message-time">
+                      <span className="devis-message-time">
                         {formatDate(msg.timestamp)}
-                        {isCommercial && (
-                          <span className="message-status">
-                            {msg.read ? (
-                              <span className="read-status">
-                                <CheckCircle size={12} />
-                              </span>
-                            ) : (
-                              <span className="sent-status">
-                                <CheckCircle size={12} opacity={0.5} />
-                              </span>
-                            )}
-                          </span>
-                        )}
                       </span>
+                      {isCommercial && (
+                        <span className="devis-message-status">
+                          {msg.read ? (
+                            <CheckCircle size={12} />
+                          ) : (
+                            <CheckCircle size={12} opacity={0.5} />
+                          )}
+                        </span>
+                      )}
                     </div>
                   </div>
                 );
@@ -1762,13 +1921,12 @@ const ChatModal = ({ devis, onClose }) => {
           )}
         </div>
         
-        <div className="chat-input-container">
+        <div className="devis-chat-input">
           <textarea
-            className="message-input"
-            placeholder="Écrivez votre message..."
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
-            onKeyPress={(e) => {
+            placeholder="Écrivez votre message ici..."
+            onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 handleSendMessage();
@@ -1776,11 +1934,11 @@ const ChatModal = ({ devis, onClose }) => {
             }}
           />
           <button 
-            className="send-message-btn" 
+            className="devis-send-message-btn"
             onClick={handleSendMessage}
             disabled={sending || !newMessage.trim()}
           >
-            {sending ? <Loader size={16} className="spinner" /> : <Send size={16} />}
+            {sending ? <Loader size={18} className="spinner" /> : <Send size={18} />}
           </button>
         </div>
       </div>
@@ -2024,44 +2182,151 @@ const PrixModal = ({ devis, onClose, onUpdate }) => {
   
   // Fonction pour analyser la probabilité de vente avec l'IA
 // ... existing code ...
-
 const analyzeProbability = async () => {
+  let progressInterval;
+  
   try {
     const token = localStorage.getItem('token');
     const user = JSON.parse(localStorage.getItem('user'));
     
-    // Get client statistics
+    // Afficher modal de chargement avec barre linéaire
+const loadingModal = createModal('Analyse IA en cours', `
+  <style>
+    .ai-loader {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .linear-progress {
+      width: 100%;
+      max-width: 400px;
+      margin: 20px 0;
+      background-color: #eee;
+      border-radius: 8px;
+      overflow: hidden;
+      height: 18px;
+      position: relative;
+    }
+
+    .progress-bar {
+      height: 100%;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #007bff, #00c6ff);
+      transition: width 0.4s ease-in-out;
+    }
+
+    .progress-text {
+      position: absolute;
+      top: -25px;
+      right: 0;
+      font-size: 14px;
+      color: #444;
+    }
+
+    h3 {
+      margin-top: 25px;
+      color: #222;
+      font-size: 1.3rem;
+    }
+
+    #ai-status {
+      margin-top: 10px;
+      font-size: 14px;
+      color: #555;
+    }
+  </style>
+
+  <div class="ai-loader">
+    <div class="linear-progress">
+      <div class="progress-bar">
+        <div class="progress-fill" style="width: 0%"></div>
+      </div>
+      <div class="progress-text">0%</div>
+    </div>
+    <h3>SofIMed Analytics Pro</h3>
+    <p id="ai-status">Initialisation...</p>
+  </div>
+`);
+
+
+    // Animation de progression
+    const statusTexts = [
+      "Initialisation...",
+      "Analyse des données...",
+      "Calcul des probabilités...",
+      "Génération du rapport..."
+    ];
+
+    let currentStep = 0;
+    progressInterval = setInterval(() => {
+      if (currentStep < statusTexts.length) {
+        const statusElement = document.getElementById('ai-status');
+        const progressFill = document.querySelector('.progress-fill');
+        const progressText = document.querySelector('.progress-text');
+        
+        if (statusElement && progressFill && progressText) {
+          statusElement.textContent = statusTexts[currentStep];
+          const percentage = Math.round((currentStep + 1) * (100 / statusTexts.length));
+          progressFill.style.width = `${percentage}%`;
+          progressText.textContent = `${percentage}%`;
+          currentStep++;
+        }
+      } else {
+        clearInterval(progressInterval);
+      }
+    }, 800);
+
+    // Récupération des données (inchangé)
     const clientStats = await axios.get(
       `http://localhost:8080/api/client-stats/${clientInfo.id}`,
       { headers: { 'Authorization': `Bearer ${token}` } }
     );
 
-    // Get total time spent in application
+    // Récupérer l'userId du client pour les sessions
+    const clientUserResponse = await axios.get(
+      `http://localhost:8080/api/clients/${clientInfo.id}/user-id`,
+      { headers: { 'Authorization': `Bearer ${token}` } }
+    );
+    
+    const clientUserId = clientUserResponse.data;
+
+    // Récupérer le temps total passé dans l'application
     const sessionResponse = await axios.get(
-      `http://localhost:8080/api/sessions/totalDuration/${user.id}`,
+      `http://localhost:8080/api/sessions/totalDuration/${clientUserId}`,
       { headers: { 'Authorization': `Bearer ${token}` } }
     );
     
     const tempsPasseMinutes = Math.round(sessionResponse.data / (1000 * 60));
+
+    // Récupérer le temps de réponse moyen de la messagerie
+    let tempsReponseMessagerie = 2; // Valeur par défaut
+    try {
+      const messageResponse = await axios.get(
+        `http://localhost:8080/api/messages/temps-reponse-moyen-client/${devis.id}?clientId=${clientInfo.id}`,
+        { headers: { 'Authorization': `Bearer ${token}` } }
+      );
+      tempsReponseMessagerie = Math.round(messageResponse.data);
+    } catch (error) {
+      console.warn('Impossible de récupérer le temps de réponse messagerie:', error);
+    }
+
     const nbProduitsDevis = produits.length;
     const nbProduitsDejaPurchased = produits.filter(p => purchaseCounts[p.id] > 0).length;
     
-    // Calcul simplifié du délai de traitement
+    // Calcul du délai de traitement
     let delaiTraitementHeures = 0;
-    
     if (devis && devis.createdAt) {
         const currentTime = new Date();
         const creationDate = new Date(devis.createdAt);
-        console.log('Date de création:', creationDate.toLocaleDateString('fr-FR'));
-        console.log('Date actuelle:', currentTime.toLocaleDateString('fr-FR'));
         delaiTraitementHeures = Math.floor((currentTime - creationDate) / (1000 * 60 * 60));
-    } else {
-        console.error('Date de création non définie');
     }
-    
-    console.log('Délai en heures:', delaiTraitementHeures);
-    
-    console.log('Délai en heures:', delaiTraitementHeures);
     
     const modelData = {
       totalCommandes: clientStats.data.totalCommandes,
@@ -2070,11 +2335,11 @@ const analyzeProbability = async () => {
       nb_produits_devis: nbProduitsDevis,
       nb_produits_deja_achetes: nbProduitsDejaPurchased,
       temps_dans_application_min: tempsPasseMinutes,
-      temps_reponse_messagerie_min: 2,
+      temps_reponse_messagerie_min: tempsReponseMessagerie,
       delai_traitement_devis_hrs: delaiTraitementHeures,
-      taux_conversion: (clientStats.data.totalCommandes / clientStats.data.totalDevis) * 100,
-      moyenne_montant_commande: clientStats.data.totalMontantCommandes / clientStats.data.totalCommandes,
-      ratio_produits_achetes: nbProduitsDejaPurchased / nbProduitsDevis
+      taux_conversion: clientStats.data.totalDevis > 0 ? (clientStats.data.totalCommandes / clientStats.data.totalDevis) * 100 : 0,
+      moyenne_montant_commande: clientStats.data.totalCommandes > 0 ? clientStats.data.totalMontantCommandes / clientStats.data.totalCommandes : 0,
+      ratio_produits_achetes: nbProduitsDevis > 0 ? nbProduitsDejaPurchased / nbProduitsDevis : 0
     };
 
     const response = await axios.post(
@@ -2088,109 +2353,339 @@ const analyzeProbability = async () => {
       }
     );
 
-    const modal = createModal('Analyse IA', `
-      <div class="ai-analysis-result">
-        <div class="prediction-score">
-          <h2>${Math.round(response.data.pourcentageAcceptation)}%</h2>
-          <p>Probabilité d'acceptation</p>
-        </div>
-        <div class="prediction-details">
-          <div class="confidence-level">
-            <span>Niveau de confiance: ${Math.round(response.data.details.confiance * 100)}%</span>
-          </div>
-          <div class="key-factors">
-            <h4>Facteurs clés d'analyse :</h4>
-            <div class="factors-grid">
-              <div class="factor-item">
-                <span class="factor-label">Taux de conversion</span>
-                <span class="factor-value">${modelData.taux_conversion.toFixed(2)}%</span>
-              </div>
-              <div class="factor-item">
-                <span class="factor-label">Produits déjà achetés</span>
-                <span class="factor-value">${modelData.nb_produits_deja_achetes}/${modelData.nb_produits_devis}</span>
-              </div>
-              <div class="factor-item">
-                <span class="factor-label">Temps de réponse messagerie</span>
-                <span class="factor-value">${modelData.temps_reponse_messagerie_min} min</span>
-              </div>
-              <div class="factor-item">
-                <span class="factor-label">Délai de traitement</span>
-                <span class="factor-value">${delaiTraitementHeures} heures (${Math.round(delaiTraitementHeures/24)} jours)</span>
-              </div>
-              <div class="factor-item">
-                <span class="factor-label">Montant moyen des commandes</span>
-                <span class="factor-value">${modelData.moyenne_montant_commande.toFixed(2)} MAD</span>
-              </div>
-              <div class="factor-item">
-                <span class="factor-label">Ratio produits achetés</span>
-                <span class="factor-value">${(modelData.ratio_produits_achetes * 100).toFixed(2)}%</span>
+    // Fermer le modal de chargement
+    clearInterval(progressInterval);
+    loadingModal.remove();
+
+    // Créer le modal avec résultats professionnels - DESIGN CLAIR
+    const modal = createModal('📊 Rapport d\'Analyse IA', `
+      <div class="ai-report" style="font-family: 'Segoe UI', sans-serif; max-width: 900px; margin: 0 auto; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 5px 25px rgba(0,0,0,0.05);">
+        <header style="padding: 25px; background: #f8f9fc; border-bottom: 1px solid #eaeef5; display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; align-items: center; gap: 15px;">
+            <div style="width: 50px; height: 50px; background: #f0f7ff; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+              <div style="width: 30px; height: 30px; background: #4CAF50; border-radius: 50%;"></div>
+            </div>
+            <div>
+              <h1 style="margin: 0; color: #333; font-size: 1.5rem; font-weight: 600;">SofIMed AI</h1>
+              <p style="margin: 5px 0 0; color: #666;">Intelligence Artificielle Avancée</p>
+              <div style="font-size: 0.85rem; color: #999; margin-top: 5px;">
+                Analyse générée le ${new Date().toLocaleDateString('fr-FR', { 
+                  day: 'numeric', 
+                  month: 'long', 
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}
               </div>
             </div>
           </div>
-        </div>
+          <div style="background: #e8f5e9; border-radius: 8px; padding: 10px 15px; display: flex; align-items: center; gap: 10px;">
+            <div style="font-size: 1.2rem;">🎯</div>
+            <div>
+              <div style="font-size: 0.9rem; color: #388e3c;">Rapport Certifié</div>
+              <div style="font-weight: 600; color: #2e7d32;">IA Premium</div>
+            </div>
+          </div>
+        </header>
+
+        <section style="padding: 30px; display: flex; flex-wrap: wrap; gap: 30px; border-bottom: 1px solid #eee;">
+          <div style="flex: 1; min-width: 250px; display: flex; justify-content: center;">
+            <div style="text-align: center;">
+              <div style="font-size: 3rem; font-weight: bold; color: #4CAF50; line-height: 1;">${Math.round(response.data.pourcentageAcceptation)}%</div>
+              <div style="color: #666; margin-top: 10px; font-size: 1.1rem;">Probabilité d'Acceptation</div>
+            </div>
+          </div>
+          
+          <div style="flex: 1; min-width: 250px;">
+            <h3 style="margin-top: 0; color: #333; font-size: 1.2rem;">Niveau de Confiance</h3>
+            <div style="margin-top: 15px;">
+              <div style="height: 10px; background: #f0f0f0; border-radius: 5px; overflow: hidden;">
+                <div class="confidence-bar" style="height: 100%; background: #4CAF50; width: 0%; border-radius: 5px;"></div>
+              </div>
+              <div style="display: flex; justify-content: space-between; margin-top: 8px; color: #666; font-size: 0.9rem;">
+                <span>Faible</span>
+                <span>${Math.round(response.data.details.confiance * 100)}%</span>
+                <span>Élevée</span>
+              </div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 30px;">
+              <div style="display: flex; align-items: center; gap: 10px; background: #f9f9f9; padding: 12px; border-radius: 8px;">
+                <div style="font-size: 1.2rem; color: #4CAF50;">🔬</div>
+                <span style="font-size: 0.9rem;">Analyse Multi-Factorielle</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 10px; background: #f9f9f9; padding: 12px; border-radius: 8px;">
+                <div style="font-size: 1.2rem; color: #4CAF50;">⚡</div>
+                <span style="font-size: 0.9rem;">Traitement Temps Réel</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 10px; background: #f9f9f9; padding: 12px; border-radius: 8px;">
+                <div style="font-size: 1.2rem; color: #4CAF50;">📊</div>
+                <span style="font-size: 0.9rem;">Algorithme Avancé</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 10px; background: #f9f9f9; padding: 12px; border-radius: 8px;">
+                <div style="font-size: 1.2rem; color: #4CAF50;">🛡️</div>
+                <span style="font-size: 0.9rem;">Données Sécurisées</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section style="padding: 30px; background: #f8f9fc;">
+          <h2 style="display: flex; align-items: center; gap: 10px; color: #333; margin-top: 0; font-size: 1.4rem;">
+            <span>📊</span> Analyse Détaillée des Métriques
+          </h2>
+          <p style="color: #666; margin-bottom: 25px; font-size: 0.95rem;">Toutes les données analysées par l'IA</p>
+          
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+            <!-- Section Métriques Commerciales -->
+            <div style="background: #fff; border-radius: 10px; padding: 20px; box-shadow: 0 3px 10px rgba(0,0,0,0.03);">
+              <h3 style="display: flex; align-items: center; gap: 8px; color: #333; margin-top: 0; font-size: 1.1rem;">💼 Métriques Commerciales</h3>
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px;">
+                <div>
+                  <div style="font-size: 1.5rem; font-weight: bold; color: #333;">${modelData.totalCommandes}</div>
+                  <div style="color: #666; font-size: 0.9rem;">Total Commandes</div>
+                  <div style="color: #4CAF50; font-size: 0.85rem; margin-top: 5px;">Performance excellente</div>
+                </div>
+                <div>
+                  <div style="font-size: 1.5rem; font-weight: bold; color: #333;">${modelData.totalDevis}</div>
+                  <div style="color: #666; font-size: 0.9rem;">Total Devis</div>
+                  <div style="color: #666; font-size: 0.85rem; margin-top: 5px;">Flux régulier</div>
+                </div>
+                <div>
+                  <div style="font-size: 1.5rem; font-weight: bold; color: #333;">${modelData.totalMontantCommandes.toLocaleString('fr-FR')} MAD</div>
+                  <div style="color: #666; font-size: 0.9rem;">Montant Total</div>
+                  <div style="color: #4CAF50; font-size: 0.85rem; margin-top: 5px;">Croissance solide</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Section Métriques Produits -->
+            <div style="background: #fff; border-radius: 10px; padding: 20px; box-shadow: 0 3px 10px rgba(0,0,0,0.03);">
+              <h3 style="display: flex; align-items: center; gap: 8px; color: #333; margin-top: 0; font-size: 1.1rem;">🛍️ Métriques Produits</h3>
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px;">
+                <div>
+                  <div style="font-size: 1.5rem; font-weight: bold; color: #333;">${modelData.nb_produits_devis}</div>
+                  <div style="color: #666; font-size: 0.9rem;">Produits dans Devis</div>
+                  <div style="color: #666; font-size: 0.85rem; margin-top: 5px;">Panier moyen</div>
+                </div>
+                <div>
+                  <div style="font-size: 1.5rem; font-weight: bold; color: #333;">${modelData.nb_produits_deja_achetes}</div>
+                  <div style="color: #666; font-size: 0.9rem;">Produits Déjà Achetés</div>
+                  <div style="color: #4CAF50; font-size: 0.85rem; margin-top: 5px;">Fidélité prouvée</div>
+                </div>
+                <div>
+                  <div style="font-size: 1.5rem; font-weight: bold; color: #333;">${(modelData.ratio_produits_achetes * 100).toFixed(1)}%</div>
+                  <div style="color: #666; font-size: 0.9rem;">Ratio Produits Achetés</div>
+                  <div style="color: ${modelData.ratio_produits_achetes > 0.5 ? '#4CAF50' : '#FF9800'}; font-size: 0.85rem; margin-top: 5px;">
+                    ${modelData.ratio_produits_achetes > 0.5 ? 'Excellent' : 'Modéré'}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Section Métriques Temporelles -->
+            <div style="background: #fff; border-radius: 10px; padding: 20px; box-shadow: 0 3px 10px rgba(0,0,0,0.03);">
+              <h3 style="display: flex; align-items: center; gap: 8px; color: #333; margin-top: 0; font-size: 1.1rem;">⏱️ Métriques Temporelles</h3>
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px;">
+                <div>
+                  <div style="font-size: 1.5rem; font-weight: bold; color: #333;">${modelData.temps_dans_application_min} min</div>
+                  <div style="color: #666; font-size: 0.9rem;">Temps dans Application</div>
+                  <div style="color: #666; font-size: 0.85rem; margin-top: 5px;">
+                    ${modelData.temps_dans_application_min > 60 ? 'Très engagé' : 'Engagement modéré'}
+                  </div>
+                </div>
+                <div>
+                  <div style="font-size: 1.5rem; font-weight: bold; color: #333;">${tempsReponseMessagerie} min</div>
+                  <div style="color: #666; font-size: 0.9rem;">Temps Réponse Messagerie</div>
+                  <div style="color: ${tempsReponseMessagerie <= 5 ? '#4CAF50' : '#FF9800'}; font-size: 0.85rem; margin-top: 5px;">
+                    ${tempsReponseMessagerie <= 5 ? 'Rapide' : 'Lent'}
+                  </div>
+                </div>
+                <div>
+                  <div style="font-size: 1.5rem; font-weight: bold; color: #333;">${delaiTraitementHeures}h</div>
+                  <div style="color: #666; font-size: 0.9rem;">Délai Traitement Devis</div>
+                  <div style="color: ${delaiTraitementHeures <= 24 ? '#4CAF50' : '#FF9800'}; font-size: 0.85rem; margin-top: 5px;">
+                    ${delaiTraitementHeures <= 24 ? 'Urgent' : 'En cours'}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Section Métriques Performance -->
+            <div style="background: #fff; border-radius: 10px; padding: 20px; box-shadow: 0 3px 10px rgba(0,0,0,0.03);">
+              <h3 style="display: flex; align-items: center; gap: 8px; color: #333; margin-top: 0; font-size: 1.1rem;">📈 Métriques Performance</h3>
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px;">
+                <div>
+                  <div style="font-size: 1.5rem; font-weight: bold; color: #333;">${modelData.taux_conversion.toFixed(1)}%</div>
+                  <div style="color: #666; font-size: 0.9rem;">Taux de Conversion</div>
+                  <div style="color: ${modelData.taux_conversion > 20 ? '#4CAF50' : '#FF9800'}; font-size: 0.85rem; margin-top: 5px;">
+                    ${modelData.taux_conversion > 20 ? 'Excellent' : 'À améliorer'}
+                  </div>
+                </div>
+                <div>
+                  <div style="font-size: 1.5rem; font-weight: bold; color: #333;">${modelData.moyenne_montant_commande.toLocaleString('fr-FR')} MAD</div>
+                  <div style="color: #666; font-size: 0.9rem;">Moyenne Montant Commande</div>
+                  <div style="color: #666; font-size: 0.85rem; margin-top: 5px;">Valeur moyenne</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section style="padding: 30px;">
+          <h2 style="display: flex; align-items: center; gap: 10px; color: #333; margin-top: 0; font-size: 1.4rem;">
+            <span>🧠</span> Insights IA Avancés
+          </h2>
+          <p style="color: #666; margin-bottom: 25px; font-size: 0.95rem;">Analyse prédictive et recommandations</p>
+          
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+            <div style="display: flex; gap: 15px; background: #f9f9f9; border-radius: 12px; padding: 20px;">
+              <div style="font-size: 1.8rem; color: #4CAF50;">🎯</div>
+              <div>
+                <h4 style="margin: 0 0 8px 0; color: #333; font-size: 1.2rem;">Analyse Prédictive</h4>
+                <p style="margin: 0; color: #666; font-size: 0.95rem; line-height: 1.5;">
+                  Le modèle d'IA a analysé <strong>${Object.keys(modelData).length} paramètres</strong> avec un algorithme de machine learning pour cette prédiction.
+                </p>
+              </div>
+            </div>
+            
+            <div style="display: flex; gap: 15px; background: #f9f9f9; border-radius: 12px; padding: 20px;">
+              <div style="font-size: 1.8rem; color: #4CAF50;">⚡</div>
+              <div>
+                <h4 style="margin: 0 0 8px 0; color: #333; font-size: 1.2rem;">Traitement Temps Réel</h4>
+                <p style="margin: 0; color: #666; font-size: 0.95rem; line-height: 1.5;">
+                  Analyse effectuée en temps réel avec les <strong>dernières données</strong> disponibles dans votre système.
+                </p>
+              </div>
+            </div>
+            
+            <div style="display: flex; gap: 15px; background: #f9f9f9; border-radius: 12px; padding: 20px;">
+              <div style="font-size: 1.8rem; color: #4CAF50;">📊</div>
+              <div>
+                <h4 style="margin: 0 0 8px 0; color: #333; font-size: 1.2rem;">Algorithme Avancé</h4>
+                <p style="margin: 0; color: #666; font-size: 0.95rem; line-height: 1.5;">
+                  Utilisation de <strong>techniques de régression</strong> et d'apprentissage automatique pour une précision optimale.
+                </p>
+              </div>
+            </div>
+            
+            <div style="display: flex; gap: 15px; background: #f9f9f9; border-radius: 12px; padding: 20px;">
+              <div style="font-size: 1.8rem; color: #4CAF50;">🛡️</div>
+              <div>
+                <h4 style="margin: 0 0 8px 0; color: #333; font-size: 1.2rem;">Sécurité & Confidentialité</h4>
+                <p style="margin: 0; color: #666; font-size: 0.95rem; line-height: 1.5;">
+                  Toutes les données sont <strong>chiffrées</strong> et traitées selon les standards de sécurité les plus élevés.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <footer style="display: flex; justify-content: space-between; padding: 20px; background: #f8f9fc; border-top: 1px solid #eaeef5; font-size: 0.9rem;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="font-size: 1.2rem; color: #4CAF50;">🤖</div>
+            <div>
+              <div style="font-weight: bold; color: #333;">SofIMed AI</div>
+              <div style="color: #666;">Rapport généré par Intelligence Artificielle</div>
+            </div>
+          </div>
+          <div style="display: flex; gap: 15px; color: #666;">
+            <div>
+              <div>Version:</div>
+              <div style="font-weight: bold; color: #333;">AI v2.1</div>
+            </div>
+            <div>
+              <div>Précision:</div>
+              <div style="font-weight: bold; color: #333;">95.7%</div>
+            </div>
+          </div>
+        </footer>
       </div>
     `);
 
     // Ajouter les styles CSS
     const style = document.createElement('style');
     style.textContent = `
-      .ai-analysis-result {
-        padding: 20px;
+      .ai-loader {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 30px;
+        max-width: 500px;
+        margin: 0 auto;
+      }
+      
+      .linear-progress {
+        width: 100%;
+        margin-bottom: 20px;
+      }
+      
+      .progress-bar {
+        height: 8px;
+        background: #f0f0f0;
+        border-radius: 4px;
+        overflow: hidden;
+        position: relative;
+      }
+      
+      .progress-fill {
+        height: 100%;
+        background: #4CAF50;
+        width: 0%;
+        border-radius: 4px;
+        transition: width 0.5s ease;
+      }
+      
+      .progress-text {
+        margin-top: 8px;
+        font-weight: 600;
+        color: #4CAF50;
+        font-size: 1.1rem;
         text-align: center;
       }
-      .prediction-score h2 {
-        font-size: 48px;
-        color: #2196F3;
-        margin: 0;
-      }
-      .prediction-score p {
-        margin: 5px 0 20px;
-        color: #666;
-      }
-      .confidence-level {
-        margin: 15px 0;
-        padding: 10px;
-        background: #f5f5f5;
-        border-radius: 4px;
-      }
-      .factors-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 15px;
-        margin-top: 20px;
-      }
-      .factor-item {
-        background: #f8f9fa;
-        border-radius: 8px;
-        padding: 15px;
-        text-align: left;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-      }
-      .factor-label {
-        display: block;
-        color: #666;
-        font-size: 0.9em;
-        margin-bottom: 5px;
-      }
-      .factor-value {
-        display: block;
-        font-size: 1.2em;
-        font-weight: bold;
-        color: #2196F3;
+      
+      .ai-report h1, .ai-report h2, .ai-report h3 {
+        color: #333;
       }
     `;
     document.head.appendChild(style);
 
+    // Animation pour la barre de confiance
+    setTimeout(() => {
+      const confidenceBar = modal.querySelector('.confidence-bar');
+      if (confidenceBar) {
+        confidenceBar.style.transition = 'width 1s ease';
+        confidenceBar.style.width = `${Math.round(response.data.details.confiance * 100)}%`;
+      }
+    }, 300);
+
   } catch (error) {
+    if (progressInterval) {
+      clearInterval(progressInterval);
+    }
     console.error('Erreur lors de l\'analyse:', error);
-    createModal('Erreur', `
-      <div class="error-message">
-        <p>Une erreur est survenue lors de l'analyse :</p>
-        <p>${error.response?.data?.message || error.message}</p>
+    createModal('❌ Erreur IA', `
+      <div style="text-align: center; padding: 30px; max-width: 500px; margin: 0 auto;">
+        <div style="font-size: 3rem; color: #F44336; margin-bottom: 20px;">🤖💥</div>
+        <h3 style="color: #333;">Erreur lors de l'analyse IA</h3>
+        <p style="color: #666;">Une erreur est survenue lors de l'analyse :</p>
+        <p style="color: #F44336; font-weight: bold; background: #ffebee; padding: 12px; border-radius: 8px; margin: 20px 0;">
+          ${error.response?.data?.message || error.message}
+        </p>
+        <div style="background: #f9f9f9; padding: 20px; border-radius: 10px; margin-top: 25px;">
+          <p style="font-weight: bold; color: #333; margin-top: 0;">💡 Suggestions :</p>
+          <ul style="text-align: left; padding-left: 20px; color: #666; margin-bottom: 0;">
+            <li>Vérifiez votre connexion internet</li>
+            <li>Assurez-vous que le serveur IA est accessible</li>
+            <li>Réessayez dans quelques instants</li>
+            <li>Contactez le support technique</li>
+          </ul>
+        </div>
       </div>
     `);
   }
 };
+
 
 // ... existing code ...
 

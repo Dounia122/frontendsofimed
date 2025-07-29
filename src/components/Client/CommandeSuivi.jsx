@@ -37,7 +37,7 @@ const CommandeSuivi = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('TOUS');
   const [sortConfig, setSortConfig] = useState({ 
-    field: 'dateCreation', // Changed from 'createdAt' to match backend
+    field: 'dateCreation',
     direction: 'desc' 
   });
   const [expandedRow, setExpandedRow] = useState(null);
@@ -53,9 +53,9 @@ const CommandeSuivi = () => {
   const statusOptions = [
     { value: 'TOUS', label: 'Tous les statuts', icon: faFilter },
     { value: 'EN_ATTENTE', label: 'En attente', icon: faClock },
-    { value: 'VALIDEE', label: 'Validée', icon: faCheckCircle },
-    { value: 'REJETEE', label: 'Rejetée', icon: faTimesCircle },
-    { value: 'EN_COURS', label: 'En cours', icon: faTruck }
+    { value: 'EN_COURS', label: 'En cours', icon: faTruck },
+    { value: 'LIVREE', label: 'Livrée', icon: faCheckCircle },
+    { value: 'ANNULEE', label: 'Annulée', icon: faTimesCircle }
   ];
 
   useEffect(() => {
@@ -90,18 +90,22 @@ const CommandeSuivi = () => {
     fetchClientId();
   }, []);
 
+  // Debounce pour la recherche
   useEffect(() => {
     const handler = setTimeout(() => {
+      console.log('Debounced search term:', searchTerm);
       setDebouncedSearchTerm(searchTerm);
-    }, 500);
+    }, 300);
     
     return () => clearTimeout(handler);
   }, [searchTerm]);
 
+  // Reset pagination when filters change
   useEffect(() => {
     setPagination(prev => ({ ...prev, currentPage: 1 }));
   }, [debouncedSearchTerm, statusFilter, sortConfig]);
 
+  // Fetch commandes
   useEffect(() => {
     const fetchCommandes = async () => {
       if (!clientId) return;
@@ -114,28 +118,32 @@ const CommandeSuivi = () => {
         params.append('page', pagination.currentPage - 1);
         params.append('size', pagination.pageSize);
         
-        // Add sorting according to backend expected format
         params.append('sort', `${sortConfig.field},${sortConfig.direction}`);
         
-        // Status filter
-        if (statusFilter !== 'TOUS') {
+        if (statusFilter && statusFilter !== 'TOUS') {
           params.append('status', statusFilter);
+          console.log('Applied status filter:', statusFilter);
         }
         
-        // Reference filter
-        if (debouncedSearchTerm) {
-          params.append('reference', debouncedSearchTerm);
+        if (debouncedSearchTerm && debouncedSearchTerm.trim()) {
+          params.append('reference', debouncedSearchTerm.trim());
+          console.log('Applied search term:', debouncedSearchTerm.trim());
         }
+        
+        const apiUrl = `${COMMANDES_API_URL}/client/${clientId}?${params.toString()}`;
+        console.log('API Request URL:', apiUrl);
         
         const token = localStorage.getItem('token');
         if (!token) throw new Error('Token d\'authentification non trouvé');
         
-        const response = await axios.get(`${COMMANDES_API_URL}/client/${clientId}?${params.toString()}`, {
+        const response = await axios.get(apiUrl, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           }
         });
+        
+        console.log('API Response:', response.data);
         
         if (response.data) {
           setCommandes(response.data.content || []);
@@ -198,14 +206,14 @@ const CommandeSuivi = () => {
     }
   };
 
-  const getStatusIcon = (status) => {
-    const statusInfo = statusOptions.find(opt => opt.value === status);
-    return statusInfo ? <FontAwesomeIcon icon={statusInfo.icon} /> : null;
-  };
-
   const getStatusLabel = (status) => {
     const statusInfo = statusOptions.find(opt => opt.value === status);
     return statusInfo ? statusInfo.label : status;
+  };
+
+  const getStatusIcon = (status) => {
+    const statusInfo = statusOptions.find(opt => opt.value === status);
+    return statusInfo ? <FontAwesomeIcon icon={statusInfo.icon} /> : null;
   };
 
   const toggleRowDetails = (id) => {
@@ -252,9 +260,22 @@ const CommandeSuivi = () => {
   };
 
   const resetFilters = () => {
+    console.log('Resetting filters');
     setSearchTerm('');
     setStatusFilter('TOUS');
     setSortConfig({ field: 'dateCreation', direction: 'desc' });
+    setPagination(prev => ({ ...prev, currentPage: 1 }));
+  };
+
+  const handleStatusFilterChange = (newStatus) => {
+    console.log('Status filter changed to:', newStatus);
+    setStatusFilter(newStatus);
+  };
+
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    console.log('Search term changed to:', value);
+    setSearchTerm(value);
   };
 
   if (loading && !clientId) {
@@ -320,14 +341,23 @@ const CommandeSuivi = () => {
 
       <div className="controls-section">
         <div className="search-bar">
-          <FontAwesomeIcon icon={faSearch} />
+          <FontAwesomeIcon icon={faSearch} className="search-icon" />
           <input 
             type="text" 
             placeholder="Rechercher par référence..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={handleSearchChange}
             aria-label="Rechercher des commandes"
           />
+          {searchTerm && (
+            <button 
+              className="clear-search-btn"
+              onClick={() => setSearchTerm('')}
+              aria-label="Effacer la recherche"
+            >
+              ×
+            </button>
+          )}
         </div>
         
         <div className="filters">
@@ -335,15 +365,21 @@ const CommandeSuivi = () => {
             {statusOptions.map(option => (
               <button
                 key={option.value}
-                className={`status-filter ${statusFilter === option.value ? 'active' : ''}`}
-                onClick={() => setStatusFilter(option.value)}
+                className={`status-filter ${
+                  statusFilter === option.value ? 'active' : ''
+                }`}
+                onClick={() => handleStatusFilterChange(option.value)}
                 aria-label={`Filtrer par ${option.label}`}
               >
                 <FontAwesomeIcon icon={option.icon} />
                 <span>{option.label}</span>
+                {statusFilter === option.value && (
+                  <span className="active-indicator">✓</span>
+                )}
               </button>
             ))}
           </div>
+    
         </div>
       </div>
 
@@ -460,7 +496,7 @@ const CommandeSuivi = () => {
                   </div>
 
                   {expandedRow === commande.id && (
-                    <div className="commande-detailss">
+                    <div className="commande-details">
                       <div className="detail-section">
                         <h4>Informations client</h4>
                         <p>

@@ -61,3 +61,65 @@
     padding: 1.5rem;
   }
 }
+
+/* Styles pour la validation d'email */
+.email-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.email-input {
+  flex: 1;
+  padding-right: 40px;
+}
+
+.email-input.valid {
+  border-color: #10b981;
+  background-color: #f0fdf4;
+}
+
+.email-input.invalid {
+  border-color: #ef4444;
+  background-color: #fef2f2;
+}
+
+.email-validation-indicator {
+  position: absolute;
+  right: 12px;
+  display: flex;
+  align-items: center;
+}
+
+.validating {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.email-message {
+  margin-top: 5px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.email-message.success {
+  color: #10b981;
+}
+
+.email-message.error {
+  color: #ef4444;
+}
+
+.valid-icon {
+  color: #10b981;
+  font-size: 16px;
+}
+
+.invalid-icon {
+  color: #ef4444;
+  font-size: 16px;
+}

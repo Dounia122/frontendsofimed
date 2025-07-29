@@ -51,7 +51,7 @@ const Login = () => {
     e.preventDefault();
     setError("");
     setLoading(true);
-
+  
     try {
       const response = await axios({
         method: 'post',
@@ -64,7 +64,7 @@ const Login = () => {
           'Content-Type': 'application/json'
         }
       });
-
+  
       if (response.data && response.data.token) {
         // Stocker les données utilisateur
         const userData = {
@@ -74,17 +74,17 @@ const Login = () => {
           email: response.data.user.email,
           username: response.data.user.username,
           role: response.data.user.role,
-          // Ajouter un timestamp d'expiration (par exemple, 24h)
           expiresAt: new Date().getTime() + (24 * 60 * 60 * 1000)
         };
-
+  
         // Sauvegarder dans le localStorage
         localStorage.setItem('token', response.data.token);
         localStorage.setItem('user', JSON.stringify(userData));
+        localStorage.setItem('userId', response.data.user.id); // Ajouter cette ligne
         
         // Configurer axios avec le token
         axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
-
+  
         // Rediriger l'utilisateur
         redirectBasedOnRole(userData.role, { userData });
       } else {

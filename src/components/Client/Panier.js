@@ -4,9 +4,19 @@ import { useNavigate } from 'react-router-dom';
 import './Panier.css';
 import noImage from '../../assets/no-image.png';
 import axios from 'axios';
+import notificationService from '../../services/notificationService';
+
+const getCurrentUser = () => {
+  const user = JSON.parse(localStorage.getItem('user'));
+  const token = localStorage.getItem('token');
+  
+  if (!user || !token) {
+    return null;
+  }
+  return user;
+};
 
 const Panier = () => {
-  // États du composant
   const [cart, setCart] = useState([]);
   const [cartId, setCartId] = useState(null);
   const [isLoading, setIsLoading] = useState({
@@ -16,8 +26,10 @@ const Panier = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const navigate = useNavigate();
+  
+  const [clientInfo, setClientInfo] = useState(null);
+  const [userData, setUserData] = useState(null);
 
-  // Configuration de l'instance Axios
   const axiosInstance = axios.create({
     baseURL: 'http://localhost:8080/api',
     timeout: 10000,
@@ -27,42 +39,113 @@ const Panier = () => {
     }
   });
 
-  // Intercepteur pour gérer les erreurs globales
   axiosInstance.interceptors.response.use(
     response => response,
     error => {
       if (error.response?.status === 401) {
         localStorage.clear();
-        navigate('/login', { state: { sessionExpired: true } });
+        navigate('/login', { state: { sessionExpirée: true } });
       }
       return Promise.reject(error);
     }
   );
 
-  // Effet pour initialiser le panier au chargement du composant
+  // Fonction pour récupérer l'ID utilisateur du commercial
+  const getCommercialUserId = async (commercialId) => {
+    try {
+      console.log('🔍 Récupération userID pour commercial ID:', commercialId);
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        console.error('❌ Token manquant');
+        return null;
+      }
+      
+      const response = await axios.get(`http://localhost:8080/api/commercials/${commercialId}/user-id`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      console.log('✅ UserID commercial récupéré:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Erreur lors de la récupération de l\'userId du commercial:', error);
+      return null;
+    }
+  };
+
+  // Récupérer l'ID du commercial du dernier devis inséré
+  const getLatestCommercialId = async () => {
+    try {
+      console.log('🔍 Récupération du dernier ID commercial...');
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        console.error('❌ Token manquant');
+        return null;
+      }
+      
+      const response = await axios.get('http://localhost:8080/api/devis/latest-commercial-id', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      console.log('✅ Dernier ID commercial récupéré:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Erreur lors de la récupération du dernier ID commercial:', error);
+      return null;
+    }
+  };
+
   useEffect(() => {
     const initializeCart = async () => {
-      const token = localStorage.getItem('token');
-      const user = JSON.parse(localStorage.getItem('user'));
+      const user = getCurrentUser();
       
-      if (!token || !user) {
+      if (!user) {
         navigate('/login');
         return;
       }
+
+      setUserData(user);
 
       try {
         setIsLoading(prev => ({ ...prev, cart: true }));
         setError('');
 
+        const token = localStorage.getItem('token');
+
+        // Récupération des infos client
+        const clientResponse = await axios.get(`http://localhost:8080/api/clients/user/${user.id}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        setClientInfo(clientResponse.data);
+
         // Récupération du panier actif
-        const cartResponse = await axiosInstance.get(`/carts/current/${user.id}`);
+        const cartResponse = await axios.get(`http://localhost:8080/api/carts/current/${user.id}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
         const cartId = cartResponse.data;
         setCartId(cartId);
 
         if (cartId) {
-          // Utilisation du nouvel endpoint pour récupérer les articles
-          const itemsResponse = await axiosInstance.get(`/carts/${cartId}/itemss`);
-          // Traitement des images comme dans CatalogueProduits
+          // Récupération des articles du panier
+          const itemsResponse = await axios.get(`http://localhost:8080/api/carts/${cartId}/itemss`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          // Traitement des images
           const processedItems = (itemsResponse.data || []).map(item => {
             let imageUrl;
             if (item.imageUrl) {
@@ -82,7 +165,7 @@ const Panier = () => {
           setCart(processedItems);
         }
       } catch (err) {
-        console.error("Erreur d'initialisation du panier:", err);
+        console.error("Erreur d'initialisation:", err);
         if (err.response?.status === 403) {
           setError("Session expirée. Veuillez vous reconnecter.");
           navigate('/login', { state: { sessionExpired: true } });
@@ -97,7 +180,25 @@ const Panier = () => {
     initializeCart();
   }, [navigate]);
 
-  // Fonction pour mettre à jour la quantité d'un article (POST)
+  useEffect(() => {
+    const checkWebSocketConnection = () => {
+      if (userData?.id && !notificationService.isConnected()) {
+        console.log('🔄 Reconnexion WebSocket nécessaire');
+        notificationService.connect(userData.id, (notification) => {
+          console.log('📬 Notification reçue:', notification);
+        });
+      }
+    };
+    
+    checkWebSocketConnection();
+    
+    const connectionCheck = setInterval(checkWebSocketConnection, 30000);
+    
+    return () => {
+      clearInterval(connectionCheck);
+    };
+  }, [userData]);
+
   const updateQuantity = async (productId, newQuantity) => {
     if (newQuantity < 1) return;
     
@@ -110,7 +211,6 @@ const Panier = () => {
         { quantity: newQuantity }
       );
 
-      // Mise à jour optimiste de l'interface
       const updatedCart = cart.map(item => 
         item.id === productId ? { ...item, quantity: newQuantity } : item
       );
@@ -118,13 +218,12 @@ const Panier = () => {
       localStorage.setItem('cart', JSON.stringify(updatedCart));
     } catch (error) {
       console.error('Erreur de mise à jour:', error);
-      setError("Erreur lors de la mise à jour de la quantité");
+      setError("Erreur lors de la modification de la quantité");
     } finally {
       setIsLoading(prev => ({ ...prev, action: false }));
     }
   };
 
-  // Fonction pour supprimer un article du panier (POST)
   const removeItem = async (productId) => {
     try {
       setIsLoading(prev => ({ ...prev, action: true }));
@@ -132,19 +231,17 @@ const Panier = () => {
       
       await axiosInstance.post(`/carts/${cartId}/items/${productId}/remove`);
 
-      // Mise à jour optimiste de l'interface
       const updatedCart = cart.filter(item => item.id !== productId);
       setCart(updatedCart);
       localStorage.setItem('cart', JSON.stringify(updatedCart));
     } catch (error) {
       console.error('Erreur de suppression:', error);
-      setError("Erreur lors de la suppression de l'article");
+      setError("Erreur lors de la suppression");
     } finally {
       setIsLoading(prev => ({ ...prev, action: false }));
     }
   };
 
-  // Fonction pour vider complètement le panier (POST)
   const clearCart = async () => {
     try {
       setIsLoading(prev => ({ ...prev, action: true }));
@@ -154,17 +251,16 @@ const Panier = () => {
       
       setCart([]);
       localStorage.removeItem('cart');
-      setSuccess("Le panier a été vidé avec succès");
+      setSuccess("Panier vidé avec succès");
       setTimeout(() => setSuccess(''), 3000);
     } catch (error) {
       console.error('Erreur:', error);
-      setError("Erreur lors de la suppression du panier");
+      setError("Erreur lors du vidage du panier");
     } finally {
       setIsLoading(prev => ({ ...prev, action: false }));
     }
   };
 
-  // Ajout de l'état pour le mode de paiement
   const [paymentMethod, setPaymentMethod] = useState('');
   const paymentOptions = [
     { value: 'virement', label: 'Virement bancaire' },
@@ -172,45 +268,130 @@ const Panier = () => {
     { value: 'espece', label: 'Espèces' }
   ];
 
-  // Ajout de l'état pour le commentaire
   const [commentaire, setCommentaire] = useState('');
 
-  // Fonction pour demander un devis
+  // Nouvelle fonction pour envoyer la notification
+  const sendDevisNotification = async (commercialId, devisId) => {
+    try {
+      const token = localStorage.getItem('token');
+      
+      // Récupérer l'userID du commercial
+      const commercialUserId = await getCommercialUserId(commercialId);
+      if (!commercialUserId) {
+        console.error('❌ UserID commercial non trouvé');
+        return false;
+      }
+
+      // Préparer les données de la notification
+      const senderName = userData?.user?.firstName && userData?.user?.lastName 
+        ? `${userData.user.firstName} ${userData.user.lastName}`
+        : userData?.username || `${clientInfo.nom} ${clientInfo.prenom}`;
+      
+      const notificationData = {
+        userId: commercialUserId,
+        title: "Nouvelle demande de devis",
+        message: `Nouvelle demande de devis de ${senderName}`,
+        type: "devis_request",
+        senderName: senderName,
+        devisId: devisId,
+        link: `/commercial/devis/details/${devisId}`
+      };
+
+      // Envoyer via API REST
+      await axios.post('http://localhost:8080/api/notifications/', notificationData, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      console.log('✅ Notification API REST envoyée');
+
+      // Envoyer via WebSocket si connecté
+      if (notificationService.isConnected()) {
+        const wsNotification = {
+          ...notificationData,
+          senderId: userData.id,
+          data: { devisId }
+        };
+        notificationService.sendNotification(
+          `/topic/notifications/${commercialUserId}`,
+          wsNotification
+        );
+        console.log('✅ Notification WebSocket envoyée');
+      }
+
+      return true;
+    } catch (error) {
+      console.error('❌ Erreur lors de l\'envoi de la notification:', error);
+      return false;
+    }
+  };
+
+  // Gestion de la demande de devis avec notification
   const handleDevisRequest = async () => {
     if (!paymentMethod) {
-      setError("Veuillez sélectionner un mode de paiement avant de demander un devis.");
+      setError("Veuillez sélectionner un mode de paiement");
       return;
     }
+
     try {
       setIsLoading(prev => ({ ...prev, action: true }));
       setError('');
       
-      await axiosInstance.post('/devis/create', {
+      console.log('🚀 Début de la création du devis');
+      const token = localStorage.getItem('token');
+      
+      // Création du devis
+      const devisResponse = await axios.post('http://localhost:8080/api/devis/create', {
         cartId,
         paymentMethod,
         commentaire
+      }, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
       });
+      
+      const devisId = devisResponse.data.id;
+      console.log('✅ Devis créé avec ID:', devisId);
 
+      // Récupération du dernier commercial ID assigné
+      const commercialId = await getLatestCommercialId();
+      if (!commercialId) {
+        throw new Error("Commercial ID non trouvé pour le devis");
+      }
+      console.log('👤 Commercial ID récupéré:', commercialId);
+
+      // Envoyer la notification
+      await sendDevisNotification(commercialId, devisId);
+      
+      // Réinitialisation et redirection
       setCart([]);
       localStorage.removeItem('cart');
+      
       navigate('/client/dashboard/catalogue', { 
-        state: { success: "Votre demande de devis a été envoyée avec succès" } 
+        state: { 
+          success: "Devis demandé! Un commercial vous contactera bientôt" 
+        } 
       });
+      
     } catch (err) {
-      console.error('Erreur:', err.response?.data || err.message);
-      setError(err.response?.data?.message || "Erreur lors de la demande de devis");
+      console.error('❌ Erreur lors de la création du devis:', err);
+      const errorMsg = err.response?.data?.message || 
+                      err.message || 
+                      "Erreur lors de la demande";
+      setError(errorMsg);
     } finally {
       setIsLoading(prev => ({ ...prev, action: false }));
     }
   };
 
-  // Fonction pour gérer les erreurs d'image
   const handleImageError = (e) => {
     e.target.onerror = null;
     e.target.src = noImage;
   };
 
-  // Calcul du nombre total d'articles
   const getTotalItems = () => {
     if (!cart || !Array.isArray(cart)) return 0;
     return cart.reduce((total, item) => {
@@ -219,7 +400,6 @@ const Panier = () => {
     }, 0);
   };
 
-  // Affichage du composant
   return (
     <div className="panier-container">
       <div className="panier-header">
@@ -228,12 +408,12 @@ const Panier = () => {
           onClick={() => navigate('/client/dashboard/catalogue')}
           disabled={isLoading.action}
         >
-          <ArrowLeft size={20} />
+          <ArrowLeft size={18} />
           Retour au catalogue
         </button>
         
         <h1>
-          <ShoppingCart size={28} className="cart-icon" />
+          <ShoppingCart size={24} className="cart-icon" />
           Mon Panier
         </h1>
         
@@ -312,6 +492,7 @@ const Panier = () => {
                     className="remove-item"
                     onClick={() => removeItem(item.id)}
                     disabled={isLoading.action}
+                    title="Supprimer cet article"
                   >
                     <Trash2 size={20} />
                   </button>
@@ -330,7 +511,7 @@ const Panier = () => {
               <span>Total:</span>
               <span>Sur demande</span>
             </div>
-            {/* Affichage amélioré des modes de paiement */}
+            
             <div className="payment-method-row">
               <span>Mode de paiement :</span>
               <div className="payment-options">
@@ -347,7 +528,7 @@ const Panier = () => {
                 ))}
               </div>
             </div>
-            {/* Champ commentaire avant d'envoyer le panier */}
+            
             <div className="commentaire-row">
               <label htmlFor="commentaire">Commentaire :</label>
               <textarea
@@ -360,7 +541,7 @@ const Panier = () => {
                 disabled={isLoading.action}
               />
             </div>
-            {/* Commentaire affichage : Ici, le client doit choisir un mode de paiement et peut ajouter un commentaire avant de demander un devis. */}
+            
             <button 
               className="checkout-btn"
               onClick={handleDevisRequest}
@@ -379,7 +560,6 @@ const Panier = () => {
         </div>
       )}
       
-      {/* Affichage des messages d'erreur et de succès */}
       {error && (
         <div className="alert-message error">
           <p>{error}</p>

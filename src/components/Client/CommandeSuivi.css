@@ -196,7 +196,7 @@ body {
   border-bottom: 1px solid #f1f5f9;
 }
 
-/* Tableau des commandes */
+/* Tableau des commandes - Alignement amélioré */
 .commandes-table {
   width: 100%;
   min-width: 1000px;
@@ -209,19 +209,141 @@ body {
 
 .table-header {
   display: grid;
-  grid-template-columns: 1.5fr 1.2fr 1.2fr 1.2fr 1.3fr 0.8fr;
+  grid-template-columns: 1.8fr 1.3fr 1.4fr 1.3fr 1.4fr 1fr;
   background-color: #f1f5f9;
   color: #475569;
   font-weight: 600;
   padding: 15px 20px;
   border-bottom: 1px solid #e2e8f0;
-  align-items: center; /* Ajouté */
+  align-items: center;
 }
 
 .header-cell {
   display: flex;
   align-items: center;
   gap: 8px;
+  text-align: left;
+  padding: 0 5px;
+}
+
+.commande-row {
+  display: grid;
+  grid-template-columns: 1.8fr 1.3fr 1.4fr 1.3fr 1.4fr 1fr;
+  padding: 15px 20px;
+  border-bottom: 1px solid #f1f5f9;
+  transition: background-color 0.2s;
+  align-items: center;
+}
+
+.data-cell {
+  display: flex;
+  align-items: center;
+  text-align: left;
+  min-height: 40px;
+  padding: 0 5px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Alignement spécifique pour chaque colonne */
+.data-cell:nth-child(1) { /* Référence */
+  justify-content: flex-start;
+}
+
+.data-cell:nth-child(2) { /* Statut */
+  justify-content: flex-start;
+}
+
+.data-cell:nth-child(3) { /* Date création */
+  justify-content: flex-start;
+}
+
+.data-cell:nth-child(4) { /* Montant */
+  justify-content: flex-start;
+}
+
+.data-cell:nth-child(5) { /* Livraison */
+  justify-content: flex-start;
+}
+
+.data-cell:nth-child(6) { /* Actions */
+  justify-content: flex-end;
+}
+
+/* Amélioration des cellules spécifiques */
+.reference-cell {
+  font-weight: 500;
+  color: #2563eb;
+}
+
+.amount-cell .amount {
+  font-weight: 600;
+  color: #16a34a;
+}
+
+.action-cell {
+  justify-content: flex-end;
+}
+
+/* Détails de commande - Correction du nom de classe */
+.commande-details {
+  padding: 20px;
+  background-color: #f8fafc;
+  border-top: 1px solid #f1f5f9;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 25px;
+  margin: 0;
+  border-radius: 0 0 12px 12px;
+}
+
+/* Responsive Design amélioré */
+@media (max-width: 768px) {
+  .table-header {
+    display: none;
+  }
+  
+  .commande-row {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 15px;
+    position: relative;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    background: white;
+  }
+  
+  .data-cell {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    align-items: center;
+    padding: 5px 0;
+    justify-content: flex-start;
+  }
+  
+  .mobile-label {
+    display: inline;
+    font-weight: 600;
+    color: #64748b;
+  }
+  
+  .action-cell {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    grid-template-columns: 1fr;
+    justify-content: flex-end;
+  }
+  
+  .action-cell .mobile-label {
+    display: none;
+  }
+  
+  .commande-details {
+    grid-template-columns: 1fr;
+    padding: 15px;
+  }
 }
 
 .sortable {
@@ -304,7 +426,7 @@ body {
   border-color: #93c5fd;
 }
 
-/* Badges de statut */
+/* Badges de statut - Mise à jour */
 .status-badge {
   display: inline-flex;
   align-items: center;
@@ -320,24 +442,94 @@ body {
   color: #d97706;
 }
 
-.status-badge.validee {
-  background-color: #f0fdf4;
-  color: #16a34a;
-}
-
-.status-badge.rejetee {
-  background-color: #fef2f2;
-  color: #dc2626;
-}
-
 .status-badge.en_cours {
   background-color: #eff6ff;
   color: #2563eb;
 }
 
+.status-badge.livree {
+  background-color: #f0fdf4;
+  color: #16a34a;
+}
+
+.status-badge.annulee {
+  background-color: #fef2f2;
+  color: #dc2626;
+}
+
 .status-badge.unknown {
   background-color: #f8fafc;
   color: #94a3b8;
+}
+
+/* Correction de l'alignement du tableau */
+.table-header {
+  display: grid;
+  grid-template-columns: 1.5fr 1.2fr 1.2fr 1.2fr 1.3fr 0.8fr;
+  background-color: #f1f5f9;
+  color: #475569;
+  font-weight: 600;
+  padding: 15px 20px;
+  border-bottom: 1px solid #e2e8f0;
+  align-items: center;
+}
+
+.header-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+}
+
+.commande-row {
+  display: grid;
+  grid-template-columns: 1.5fr 1.2fr 1.2fr 1.2fr 1.3fr 0.8fr;
+  padding: 15px 20px;
+  border-bottom: 1px solid #f1f5f9;
+  transition: background-color 0.2s;
+  align-items: center;
+}
+
+.data-cell {
+  display: flex;
+  align-items: center;
+  text-align: left;
+  min-height: 40px;
+}
+
+/* Alignement spécifique pour chaque colonne */
+.data-cell:nth-child(1) { /* Référence */
+  justify-content: flex-start;
+}
+
+.data-cell:nth-child(2) { /* Statut */
+  justify-content: flex-start;
+}
+
+.data-cell:nth-child(3) { /* Date création */
+  justify-content: flex-start;
+}
+
+.data-cell:nth-child(4) { /* Montant */
+  justify-content: flex-start;
+}
+
+.data-cell:nth-child(5) { /* Livraison */
+  justify-content: flex-start;
+}
+
+.data-cell:nth-child(6) { /* Actions */
+  justify-content: flex-end;
+}
+
+.btn-view:hover {
+  background: #e2e8f0;
+}
+
+.btn-view.active {
+  background: #dbeafe;
+  color: #2563eb;
+  border-color: #93c5fd;
 }
 
 /* Détails de commande */
@@ -591,6 +783,7 @@ body {
   }
 }
 
+/* Responsive Design - Correction alignement */
 @media (max-width: 768px) {
   .page-header {
     flex-direction: column;
@@ -602,45 +795,43 @@ body {
     justify-content: center;
   }
   
+  .table-header {
+    display: none; /* Masquer l'en-tête sur mobile */
+  }
+  
   .commande-row {
     grid-template-columns: 1fr;
     gap: 10px;
     padding: 15px;
     position: relative;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    background: white;
   }
   
   .data-cell {
     display: grid;
     grid-template-columns: 120px 1fr;
+    align-items: center;
+    padding: 5px 0;
   }
   
   .mobile-label {
     display: inline;
     font-weight: 600;
+    color: #64748b;
   }
   
   .action-cell {
     position: absolute;
     top: 15px;
     right: 15px;
-  }
-  
-  .commande-details {
     grid-template-columns: 1fr;
   }
   
-  .pagination-controls {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 15px;
-  }
-  
-  .pagination-info {
-    text-align: center;
-  }
-  
-  .pagination-buttons {
-    justify-content: center;
+  .action-cell .mobile-label {
+    display: none;
   }
 }
 

@@ -3019,4 +3019,137 @@
 }
 
 
+/* Styles pour le dropdown des notifications */
+.notif-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  width: 350px;
+  max-height: 400px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  border: 1px solid var(--border);
+  z-index: 1000;
+  overflow: hidden;
+  animation: slideDown 0.3s ease;
+}
 
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.notif-dropdown-title {
+  padding: 1rem 1.25rem;
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border);
+  background: var(--background);
+}
+
+.notif-dropdown-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.notif-dropdown-item {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid rgba(229, 231, 235, 0.5);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.notif-dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.notif-dropdown-item:hover {
+  background-color: var(--primary-light);
+}
+
+.notif-dropdown-item.unread {
+  background-color: rgba(147, 197, 253, 0.1);
+  border-left: 3px solid var(--primary);
+}
+
+.notif-dropdown-item.unread::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 1rem;
+  width: 8px;
+  height: 8px;
+  background-color: var(--primary);
+  border-radius: 50%;
+  transform: translateY(-50%);
+}
+
+.notif-dropdown-item.read {
+  opacity: 0.8;
+}
+
+.notif-dropdown-item.empty {
+  text-align: center;
+  color: var(--text-secondary);
+  font-style: italic;
+  padding: 2rem 1.25rem;
+  cursor: default;
+}
+
+.notif-dropdown-item.empty:hover {
+  background-color: transparent;
+}
+
+.notif-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.notif-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.notif-type {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.notif-time {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.notif-message {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  margin: 0;
+}
+
+.notif-sender {
+  font-size: 0.75rem;
+  color: var(--primary);
+  font-weight: 500;
+  margin: 0;
+}

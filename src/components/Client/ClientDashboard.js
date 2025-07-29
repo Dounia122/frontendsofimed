@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Home, FileText, MessageCircle, Truck, History, Settings, HelpCircle, LogOut, ShoppingCart, Book } from "lucide-react";
+import { 
+  Home, Book, ShoppingCart, FileText, Truck, MessageCircle,
+  Settings, HelpCircle, LogOut, Heart
+} from 'react-feather';
 import logo from '../../assets/logosofi1.png'; 
 import './ClienDashboard.css';
 import { Routes, Route } from 'react-router-dom';
@@ -9,10 +12,12 @@ import CatalogueProduits from './CatalogueProduits';
 import Panier from './Panier';
 import DemandeConsultation from './DemandeConsultation';
 import DemandeDevis from './DemandeDevis';
+import ReclamationClient from './ReclamationClient';
+import Favorites from './Favorites'; // Ajouter l'import du composant Favorites
 import SockJS from 'sockjs-client';
 import { Client as StompClient } from '@stomp/stompjs';
 import CommandeSuivi from './CommandeSuivi';
-import axios from 'axios'; // <-- Import axios
+import axios from 'axios';
 
 const ClientDashboard = () => {
   const location = useLocation();
@@ -26,6 +31,7 @@ const ClientDashboard = () => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [sessionId, setSessionId] = useState(null); // <-- Add state for session ID
   const [sessionDuration, setSessionDuration] = useState(0);
+  const [favoritesCount, setFavoritesCount] = useState(0); // Add favoritesCount state
 
   useEffect(() => {
     // Get user data from navigation state or localStorage
@@ -315,7 +321,7 @@ const ClientDashboard = () => {
               <FileText className="nav-icon" size={18} />
               <span>Demande de devis</span>
             </li>
-            <li className="nav-item">
+            <li className="nav-item" onClick={() => navigate('reclamations')}>
               <MessageCircle className="nav-icon" size={18} />
               <span>Réclamations</span>
             </li>
@@ -323,10 +329,14 @@ const ClientDashboard = () => {
               <Truck className="nav-icon" size={18} />
               <span>Suivi de commande</span>
             </li>
-            <li className="nav-item">
-              <History className="nav-icon" size={18} />
-              <span>Historique</span>
+            <li className="nav-item" onClick={() => navigate('favoris')}>
+              <Heart className="nav-icon" size={18} />
+              <span>Mes Favoris</span>
+              {favoritesCount > 0 && (
+                <span className="cart-badge">{favoritesCount}</span>
+              )}
             </li>
+           
           </ul>
         </nav>
         
@@ -365,7 +375,8 @@ const ClientDashboard = () => {
           <Route path="/consultation" element={<DemandeConsultation />} />
           <Route path="/devis" element={<DemandeDevis />} />
           <Route path="/suivi-commandes" element={<CommandeSuivi clientId={userData?.id} />} />
-          {/* Add route for the shopping cart */}
+          <Route path="/reclamations" element={<ReclamationClient />} />
+          <Route path="/favoris" element={<Favorites />} />
           <Route path="/" element={
             <>
               <header className="main-header">
@@ -411,12 +422,12 @@ const ClientDashboard = () => {
                       Découvrez notre catalogue complet de produits industriels et médicaux.
                       Commandez en ligne et profitez de nos offres exclusives.
                     </p>
-                    <div className="card-actions">
-                      <button className="btn btn-primary" onClick={() => navigate('catalogue')}>
+                    <div className="card-actionss">
+                      <button className="btn btn-primaryy" onClick={() => navigate('catalogue')}>
                         <Book size={16} style={{ marginRight: 8 }} />
                         Parcourir le catalogue
                       </button>
-                      <button className="btn btn-secondary" onClick={() => navigate('panier')}>
+                      <button className="btn btn-secondaryy" onClick={() => navigate('panier')}>
                         <ShoppingCart size={16} style={{ marginRight: 8 }} />
                         Voir mon panier
                       </button>

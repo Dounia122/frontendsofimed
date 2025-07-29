@@ -69,7 +69,10 @@ const CatalogueProduits = () => {
   const [brands, setBrands] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [wishlist, setWishlist] = useState([]);
+  const [wishlist, setWishlist] = useState(() => {
+    const savedWishlist = localStorage.getItem('favorites'); // Changer 'wishlist' en 'favorites'
+    return savedWishlist ? JSON.parse(savedWishlist) : [];
+  });
   // Add cart state
   const [cart, setCart] = useState(() => {
     // Initialize cart from localStorage if available
@@ -237,12 +240,25 @@ const CatalogueProduits = () => {
     setFilteredProducts(sorted);
   };
 
-  const toggleWishlist = (productId) => {
-    setWishlist(prev => 
-      prev.includes(productId) 
-        ? prev.filter(id => id !== productId) 
-        : [...prev, productId]
-    );
+  const toggleWishlist = (product) => {
+    setWishlist(prev => {
+      const isInWishlist = prev.some(item => item.id === product.id);
+      let newWishlist;
+      
+      if (isInWishlist) {
+        newWishlist = prev.filter(item => item.id !== product.id);
+      } else {
+        newWishlist = [...prev, product];
+      }
+      
+      // Changer 'wishlist' en 'favorites' pour correspondre à la page Favorites
+      localStorage.setItem('favorites', JSON.stringify(newWishlist));
+      
+      // Déclencher un événement pour notifier les autres composants
+      window.dispatchEvent(new Event('storage'));
+      
+      return newWishlist;
+    });
   };
 
   useEffect(() => {
@@ -593,12 +609,12 @@ const CatalogueProduits = () => {
                 <div key={product.id} className="product-card">
                   <div className="product-badges">
                     <button 
-                      className={`wishlist-btn ${wishlist.includes(product.id) ? 'active' : ''}`}
-                      onClick={() => toggleWishlist(product.id)}
+                      className={`wishlist-btn ${wishlist.some(item => item.id === product.id) ? 'active' : ''}`}
+                      onClick={() => toggleWishlist(product)}
                     >
                       <Heart 
                         size={20} 
-                        fill={wishlist.includes(product.id) ? 'currentColor' : 'none'}
+                        fill={wishlist.some(item => item.id === product.id) ? 'currentColor' : 'none'}
                       />
                     </button>
                   </div>
@@ -832,10 +848,10 @@ const CatalogueProduits = () => {
                       <ul>
                         {Array.isArray(productDetails.caracteristiques) 
                           ? productDetails.caracteristiques.map((char, index) => (
-                              <li key={`char-${index}-${char.substring(0, 0)}`}>{char}</li> // Enhanced unique key
+                              <li key={`char-${index}-${char.substring(0, 10)}`}>{char}</li>
                             ))
                           : <li>{productDetails.caracteristiques}</li>
-                        }1
+                        }
                       </ul>
                     </div>
                   )}

@@ -5,6 +5,7 @@ import './DemandeDevis.css';
 import NewDevisForm from './NewDevisForm';
 import { Eye } from 'lucide-react';
 import noImage from '../../assets/no-image.png';
+import notificationService from '../../services/notificationService';
 
 const getCurrentUser = () => {
   const user = JSON.parse(localStorage.getItem('user'));
@@ -42,6 +43,23 @@ const DemandeDevis = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('TOUS');
 
+  // Fonction pour récupérer l'userID du commercial
+  const getCommercialUserId = async (commercialId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`http://localhost:8080/api/commercials/${commercialId}/user-id`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        withCredentials: true
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Erreur lors de la récupération de l\'userId du commercial:', error);
+      return null;
+    }
+  };
+
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -58,6 +76,27 @@ const DemandeDevis = () => {
       setLoading(false);
     }
   }, []);
+
+  useEffect(() => {
+    // Vérifier la connexion WebSocket
+    const checkWebSocketConnection = () => {
+      if (userData?.id && !notificationService.isConnected()) {
+        console.log('🔄 Reconnexion WebSocket nécessaire');
+        notificationService.connect(userData.id, (notification) => {
+          console.log('📬 Notification reçue:', notification);
+        });
+      }
+    };
+    
+    checkWebSocketConnection();
+    
+    // Vérifier périodiquement la connexion
+    const connectionCheck = setInterval(checkWebSocketConnection, 30000);
+    
+    return () => {
+      clearInterval(connectionCheck);
+    };
+  }, [userData]);
 
   const fetchDevisList = async () => {
     setLoading(true);
@@ -230,26 +269,111 @@ const DemandeDevis = () => {
     setSendingMessage(true);
     try {
       const token = localStorage.getItem('token');
+      
+      // Récupération de l'userID du commercial
+      let commercialUserId;
+      if (activeDevis.commercial?.id) {
+        commercialUserId = await getCommercialUserId(activeDevis.commercial.id);
+        
+        if (!commercialUserId) {
+          console.error('Impossible de récupérer l\'userID du commercial pour la notification');
+          // On continue quand même à envoyer le message
+        }
+      }
+
       const response = await axios.post('http://localhost:8080/api/messages', {
         devisId: activeDevis.id,
         content: newMessage,
         senderId: userData.id,
+        senderName: userData.user?.firstName && userData.user?.lastName 
+          ? `${userData.user.firstName} ${userData.user.lastName}`
+          : userData.username || 'Utilisateur',
         recipientId: activeDevis.commercial.id
       }, {
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
       });
+      
+      // Envoyer notification au commercial via l'API REST
+      if (commercialUserId) {
+        const senderName = userData.user?.firstName && userData.user?.lastName 
+          ? `${userData.user.firstName} ${userData.user.lastName}`
+          : userData.username || 'Utilisateur';
+        
+        try {
+          // Notification via API REST
+          await axios.post('http://localhost:8080/api/notifications/', {
+            userId: commercialUserId,  // Utilisation de l'userID ici
+            type: 'new_message',
+            title: 'Nouveau message client',
+            message: `Nouveau message de ${senderName} concernant le devis ${activeDevis.reference}`,
+            senderName: senderName,
+            devisId: activeDevis.id,
+            link: `/commercial/devis/${activeDevis.id}`
+          }, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          // Notification via WebSocket (temps réel)
+          try {
+            if (notificationService.isConnected()) {
+              notificationService.sendNotification(
+                `/topic/notifications/${commercialUserId}`,  // Utilisation de l'userID ici
+                {
+                  type: 'new_message',
+                  title: 'Nouveau message client',
+                  message: `Nouveau message de ${senderName}`,
+                  userId: commercialUserId,  // Utilisation de l'userID ici
+                  devisId: activeDevis.id,
+                  senderId: userData.id,
+                  senderName: senderName,
+                  data: response.data
+                }
+              );
+            } else {
+              console.warn('WebSocket non connecté, notification envoyée via API REST uniquement');
+              notificationService.connect(userData.id, () => {
+                notificationService.sendNotification(
+                  `/topic/notifications/${commercialUserId}`,
+                  {
+                    type: 'new_message',
+                    title: 'Nouveau message client',
+                    message: `Nouveau message de ${senderName}`,
+                    userId: commercialUserId,
+                    devisId: activeDevis.id,
+                    senderId: userData.id,
+                    senderName: senderName,
+                    data: response.data
+                  }
+                );
+              });
+            }
+          } catch (wsError) {
+            console.error('Erreur WebSocket:', wsError);
+          }
+        } catch (notifError) {
+          console.error('Erreur lors de l\'envoi de la notification:', notifError);
+        }
+      }
       
       setMessages([...messages, response.data]);
       setNewMessage('');
     } catch (err) {
       console.error('Erreur lors de l\'envoi du message:', err);
+      const senderName = userData.user?.firstName && userData.user?.lastName 
+        ? `${userData.user.firstName} ${userData.user.lastName}`
+        : userData.username || 'Utilisateur';
+        
       const newMsg = {
         id: Date.now(),
         devisId: activeDevis.id,
         senderId: userData?.id,
-        senderName: userData?.username,
+        senderName: senderName,
         recipientId: activeDevis.commercial.id,
         content: newMessage,
         timestamp: new Date().toISOString(),
@@ -370,65 +494,138 @@ const DemandeDevis = () => {
     }
   };
 
- const handleUploadAndConfirm = async () => {
-  if (!activeDevis || !deliveryDate) {
-    alert('Veuillez sélectionner une date de livraison souhaitée');
-    return;
-  }
-
-  try {
-    const token = localStorage.getItem('token');
-
-    const commandeData = {
-      client: {
-        id: activeDevis.clientDetails.id
-      },
-      commercial: {
-        id: activeDevis.commercial.id
-      },
-      devis: {
-        id: activeDevis.id
-      },
-      totalHT: activeDevis.totalHT,
-      tauxTVA: 20.00, // ⚠️ CHANGER "tva" → "tauxTVA" pour correspondre à ton backend
-      dateLivraisonSouhaitee: deliveryDate,
-      status: 'EN_ATTENTE',
-      notes: 'Commande créée depuis le devis'
-    };
-
-    // ✅ Appel vers le bon endpoint "/save"
-    await axios.post('http://localhost:8080/api/commandes/save', commandeData, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      withCredentials: true // si Spring Boot attend des cookies
-    });
-
-    // ✅ Confirmation du devis (facultatif)
-    try {
-      await axios.post(`http://localhost:8080/api/devis/${activeDevis.id}/confirm`, {
-        deliveryDate: deliveryDate
-      }, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-    } catch (error) {
-      console.warn('Erreur lors de la confirmation du devis:', error);
+  const handleUploadAndConfirm = async () => {
+    if (!activeDevis || !deliveryDate) {
+      alert('Veuillez sélectionner une date de livraison souhaitée');
+      return;
     }
-
-    setShowConfirmModal(false);
-    setDeliveryDate('');
-    fetchDevisList();
-    alert('Commande envoyée avec succès');
-
-  } catch (error) {
-    console.error('Erreur:', error);
-    alert("Erreur lors de l'envoi de la commande");
-  }
-};
-
+  
+    try {
+      const token = localStorage.getItem('token');
+      
+      // Récupération de l'userID du commercial AVANT la création de la commande
+      let commercialUserId;
+      if (activeDevis.commercial?.id) {
+        commercialUserId = await getCommercialUserId(activeDevis.commercial.id);
+        
+        if (!commercialUserId) {
+          alert('Erreur: Impossible de récupérer le commercial associé');
+          return;
+        }
+      } else {
+        alert('Erreur: Aucun commercial associé au devis');
+        return;
+      }
+  
+      // Création de la commande avec l'userID du commercial
+      const commandeData = {
+        client: {
+          id: activeDevis.clientDetails.id
+        },
+        commercial: {
+          id: commercialUserId  // Utilisation de l'userID ici
+        },
+        devis: {
+          id: activeDevis.id
+        },
+        totalHT: activeDevis.totalHT,
+        tauxTVA: 20.00,
+        dateLivraisonSouhaitee: deliveryDate,
+        status: 'EN_ATTENTE',
+        notes: 'Commande créée depuis le devis'
+      };
+  
+      // Créer la commande
+      await axios.post('http://localhost:8080/api/commandes/save', commandeData, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        withCredentials: true
+      });
+  
+      // Confirmation du devis
+      try {
+        await axios.post(`http://localhost:8080/api/devis/${activeDevis.id}/confirm`, {
+          deliveryDate: deliveryDate
+        }, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          },
+          withCredentials: true
+        });
+      } catch (error) {
+        console.warn('Erreur lors de la confirmation du devis:', error);
+      }
+  
+      // Préparation et envoi des notifications
+      const senderName = userData.user?.firstName && userData.user?.lastName 
+        ? `${userData.user.firstName} ${userData.user.lastName}`
+        : userData.username || 'Utilisateur';
+  
+      // Notification via API REST
+      try {
+        await axios.post('http://localhost:8080/api/notifications/', {
+          userId: commercialUserId,
+          type: 'new_order',
+          title: 'Nouvelle commande confirmée',
+          message: `Nouvelle commande confirmée par ${senderName} pour le devis ${activeDevis.reference}`,
+          senderName: senderName,
+          devisId: activeDevis.id,
+          link: `/commercial/commandes/${activeDevis.id}`
+        }, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          withCredentials: true
+        });
+      } catch (notifError) {
+        console.error('Erreur lors de l\'envoi de la notification REST:', notifError);
+      }
+  
+      // Notification via WebSocket
+      try {
+        const notification = {
+          type: 'new_order',
+          title: 'Nouvelle commande confirmée',
+          message: `Nouvelle commande confirmée par ${senderName} pour le devis ${activeDevis.reference}`,
+          userId: commercialUserId,
+          devisId: activeDevis.id,
+          senderId: userData.id,
+          senderName: senderName,
+          deliveryDate: deliveryDate
+        };
+  
+        if (notificationService.isConnected()) {
+          notificationService.sendNotification(
+            `/topic/notifications/${commercialUserId}`,
+            notification
+          );
+          console.log('✅ Notification WebSocket envoyée');
+        } else {
+          console.warn('WebSocket non connecté, tentative de reconnexion...');
+          notificationService.connect(userData.id, () => {
+            notificationService.sendNotification(
+              `/topic/notifications/${commercialUserId}`,
+              notification
+            );
+          });
+        }
+      } catch (wsError) {
+        console.error('Erreur WebSocket:', wsError);
+      }
+  
+      setShowConfirmModal(false);
+      setDeliveryDate('');
+      fetchDevisList();
+      alert('Commande envoyée avec succès');
+  
+    } catch (error) {
+      console.error('Erreur globale:', error);
+      alert("Erreur lors de l'envoi de la commande");
+    }
+  };
 
   // Fonction de filtrage
   const filteredDevisList = devisList.filter(devis => {
@@ -559,47 +756,47 @@ const DemandeDevis = () => {
                       </div>
 
                       <div className="devis-actions">
-  <button 
-    className="action-btn confirm-btn"
-    onClick={() => handleConfirmOrder(devis)}
-    disabled={devis.status === 'EN_ATTENTE'}
-  >
-    <CheckCircle size={16} />
-    Confirmer commande
-  </button>
+                        <button 
+                          className="action-btn confirm-btn"
+                          onClick={() => handleConfirmOrder(devis)}
+                          disabled={devis.status === 'EN_ATTENTE'}
+                        >
+                          <CheckCircle size={16} />
+                          Confirmer commande
+                        </button>
 
-  <button 
-    className="action-btn view-commercial-btn"
-    onClick={() => handleViewCommercialDetails(devis.commercial)}
-    disabled={!devis.commercial}
-  >
-    <User size={16} />
-    Voir commercial
-  </button>
+                        <button 
+                          className="action-btn view-commercial-btn"
+                          onClick={() => handleViewCommercialDetails(devis.commercial)}
+                          disabled={!devis.commercial}
+                        >
+                          <User size={16} />
+                          Voir commercial
+                        </button>
 
-  <button 
-    className="action-btn details-btn"
-    onClick={() => handleViewCart(devis)}
-    disabled={devis.status === 'EN_ATTENTE'}
-  >
-    <Eye size={16} />
-    Voir détails
-  </button>
+                        <button 
+                          className="action-btn details-btn"
+                          onClick={() => handleViewCart(devis)}
+                          disabled={devis.status === 'EN_ATTENTE'}
+                        >
+                          <Eye size={16} />
+                          Voir détails
+                        </button>
 
-  <button 
-    className="action-btn chat-btn"
-    onClick={() => handleOpenChat(devis)}
-    disabled={!devis.commercial}
-  >
-    <MessageCircle size={16} />
-    Contacter
-    {getUnreadMessagesCount(devis) > 0 && (
-      <span className="unread-badge">
-        {getUnreadMessagesCount(devis)}
-      </span>
-    )}
-  </button>
-</div>
+                        <button 
+                          className="action-btn chat-btn"
+                          onClick={() => handleOpenChat(devis)}
+                          disabled={!devis.commercial}
+                        >
+                          <MessageCircle size={16} />
+                          Contacter
+                          {getUnreadMessagesCount(devis) > 0 && (
+                            <span className="unread-badge">
+                              {getUnreadMessagesCount(devis)}
+                            </span>
+                          )}
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -645,19 +842,19 @@ const DemandeDevis = () => {
               <button className="close-chat-btn" onClick={handleCloseChat}>×</button>
             </div>
             
-            <div className="chat-messages">
+            <div className="devis-chat-messages">
               {messages.length === 0 ? (
-                <div className="no-messages">
+                <div className="devis-chat-no-messages">
                   <p>Commencez la conversation avec {activeDevis.commercial?.firstName}.</p>
                 </div>
               ) : (
                 messages.map((msg) => (
                   <div 
                     key={msg.id} 
-                    className={`message ${msg.senderId === userData?.id ? 'sent' : 'received'}`}
+                    className={`devis-chat-message ${msg.senderId === userData?.id ? 'devis-sent' : 'devis-received'}`}
                   >
                     {msg.senderId !== userData?.id && (
-                      <div className="message-avatar">
+                      <div className="devis-chat-avatar">
                         {activeDevis.commercial?.imageUrl ? (
                           <img 
                             src={`http://localhost:8080/api/commercials/images/${activeDevis.commercial.imageUrl}`}
@@ -675,13 +872,13 @@ const DemandeDevis = () => {
                         )}
                       </div>
                     )}
-                    <div className="message-content">
+                    <div className="devis-message-content">
                       <p>{msg.content}</p>
-                      <span className="message-time">
+                      <span className="devis-message-time">
                         {formatDate(msg.timestamp)}
                       </span>
                       {msg.senderId === userData?.id && (
-                        <span className="message-status">
+                        <span className="devis-message-status">
                           {msg.read ? <CheckCircle size={12} /> : <CheckCircle size={12} opacity={0.5} />}
                         </span>
                       )}
@@ -692,7 +889,7 @@ const DemandeDevis = () => {
               <div ref={messagesEndRef} />
             </div>
             
-            <div className="chat-input">
+            <div className="devis-chat-input">
               <textarea
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
@@ -705,7 +902,7 @@ const DemandeDevis = () => {
                 }}
               />
               <button 
-                className="send-message-btn"
+                className="devis-send-message-btn"
                 onClick={handleSendMessage}
                 disabled={sendingMessage || !newMessage.trim()}
               >

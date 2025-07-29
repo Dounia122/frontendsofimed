@@ -137,13 +137,17 @@ const AdminConsultations = () => {
   }, [consultations, searchTerm, statusFilter]);
 
   // Fonctions memoizées
+  // Remplacer la fonction getUserInitials
   const getUserInitials = useCallback((name) => {
-    if (!name) return '';
-    return name.split(' ')
-      .map(n => n[0])
-      .join('')
-      .toUpperCase()
-      .substring(0, 2);
+  if (!name) return '??';
+  
+  const words = name.trim().split(' ').filter(word => word.length > 0);
+  
+  if (words.length === 0) return '??';
+  if (words.length === 1) return words[0].substring(0, 2).toUpperCase();
+  
+  // Prendre la première lettre du prénom et du nom
+  return (words[0][0] + words[words.length - 1][0]).toUpperCase();
   }, []);
 
   const formatDate = useCallback((dateString) => {
@@ -287,87 +291,90 @@ const AdminConsultations = () => {
   }, [commercials, loadingCommercials]);
 
   return (
-    <div className="admin-consultations-container">
-      <header className="admin-consultations-header">
-        <div className="title-section">
-          <FontAwesomeIcon icon={faComments} className="title-icon" />
-          <h1>Gestion des Consultations</h1>
-        </div>
-        <div className="filter-controls">
-          <div className="search-input-wrapper">
-            <FontAwesomeIcon icon={faSearch} className="search-icon" />
-            <input
-              type="text"
-              className="search-input"
-              placeholder="Rechercher..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              aria-label="Rechercher des consultations"
-            />
+    <div className="admin-consultations-wrapper">
+      <div className="admin-consultations-container">
+        <header className="admin-consultations-header">
+          <div className="title-section">
+            <FontAwesomeIcon icon={faComments} className="title-icon" />
+            <h1>Gestion des Consultations</h1>
           </div>
-          <div className="filter-select-wrapper">
-            <FontAwesomeIcon icon={faFilter} className="filter-icon" />
-            <select
-              className="status-filter"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              aria-label="Filtrer par statut"
-            >
-              <option value="all">Tous les statuts</option>
-              <option value="EN_ATTENTE">En attente</option>
-              <option value="EN_COURS">En cours</option>
-              <option value="TERMINE">Terminé</option>
-            </select>
+          
+          <div className="filter-controls">
+            <div className="search-input-wrapper">
+              <FontAwesomeIcon icon={faSearch} className="search-icon" />
+              <input
+                type="text"
+                className="search-input"
+                placeholder="Rechercher par nom, objet ou message..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                aria-label="Rechercher des consultations"
+              />
+            </div>
+            <div className="filter-select-wrapper">
+              <FontAwesomeIcon icon={faFilter} className="filter-icon" />
+              <select
+                className="status-filter"
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                aria-label="Filtrer par statut"
+              >
+                <option value="all">Tous les statuts</option>
+                <option value="EN_ATTENTE">En attente</option>
+                <option value="EN_COURS">En cours</option>
+                <option value="TERMINE">Terminé</option>
+              </select>
+            </div>
           </div>
-        </div>
-      </header>
+        </header>
 
-      {loading ? (
-        <LoadingState />
-      ) : error ? (
-        <ErrorState error={error} />
-      ) : filteredConsultations.length === 0 ? (
-        <EmptyState />
-      ) : (
-        <div className="consultations-grid">
-          {filteredConsultations.map((consultation) => (
-            <ConsultationCard
-              key={consultation.id}
-              consultation={consultation}
-              getUserInitials={getUserInitials}
-              formatDate={formatDate}
-              formatStatus={formatStatus}
-              selectedCommercial={selectedCommercials[consultation.id]}
-              onCommercialChange={(value) => 
-                setSelectedCommercials(prev => ({
-                  ...prev,
-                  [consultation.id]: value
-                }))
-              }
-              onAssign={() => handleAssignCommercial(consultation.id)}
-              onViewMessage={() => openMessageModal(consultation.message)}
-              onViewFile={() => consultation.fileName && openModal(consultation.fileName)}
-              commercialOptions={renderCommercialOptions}
-              loadingCommercials={loadingCommercials}
-            />
-          ))}
-        </div>
-      )}
+        {loading ? (
+          <LoadingState />
+        ) : error ? (
+          <ErrorState error={error} />
+        ) : filteredConsultations.length === 0 ? (
+          <EmptyState />
+        ) : (
+          <div className="consultations-grid">
+            {filteredConsultations.map((consultation) => (
+              <ConsultationCard
+                key={consultation.id}
+                consultation={consultation}
+                getUserInitials={getUserInitials}
+                formatDate={formatDate}
+                formatStatus={formatStatus}
+                selectedCommercial={selectedCommercials[consultation.id]}
+                onCommercialChange={(value) => 
+                  setSelectedCommercials(prev => ({
+                    ...prev,
+                    [consultation.id]: value
+                  }))
+                }
+                onAssign={() => handleAssignCommercial(consultation.id)}
+                onViewMessage={() => openMessageModal(consultation.message)}
+                onViewFile={() => consultation.fileName && openModal(consultation.fileName)}
+                commercialOptions={renderCommercialOptions}
+                loadingCommercials={loadingCommercials}
+              />
+            ))}
+          </div>
+        )}
 
-      {modalFileUrl && (
-        <FilePreviewModal
-          fileUrl={modalFileUrl}
-          fileName={modalFileName}
-          onClose={closeModal}
-        />
-      )}
+        {modalFileUrl && (
+          <FilePreviewModal
+            fileUrl={modalFileUrl}
+            fileName={modalFileName}
+            onClose={closeModal}
+          />
+        )}
 
-      {isMessageModalOpen && (
-        <MessageModal
-          message={selectedMessage}
-          onClose={closeMessageModal}
-        />
-      )}
+        {isMessageModalOpen && (
+          <MessageModal
+            message={selectedMessage}
+            onClose={closeMessageModal}
+          />
+        )}
+      </div>
     </div>
   );
 };
