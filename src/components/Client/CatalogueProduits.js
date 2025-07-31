@@ -90,7 +90,7 @@ const CatalogueProduits = () => {
   const [selectedBrand, setSelectedBrand] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(12);
+  const [itemsPerPage] = useState(15);
   const [sortOption, setSortOption] = useState('featured');
 
   // Add totalItems state
@@ -461,62 +461,115 @@ const CatalogueProduits = () => {
     }
   };
   
-  // Add custom notification function
-  const showCartNotification = (product) => {
-    // Create notification element
-    const notification = document.createElement('div');
-    notification.className = 'cart-notification';
-    
-    // Create notification content
-    notification.innerHTML = `
-      <div class="notification-content">
-        <div class="notification-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="9" cy="21" r="1"></circle>
-            <circle cx="20" cy="21" r="1"></circle>
-            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-          </svg>
-        </div>
-        <div class="notification-message">
-          <p class="notification-title">Produit ajouté au panier</p>
-          <p class="notification-product">${product.nom}</p>
-        </div>
-        <button class="notification-view-cart" onclick="window.location.href='/client/panier'">
-          Voir le panier
-        </button>
-        <button class="notification-close">×</button>
+const showCartNotification = (product) => {
+  // Vérifier si une notification existe déjà
+  const existingAlert = document.querySelector('.add-to-cart-alert');
+  if (existingAlert) {
+    existingAlert.remove();
+  }
+
+  // Créer l'élément de notification
+  const alertContainer = document.createElement('div');
+  alertContainer.className = 'add-to-cart-alert';
+  
+  // Contenu de la notification avec gestion d'erreur pour le nom du produit
+  const productName = product?.nom || product?.name || 'Produit';
+  
+  alertContainer.innerHTML = `
+    <div class="alert-content-wrapper">
+      <div class="alert-icon-container">
+        <svg class="cart-success-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="9" cy="21" r="1"></circle>
+          <circle cx="20" cy="21" r="1"></circle>
+          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+        </svg>
+        <div class="success-checkmark">✓</div>
       </div>
-    `;
+      <div class="alert-text-content">
+        <p class="alert-main-title">Ajouté avec succès !</p>
+        <p class="alert-product-name">${productName}</p>
+      </div>
+      <div class="alert-actions">
+        <button class="view-cart-btn" data-action="view-cart">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 3h2l.4 2m0 0h13l-1 7H6m0 0L5 6H3m3 6v6a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-6m-10 0h10"></path>
+          </svg>
+          Voir panier
+        </button>
+        <button class="alert-dismiss-btn" data-action="close" aria-label="Fermer la notification">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+  `;
+
+  // Ajouter au DOM
+  document.body.appendChild(alertContainer);
+
+  // Gestionnaires d'événements avec délégation
+  alertContainer.addEventListener('click', (event) => {
+    const action = event.target.closest('[data-action]')?.dataset.action;
     
-    // Add to document
-    document.body.appendChild(notification);
-    
-    // Add event listener to close button
-    const closeButton = notification.querySelector('.notification-close');
-    closeButton.addEventListener('click', () => {
-      notification.classList.add('notification-hiding');
+    switch (action) {
+      case 'view-cart':
+        // Navigation vers le panier avec gestion d'erreur
+        try {
+          window.location.href = '/client/panier';
+        } catch (error) {
+          console.warn('Erreur de navigation vers le panier:', error);
+        }
+        break;
+        
+      case 'close':
+        hideAlertNotification();
+        break;
+    }
+  });
+
+  // Fonction pour masquer la notification
+  const hideAlertNotification = () => {
+    if (alertContainer && document.body.contains(alertContainer)) {
+      alertContainer.classList.add('alert-fade-out');
+      
+      // Animation de sortie
       setTimeout(() => {
-        document.body.removeChild(notification);
-      }, 300);
-    });
-    
-    // Auto remove after 5 seconds
-    setTimeout(() => {
-      if (document.body.contains(notification)) {
-        notification.classList.add('notification-hiding');
-        setTimeout(() => {
-          if (document.body.contains(notification)) {
-            document.body.removeChild(notification);
-          }
-        }, 300);
-      }
-    }, 5000);
-    
-    // Animate in
-    setTimeout(() => {
-      notification.classList.add('notification-visible');
-    }, 10);
+        if (document.body.contains(alertContainer)) {
+          alertContainer.remove();
+        }
+      }, 350);
+    }
   };
+
+  // Fermeture automatique après 6 secondes
+  const autoCloseTimer = setTimeout(hideAlertNotification, 6000);
+
+  // Pause du timer au survol
+  alertContainer.addEventListener('mouseenter', () => {
+    clearTimeout(autoCloseTimer);
+  });
+
+  // Reprise du timer quand la souris quitte
+  alertContainer.addEventListener('mouseleave', () => {
+    setTimeout(hideAlertNotification, 3000);
+  });
+
+  // Animation d'entrée
+  requestAnimationFrame(() => {
+    alertContainer.classList.add('alert-slide-in');
+  });
+
+  // Support clavier pour l'accessibilité
+  alertContainer.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      hideAlertNotification();
+    }
+  });
+
+  return alertContainer;
+};
 
   return (
     <div className="ecommerce-container">
@@ -525,12 +578,24 @@ const CatalogueProduits = () => {
         <div className="search-container">
           <div className="search-box">
             <Search size={20} className="search-icon" />
-            <input
-              type="text"
-              placeholder="Rechercher des produits..."
-              value={searchQuery}
-              onChange={handleSearchChange}
-            />
+            <div className="search-input-container">
+<input
+  type="text"
+  className="search-inputt"
+  placeholder="Rechercher des produits..."
+  value={searchQuery}
+  onChange={handleSearchChange}
+  style={{
+    width: '600px',
+    margin: '0 auto',
+    display: 'block',
+    padding: '14px 20px',
+    border: '2px solid #e1e5e9',
+    borderRadius: '8px',
+    fontSize: '16px'
+  }}
+/>
+        </div>
           </div>
         </div>
       </div>
@@ -570,21 +635,7 @@ const CatalogueProduits = () => {
           <ChevronDown size={16} className="dropdown-icon" />
         </div>
 
-        <div className="filter-group">
-          <label>Trier par</label>
-          <select
-            value={sortOption}
-            onChange={handleSortChange}
-            className="filter-select"
-          >
-            <option value="featured">En vedette</option>
-            <option value="price-asc">Prix: croissant</option>
-            <option value="price-desc">Prix: décroissant</option>
-            <option value="rating">Meilleures notes</option>
-            <option value="reviews">Plus de commentaires</option>
-          </select>
-          <ChevronDown size={16} className="dropdown-icon" />
-        </div>
+        
       </div>
 
       {/* Products Display */}

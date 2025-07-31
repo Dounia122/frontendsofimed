@@ -1,0 +1,623 @@
+:root {
+  /* Nouvelle palette de couleurs */
+  --sofi-primary: #3B82F6;         /* Bleu principal */
+  --sofi-primary-light: #93C5FD;   /* Bleu clair */
+  --sofi-primary-dark: #1D4ED8;    /* Bleu foncé */
+  
+  --sofi-secondary: #10B981;       /* Vert */
+  --sofi-secondary-light: #A7F3D0; /* Vert clair */
+  
+  --sofi-danger: #EF4444;          /* Rouge */
+  --sofi-danger-light: #FCA5A5;    /* Rouge clair */
+  
+  --sofi-warning: #F59E0B;         /* Orange */
+  --sofi-warning-light: #FCD34D;   /* Jaune */
+  
+  --sofi-info: #60A5FA;            /* Bleu info */
+  --sofi-info-light: #BFDBFE;      /* Bleu info clair */
+  
+  /* Textes */
+  --sofi-text-primary: #1E293B;    /* Gris foncé */
+  --sofi-text-secondary: #64748B;  /* Gris moyen */
+  --sofi-text-tertiary: #94A3B8;   /* Gris clair */
+  
+  /* Arrière-plans et bordures */
+  --sofi-border: #E2E8F0;          /* Gris très clair */
+  --sofi-background: #F8FAFC;      /* Blanc cassé */
+  --sofi-white: #FFFFFF;           /* Blanc */
+  
+  /* Dimensions */
+  --sofi-sidebar-width: 280px;
+  
+  /* Effets */
+  --sofi-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --sofi-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --sofi-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --sofi-transition: all 0.3s ease;
+}
+
+/* Reset et styles de base */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--sofi-background);
+  color: var(--sofi-text-primary);
+  line-height: 1.6;
+}
+
+/* Structure commune des tableaux de bord */
+.sofi-dashboard {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--sofi-background);
+}
+
+.sofi-sidebar {
+  width: var(--sofi-sidebar-width);
+  background-color: var(--sofi-white);
+  border-right: 1px solid var(--sofi-border);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  height: 100vh;
+  z-index: 100;
+  box-shadow: var(--sofi-shadow-sm);
+  transition: var(--sofi-transition);
+}
+
+.sofi-main {
+  flex: 1;
+  margin-left: var(--sofi-sidebar-width);
+  transition: var(--sofi-transition);
+}
+
+/* En-tête de la barre latérale */
+.sofi-sidebar-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--sofi-border);
+  text-align: center;
+}
+
+.sofi-logo-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 0.75rem;
+}
+
+.sofi-logo {
+  max-width: 160px;
+  height: auto;
+  object-fit: contain;
+}
+
+.sofi-subtitle {
+  font-size: 0.875rem;
+  color: var(--sofi-text-secondary);
+  font-weight: 500;
+}
+
+/* Navigation */
+.sofi-sidebar-nav {
+  flex: 1;
+  padding: 1.5rem 1rem;
+  overflow-y: auto;
+}
+
+.sofi-nav-list {
+  list-style: none;
+}
+
+.sofi-nav-item {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.5rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  color: var(--sofi-text-secondary);
+  transition: var(--sofi-transition);
+  font-weight: 500;
+}
+
+.sofi-nav-item:hover {
+  background-color: rgba(59, 130, 246, 0.08);
+  color: var(--sofi-primary);
+}
+
+.sofi-nav-item.active {
+  background-color: rgba(59, 130, 246, 0.12);
+  color: var(--sofi-primary);
+}
+
+.sofi-nav-icon {
+  margin-right: 0.75rem;
+  flex-shrink: 0;
+}
+
+.sofi-badge {
+  background-color: var(--sofi-danger);
+  color: var(--sofi-white);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  margin-left: auto;
+}
+
+/* Pied de page de la barre latérale */
+.sofi-sidebar-footer {
+  padding: 1.5rem;
+  border-top: 1px solid var(--sofi-border);
+}
+
+.sofi-user-profile {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1.25rem;
+  padding: 0.75rem;
+  background-color: rgba(248, 250, 252, 0.8);
+  border-radius: 0.5rem;
+}
+
+.sofi-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--sofi-primary);
+  color: var(--sofi-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  margin-right: 0.75rem;
+  flex-shrink: 0;
+}
+
+.sofi-user-info {
+  flex: 1;
+}
+
+.sofi-user-name {
+  font-weight: 600;
+  color: var(--sofi-text-primary);
+  font-size: 0.9375rem;
+  margin-bottom: 0.125rem;
+}
+
+.sofi-user-email {
+  font-size: 0.75rem;
+  color: var(--sofi-text-secondary);
+}
+
+.sofi-footer-menu {
+  list-style: none;
+}
+
+.sofi-footer-item {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 0.25rem;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  color: var(--sofi-text-secondary);
+  transition: var(--sofi-transition);
+  font-size: 0.875rem;
+}
+
+.sofi-footer-item:hover {
+  background-color: rgba(59, 130, 246, 0.08);
+  color: var(--sofi-primary);
+}
+
+.sofi-footer-icon {
+  margin-right: 0.75rem;
+  flex-shrink: 0;
+}
+
+/* En-tête principal */
+.sofi-main-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 2rem;
+  background-color: var(--sofi-white);
+  border-bottom: 1px solid var(--sofi-border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-shadow: var(--sofi-shadow-sm);
+}
+
+.sofi-page-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--sofi-text-primary);
+}
+
+.sofi-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Bouton de notification */
+.sofi-notif-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--sofi-text-secondary);
+  transition: var(--sofi-transition);
+}
+
+.sofi-notif-btn:hover {
+  background-color: rgba(59, 130, 246, 0.08);
+  color: var(--sofi-primary);
+}
+
+.sofi-notif-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background-color: var(--sofi-danger);
+  color: var(--sofi-white);
+  font-size: 0.75rem;
+  font-weight: 600;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.25rem;
+}
+
+.sofi-notif-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  width: 320px;
+  background-color: var(--sofi-white);
+  border-radius: 0.5rem;
+  box-shadow: var(--sofi-shadow-lg);
+  z-index: 20;
+  overflow: hidden;
+  animation: sofiDropdownFadeIn 0.2s ease;
+}
+
+@keyframes sofiDropdownFadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.sofi-notif-dropdown-title {
+  padding: 1rem;
+  font-weight: 600;
+  color: var(--sofi-text-primary);
+  border-bottom: 1px solid var(--sofi-border);
+}
+
+.sofi-notif-list {
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.sofi-notif-item {
+  padding: 1rem;
+  border-bottom: 1px solid var(--sofi-border);
+  transition: var(--sofi-transition);
+}
+
+.sofi-notif-item:hover {
+  background-color: rgba(59, 130, 246, 0.05);
+}
+
+.sofi-notif-item.unread {
+  background-color: rgba(59, 130, 246, 0.08);
+}
+
+/* Contenu principal */
+.sofi-content {
+  padding: 2rem;
+}
+
+/* Carte de bienvenue */
+.sofi-welcome-card {
+  background: linear-gradient(135deg, var(--sofi-primary) 0%, var(--sofi-primary-dark) 100%);
+  border-radius: 1rem;
+  padding: 2.5rem;
+  color: var(--sofi-white);
+  margin-bottom: 2rem;
+  box-shadow: var(--sofi-shadow-md);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sofi-welcome-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, transparent 0%, rgba(255, 255, 255, 0.1) 100%);
+  pointer-events: none;
+}
+
+.sofi-card-content {
+  max-width: 60%;
+  position: relative;
+  z-index: 1;
+}
+
+.sofi-welcome-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  line-height: 1.3;
+}
+
+.sofi-welcome-text {
+  font-size: 1.1rem;
+  opacity: 0.9;
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
+}
+
+.sofi-card-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.sofi-btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--sofi-transition);
+  border: none;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: var(--sofi-shadow-sm);
+}
+
+.sofi-btn-primary {
+  background-color: var(--sofi-white);
+  color: var(--sofi-primary);
+}
+
+.sofi-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--sofi-shadow-md);
+}
+
+.sofi-btn-secondary {
+  background-color: rgba(255, 255, 255, 0.15);
+  color: var(--sofi-white);
+  backdrop-filter: blur(4px);
+}
+
+.sofi-btn-secondary:hover {
+  background-color: rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px);
+  box-shadow: var(--sofi-shadow-md);
+}
+
+.sofi-card-illustration {
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
+/* Grille de statistiques */
+.sofi-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.sofi-stat-card {
+  background-color: var(--sofi-white);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  box-shadow: var(--sofi-shadow-sm);
+  border: 1px solid var(--sofi-border);
+  transition: var(--sofi-transition);
+}
+
+.sofi-stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--sofi-shadow-md);
+}
+
+.sofi-stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 1rem;
+  flex-shrink: 0;
+}
+
+.sofi-stat-info {
+  flex: 1;
+}
+
+.sofi-stat-label {
+  font-size: 0.875rem;
+  color: var(--sofi-text-secondary);
+  margin-bottom: 0.25rem;
+}
+
+.sofi-stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--sofi-text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.sofi-stat-change {
+  font-size: 0.75rem;
+  color: var(--sofi-text-tertiary);
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.sofi-stat-change.positive {
+  color: var(--sofi-secondary);
+}
+
+.sofi-stat-change.negative {
+  color: var(--sofi-danger);
+}
+
+/* Activité récente */
+.sofi-activity-section {
+  background-color: var(--sofi-white);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  box-shadow: var(--sofi-shadow-sm);
+  border: 1px solid var(--sofi-border);
+  margin-bottom: 2rem;
+}
+
+.sofi-section-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--sofi-text-primary);
+  margin-bottom: 1.25rem;
+}
+
+.sofi-activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.sofi-activity-item {
+  display: flex;
+  align-items: flex-start;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  transition: var(--sofi-transition);
+}
+
+.sofi-activity-item:hover {
+  background-color: rgba(59, 130, 246, 0.05);
+}
+
+.sofi-activity-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 1rem;
+  flex-shrink: 0;
+}
+
+.sofi-activity-content {
+  flex: 1;
+}
+
+.sofi-activity-title {
+  font-weight: 500;
+  color: var(--sofi-text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.sofi-activity-time {
+  font-size: 0.75rem;
+  color: var(--sofi-text-tertiary);
+}
+
+/* Animations */
+@keyframes sofiSlideIn {
+  from { transform: translateX(-20px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes sofiFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes sofiPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .sofi-stats-grid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .sofi-sidebar {
+    transform: translateX(-100%);
+  }
+  
+  .sofi-main {
+    margin-left: 0;
+  }
+  
+  .sofi-sidebar.open {
+    transform: translateX(0);
+  }
+  
+  .sofi-welcome-card {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .sofi-card-content {
+    max-width: 100%;
+    margin-bottom: 2rem;
+  }
+  
+  .sofi-card-actions {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .sofi-stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .sofi-main-header {
+    padding: 1rem;
+  }
+  
+  .sofi-content {
+    padding: 1rem;
+  }
+}

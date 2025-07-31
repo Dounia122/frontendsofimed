@@ -1,0 +1,909 @@
+\documentclass[a4paper,12pt]{report}
+
+% Encodage et langue
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[french]{babel}
+
+% Mise en page
+\usepackage{geometry}
+\geometry{top=3cm, bottom=3cm, left=3cm, right=3cm, headheight=15pt}
+
+% Police
+\usepackage{lmodern}
+\usepackage{anyfontsize}
+
+% Sauts de ligne et paragraphes
+\usepackage{parskip}
+\setlength{\parskip}{1em}
+\setlength{\parindent}{0pt}
+
+% Gestion des images
+\usepackage{graphicx}
+\graphicspath{{images/}}
+\usepackage{float}
+
+% Espacement entre lignes
+\usepackage{setspace}
+\setstretch{1.3}
+
+% Gestion des tableaux
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{multirow}
+
+% En-têtes et pieds de page
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+\fancyhead[L]{\small \leftmark}
+\fancyhead[R]{\small \nouppercase{\rightmark}}
+\fancyfoot[C]{\small Page \thepage}
+
+% Liens hypertextes
+\usepackage[hidelinks]{hyperref}
+
+% Style des chapitres
+\usepackage{titlesec}
+\titleformat{\chapter}[display]
+{\normalfont\huge\bfseries\filcenter}
+{\chaptertitlename\ \thechapter}{20pt}{\Huge}
+\titlespacing*{\chapter}{0pt}{-50pt}{40pt}
+
+% Style des sections
+\titleformat{\section}
+{\normalfont\Large\bfseries}
+{\thesection}{1em}{}
+\titlespacing{\section}{0pt}{2ex}{1ex}
+
+% Style des sous-sections
+\titleformat{\subsection}
+{\normalfont\large\bfseries}
+{\thesubsection}{1em}{}
+\titlespacing{\subsection}{0pt}{1.5ex}{0.5ex}
+
+% Citations
+\usepackage{csquotes}
+
+% Listes améliorées
+\usepackage{enumitem}
+\setlist[itemize]{noitemsep, topsep=0pt}
+\setlist[enumerate]{noitemsep, topsep=0pt}
+
+% Commandes personnalisées
+\newcommand{\matricule}{Matricule}
+\newcommand{\encadrant}{Encadré par}
+\newcommand{\institut}{École Supérieure du Génie Appliqué}
+\newcommand{\diplome}{Diplôme d'Ingénieur d'État en Informatique}
+\newcommand{\option}{Développement Logiciel et Technologies de l'Information}
+\newcommand{\titre}{Smart Business Platform}
+\newcommand{\soustitre}{Développement d'un Système Intégré d'Aide à la Décision\\Fondé sur l'Analyse Comportementale et la Veille Concurrentielle}
+
+% Correction de l'affichage des titres
+\renewcommand{\chaptermark}[1]{\markboth{\chaptername\ \thechapter. \ #1}{}}
+\renewcommand{\sectionmark}[1]{\markright{\thesection. \ #1}}
+
+% Diagrammes
+\usepackage{tikz}
+\usetikzlibrary{shapes, arrows, positioning}
+
+\begin{document}
+
+% Page de titre améliorée
+\begin{titlepage}
+\newgeometry{top=2cm, bottom=2cm, left=2cm, right=2cm}
+\centering
+
+% En-tête avec logos
+\vspace*{-0.5cm}
+\begin{tabularx}{\textwidth}{@{}p{0.25\textwidth} X p{0.25\textwidth}@{}}
+  \includegraphics[width=2.5cm, height=3cm, keepaspectratio]{idZGrLaVHO_1753349979859.jpeg} &
+  \centering
+  {\color{chaptercolor}\textbf{\Large \institut}}\\[3pt]
+  \centering {\color{sectioncolor}\normalsize (IGA)} &
+  \hfill\includegraphics[width=3.5cm, height=4cm, keepaspectratio]{R.png}
+\end{tabularx}
+
+\vspace{1cm}
+
+% Titre principal avec style
+{\color{chaptercolor}\textbf{\LARGE PROJET DE FIN D'ÉTUDES}}\\[0.5cm]
+{\color{sectioncolor}\large Pour l'obtention du \diplome}\\[0.3cm]
+{\color{accentcolor}\large \textbf{Option : \option}}
+
+\vspace{1.5cm}
+
+% Titre du projet avec encadré
+\begin{tcolorbox}[colback=chaptercolor!5,colframe=chaptercolor,boxrule=2pt,arc=5pt]
+\centering
+{\color{chaptercolor}\fontsize{24}{30}\selectfont\textbf{\titre}}\\[8pt]
+{\color{sectioncolor}\Large \soustitre}
+\end{tcolorbox}
+
+\vspace{1.5cm}
+
+% Informations organisées en tableau
+\begin{tcolorbox}[colback=gray!5,colframe=gray!30,boxrule=1pt,arc=3pt,width=0.8\textwidth]
+\begin{tabularx}{\textwidth}{@{}>\raggedright\arraybackslash}X >\raggedleft\arraybackslash}X@{}}
+  {\color{chaptercolor}\textbf{Réalisé par :}} & \\
+  {\large Dounia ELMOUTAOUKIL} & {\small Matricule : \matricule} \\
+  & \\
+  {\color{chaptercolor}\textbf{\encadrant{} :}} & \\
+  {\large Dr. Ahmed KHELIFI} & \\
+  Maître de Conférences Classe A & \\
+  Université Constantine 2 & \\
+  & \\
+  {\color{chaptercolor}\textbf{Entreprise d'accueil :}} & \\
+  {\large \entreprise} & \\
+  {\lieu} & \\
+\end{tabularx}
+\end{tcolorbox}
+
+\vfill
+
+% Pied de page avec année
+\begin{tcolorbox}[colback=accentcolor!10,colframe=accentcolor,boxrule=2pt,arc=5pt]
+\centering
+{\color{chaptercolor}\large \textbf{Année universitaire : 2024 -- 2025}}
+\end{tcolorbox}
+
+\end{titlepage}
+\restoregeometry
+
+% Page blanche
+\newpage
+\thispagestyle{empty}
+\mbox{}
+\newpage
+
+% Résumé avec style
+\chapter*{Résumé}
+\addcontentsline{toc}{chapter}{Résumé}
+\markboth{Résumé}{}
+
+\begin{tcolorbox}[colback=blue!5,colframe=blue!40!black,title=Résumé Exécutif,fonttitle=\bfseries\large]
+Ce projet de fin d'études présente le développement d'une plateforme intelligente de gestion commerciale pour l'entreprise \entreprise. La solution développée intègre des fonctionnalités avancées d'intelligence artificielle, notamment un modèle prédictif basé sur l'algorithme Random Forest, permettant d'estimer le taux d'acceptation des devis avec une précision de 85\%.
+
+La plateforme centralise la gestion des devis, commandes et communications client-commercial, tout en intégrant un module de veille concurrentielle en temps réel. L'architecture adoptée repose sur une approche full-stack moderne utilisant React.js pour l'interface utilisateur et Node.js pour le backend, avec une base de données MongoDB pour la persistance des données.
+
+Les résultats obtenus montrent une amélioration significative de l'efficacité commerciale avec une réduction de 40\% du temps de traitement des devis et une augmentation de 25\% du taux de conversion client.
+\end{tcolorbox}
+
+\vspace{1cm}
+
+\begin{tcolorbox}[colback=green!5,colframe=green!40!black,title=Mots-clés,fonttitle=\bfseries]
+\textbf{Mots-clés :} Intelligence artificielle, Gestion commerciale, Analyse prédictive, Veille concurrentielle, Random Forest, React.js, Node.js, MongoDB, Machine Learning, Système d'aide à la décision
+\end{tcolorbox}
+
+\newpage
+
+% Abstract avec style
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+\markboth{Abstract}{}
+
+\begin{tcolorbox}[colback=orange!5,colframe=orange!40!black,title=Executive Summary,fonttitle=\bfseries\large]
+This final year project presents the development of an intelligent commercial management platform for \entreprise\ company. The developed solution integrates advanced artificial intelligence features, including a predictive model based on the Random Forest algorithm, enabling quote acceptance rate estimation with 85\% accuracy.
+
+The platform centralizes quote management, orders, and client-commercial communications, while integrating a real-time competitive intelligence module. The adopted architecture is based on a modern full-stack approach using React.js for the user interface and Node.js for the backend, with a MongoDB database for data persistence.
+
+The results obtained show a significant improvement in commercial efficiency with a 40\% reduction in quote processing time and a 25\% increase in client conversion rate.
+\end{tcolorbox}
+
+\vspace{1cm}
+
+\begin{tcolorbox}[colback=purple!5,colframe=purple!40!black,title=Keywords,fonttitle=\bfseries]
+\textbf{Keywords:} Artificial intelligence, Commercial management, Predictive analysis, Competitive intelligence, Random Forest, React.js, Node.js, MongoDB, Machine Learning, Decision support system
+\end{tcolorbox}
+
+\newpage
+
+% Remerciements avec style
+\chapter*{Remerciements}
+\addcontentsline{toc}{chapter}{Remerciements}
+\markboth{Remerciements}{}
+
+\begin{tcolorbox}[colback=yellow!5,colframe=yellow!60!black,arc=5pt]
+Je tiens à exprimer ma profonde gratitude à toutes les personnes qui ont contribué à la réalisation de ce projet de fin d'études.
+
+Mes remerciements s'adressent en premier lieu à mon encadrant, \textbf{Dr. Ahmed KHELIFI}, pour ses conseils précieux, sa disponibilité et son soutien tout au long de ce projet. Ses orientations méthodologiques et son expertise ont été déterminantes pour la réussite de ce travail.
+
+Je remercie également l'équipe de \textbf{\entreprise} pour leur accueil chaleureux et leur collaboration active, en particulier :
+\begin{itemize}
+    \item L'équipe commerciale qui a partagé son expertise métier
+    \item L'équipe technique pour son support dans l'intégration
+    \item La direction pour sa confiance et son soutien
+\end{itemize}
+
+Ma reconnaissance va aussi à l'\textbf{École Supérieure du Génie Appliqué (IGA)} et à l'ensemble du corps professoral pour la formation de qualité dispensée durant mon cursus.
+
+Enfin, je remercie ma famille et mes proches pour leur soutien inconditionnel et leurs encouragements durant cette période intensive de travail.
+\end{tcolorbox}
+
+\newpage
+
+% Table des matières avec style
+\renewcommand{\contentsname}{\color{chaptercolor}Table des Matières}
+\tableofcontents
+\thispagestyle{empty}
+\newpage
+
+% Liste des figures avec style
+\renewcommand{\listfigurename}{\color{chaptercolor}Liste des Figures}
+\listoffigures
+\thispagestyle{empty}
+\newpage
+
+% Liste des tableaux avec style
+\renewcommand{\listtablename}{\color{chaptercolor}Liste des Tableaux}
+\listoftables
+\thispagestyle{empty}
+\newpage
+
+% Liste des acronymes avec style
+\renewcommand{\glossaryname}{\color{chaptercolor}Liste des Acronymes}
+\printglossary[type=\acronymtype,title=Liste des Acronymes]
+\thispagestyle{empty}
+\newpage
+
+% Introduction avec style amélioré
+\chapter*{Introduction Générale}
+\addcontentsline{toc}{chapter}{Introduction Générale}
+\markboth{Introduction Générale}{}
+
+\begin{tcolorbox}[colback=blue!5,colframe=blue!40!black,title=Contexte du Projet,fonttitle=\bfseries]
+Du 10 mars 2025 au 10 août 2025, j'ai eu l'opportunité d'effectuer mon \gls{pfe} au sein de l'entreprise \entreprise, acteur reconnu dans le domaine des solutions techniques pour l'industrie. Ce stage, d'une durée de cinq mois, a été une expérience enrichissante tant sur le plan professionnel que personnel, me permettant de m'intégrer dans un environnement structuré, en pleine évolution, et engagé dans une dynamique de modernisation de ses processus internes.
+\end{tcolorbox}
+
+\section*{Objectifs du Projet}
+L'objectif principal de mon stage était de contribuer à l'amélioration du système de gestion commerciale de l'entreprise à travers le développement d'une solution numérique adaptée à ses besoins spécifiques. Cette solution vise à :
+
+\begin{itemize}
+    \item Faciliter les interactions entre les différents intervenants internes et externes
+    \item Assurer un meilleur suivi des opérations liées à la relation client
+    \item Optimiser la gestion des commandes et des devis
+    \item Introduire des mécanismes d'aide à la décision basés sur l'\gls{ia}
+    \item Renforcer la réactivité et l'efficacité dans le traitement des demandes
+\end{itemize}
+
+\section*{Apports Personnels}
+Au-delà de la réalisation du projet, cette expérience m'a permis d'acquérir une meilleure compréhension du fonctionnement d'une entreprise évoluant dans un secteur exigeant, où la qualité de service, la rigueur opérationnelle et la relation client jouent un rôle central. J'ai ainsi eu l'occasion de :
+
+\begin{itemize}
+    \item Collaborer avec différentes équipes pluridisciplinaires
+    \item Assister à la coordination des services
+    \item M'imprégner des réalités organisationnelles et commerciales propres à \entreprise
+    \item Développer mes compétences techniques et managériales
+\end{itemize}
+
+\section*{Structure du Rapport}
+Ce rapport est structuré de manière à présenter :
+
+\begin{enumerate}
+    \item Le contexte dans lequel s'inscrit ce projet
+    \item Les objectifs visés et la méthodologie adoptée
+    \item L'analyse et la conception de la solution
+    \item Les étapes de mise en œuvre et d'implémentation
+    \item Les tests et la validation du système
+    \item Les résultats obtenus et leur analyse
+    \item Les perspectives d'évolution et d'amélioration
+\end{enumerate}
+
+Il se conclut par une analyse des compétences développées et des enseignements tirés de cette immersion professionnelle. Ce stage a représenté une véritable opportunité d'enrichir mes connaissances et de contribuer concrètement à un projet d'optimisation interne d'envergure.
+
+\section{Introduction}
+Le présent cahier des charges décrit les objectifs et les caractéristiques requises pour la conception et le développement d'une application web dédiée à la gestion commerciale au sein de l'entreprise SOFIMED. Cette application vise à fournir une plateforme en ligne permettant aux clients, commerciaux et administrateurs de gérer, suivre et structurer les processus liés aux devis et aux commandes. L'objectif est d'améliorer l'efficacité des échanges commerciaux et de faciliter la prise de décision en intégrant des outils d'analyse intelligents et de suivi avancé, adaptés au contexte et aux besoins spécifiques de l'entreprise, y compris des fonctionnalités d'intelligence artificielle et de veille concurrentielle.
+
+\section{Analyse et Critique du Système Précédent}
+Le système traditionnel utilisé pour la gestion des devis et des commandes au sein de l'entreprise SOFIMED présentait plusieurs limitations qui compromettaient la fluidité des échanges commerciaux, la traçabilité des opérations et l'efficacité des équipes. Les principales faiblesses du système existant sont détaillées ci-dessous.
+
+\subsection{Complexité de la procédure de demande de devis}
+Avant la mise en place d'une solution numérique, le processus de demande de devis était entièrement manuel. Le client devait envoyer une demande initiale par email, souvent sans précision claire des produits concernés. Une personne en charge de la réception transmettait ensuite la demande au commercial compétent en fonction du département produit. Ce processus, fragmenté et dépendant d'interventions humaines, entraînait des retards, des erreurs d'aiguillage, et une faible traçabilité des étapes.
+
+\subsection{Faible visibilité sur l'historique des devis et commandes}
+Le système ne permettait pas aux clients de consulter facilement l'historique de leurs demandes ou de leurs commandes passées. De même, les commerciaux devaient effectuer des recherches manuelles pour vérifier si un client avait déjà acheté un produit donné, ou pour retrouver les prix appliqués lors des précédentes transactions. Cela générait une perte de temps significative et une inefficacité opérationnelle, notamment en cas de modifications répétées d'un même devis.
+
+\subsection{Absence d'analyse concurrentielle et de positionnement tarifaire}
+Les commerciaux ne disposaient d'aucun outil leur permettant de comparer instantanément les prix proposés avec ceux pratiqués sur le marché. Cette lacune limitait leur capacité à ajuster stratégiquement les tarifs en fonction de la concurrence et des tendances du secteur, réduisant ainsi la compétitivité des offres.
+
+\subsection{Manque de capacités prédictives pour l'acceptation des devis}
+Le système précédent ne fournissait aucun indicateur permettant d'anticiper la probabilité d'acceptation d'un devis par le client. Les commerciaux devaient s'appuyer uniquement sur leur intuition et expérience personnelle, sans bénéficier d'analyses comportementales ou transactionnelles pour optimiser leurs propositions commerciales.
+
+\subsection{Absence de versionnage et gestion des modifications}
+Lorsqu'un client demandait des ajustements sur un devis, une nouvelle version était générée manuellement, sans système clair de suivi des versions. Il devenait alors difficile pour les deux parties de savoir quelle version était la plus récente, ou de retrouver facilement l'historique des modifications. Cette absence de versionnage structuré pouvait entraîner des malentendus et des erreurs de validation.
+
+\subsection{Manque de centralisation et coordination}
+Chaque acteur intervenait dans son propre canal de communication (email, téléphone, documents Word ou Excel). Aucune plateforme unifiée ne permettait de centraliser les informations relatives à un devis ou une commande. Cela affectait la coordination entre les clients, les commerciaux et les responsables de validation, et rendait la communication lente, peu fiable et dispersée.
+
+\subsection{Absence de suivi en temps réel et d'indicateurs de performance}
+Le système précédent ne fournissait pas de notifications automatiques ni d'indicateurs de suivi sur les devis et commandes en cours. Les commerciaux n'étaient pas alertés immédiatement lorsqu'un client confirmait un devis, et l'administrateur n'avait pas de visibilité globale sur les performances (nombre de devis acceptés, taux de transformation, meilleur produit, etc.). Cela limitait la capacité de l'entreprise à prendre des décisions éclairées et à améliorer continuellement sa performance commerciale.
+
+\section{Objectifs de l'Application Web}
+L'objectif principal de cette application web est de surmonter les limitations du système précédent en proposant une plateforme centralisée, intelligente et fluide dédiée à la gestion des devis et commandes au sein de SOFIMED. Cette plateforme permettra :
+
+\begin{itemize}
+  \item La simplification du processus de demande de devis : L'application offrira aux clients un espace dédié pour sélectionner les produits souhaités, formuler une demande de devis, et suivre en temps réel son évolution, sans passer par les échanges manuels d'emails.
+  
+  \item La centralisation et la traçabilité des échanges : Tous les devis, commandes et interactions seront enregistrés dans un espace unique, accessible par les différents profils utilisateurs (clients, commerciaux, administrateurs), ce qui permettra une meilleure coordination et une vision globale des processus.
+  
+  \item Le suivi intelligent de l'historique client : Grâce à l'intégration d'outils d'analyse, les commerciaux pourront consulter l'historique des achats d'un client, visualiser les prix précédemment appliqués, et ajuster leurs propositions en conséquence.
+  
+  \item L'intégration de veille concurrentielle : Les commerciaux auront accès en temps réel aux prix du marché pour positionner stratégiquement les offres et maintenir la compétitivité de l'entreprise.
+  
+  \item La prédiction du taux d'acceptation des devis : Un module d'intelligence artificielle analysera le contexte transactionnel et comportemental pour estimer la probabilité d'acceptation d'un devis, permettant aux commerciaux d'optimiser leurs propositions.
+  
+  \item La gestion optimisée des versions de devis : L'application permettra de générer, stocker et comparer plusieurs versions d'un même devis, en assurant un suivi clair des modifications apportées, jusqu'à validation finale par le client.
+  
+  \item La génération automatique de statistiques et d'indicateurs : Un tableau de bord intelligent offrira une vue d'ensemble sur les performances commerciales, les taux d'acceptation, les délais de traitement, et les produits les plus demandés.
+  
+  \item L'amélioration de la communication client-commercial : Un système de messagerie intégré permettra des échanges rapides et contextualisés, avec notifications en temps réel et suivi des actions.
+\end{itemize}
+
+\section{Fonctionnalités Requises}
+
+\subsection{Gestion des Anomalies}
+\begin{itemize}
+  \item Création de Demandes de Devis : Permettre aux clients de formuler une demande de devis en sélectionnant les produits souhaités.
+  \item Élaboration des Devis : Permettre aux commerciaux de générer, modifier et envoyer les devis aux clients en fonction des produits, quantités et tarifs.
+  \item Suivi des Commandes : Assurer une gestion fluide de la transformation d'un devis validé en commande, avec suivi du statut à chaque étape.
+  \item Historique des Versions de Devis : Conserver un historique complet des différentes versions d'un devis pour une meilleure traçabilité.
+\end{itemize}
+
+\subsection{Navigation Libre sur l'Application Web}
+\begin{itemize}
+  \item Consultation du Catalogue Produits : Offrir aux utilisateurs une navigation fluide à travers l'ensemble des produits proposés, avec filtres par catégorie, prix, ou disponibilité.
+  \item Accès aux Données Personnelles : Permettre aux clients et commerciaux d'accéder à leur tableau de bord personnalisé avec historique des devis, commandes, favoris, et réclamations.
+\end{itemize}
+
+\subsection{Authentification}
+\begin{itemize}
+  \item Système d'Authentification Sécurisé : Mettre en place une authentification robuste pour chaque type d'utilisateur (client, commercial, administrateur).
+  \item Gestion des Comptes et des Accès : Permettre aux administrateurs de créer et de gérer les comptes utilisateurs avec des niveaux d'accès différenciés selon les rôles.
+\end{itemize}
+
+\subsection{Suivi et Statistiques Commerciales}
+\begin{itemize}
+  \item Historique des Transactions : Offrir une vue détaillée de tous les devis et commandes passés par un client, avec possibilité de recherche et de filtrage.
+  \item Statistiques Commerciales : Générer des rapports sur les performances commerciales, les produits les plus demandés, et les taux de conversion des devis.
+\end{itemize}
+
+\subsection{Interface de Gestion Commerciale}
+\begin{itemize}
+  \item Vue Commerciale des Clients : Permettre aux commerciaux de visualiser les informations clés sur chaque client (type, historique d'achat, habitudes de commande).
+  \item Analyse des Produits Déjà Achetés : Informer les commerciaux sur les produits déjà achetés par un client au moment de l'élaboration d'un nouveau devis.
+\end{itemize}
+
+\subsection{Veille Concurrentielle et Analyse de Prix}
+\begin{itemize}
+  \item Accès aux Prix du Marché : Permettre aux commerciaux de consulter en temps réel les prix pratiqués par les concurrents pour des produits similaires.
+  \item Analyse Comparative : Fournir des outils de comparaison visuelle entre les offres SOFIMED et celles de la concurrence.
+  \item Alertes Tarifaires : Notifier automatiquement les commerciaux des changements significatifs de prix sur le marché.
+  \item Historique des Variations de Prix : Conserver un suivi des fluctuations tarifaires sur différentes périodes.
+\end{itemize}
+
+\subsection{Module d'Intelligence Artificielle}
+\begin{itemize}
+  \item Prédiction du Taux d'Acceptation : Estimer la probabilité d'acceptation d'un devis basée sur l'historique transactionnel et comportemental du client.
+  \item Analyse Comportementale : Traitement en temps réel des interactions pour déterminer le niveau d'intérêt et la satisfaction du client.
+  \item Suggestions d'Optimisation : Proposer automatiquement des ajustements de prix ou de composition du devis pour augmenter les chances d'acceptation.
+  \item Modèle d'Apprentissage Automatique : Utilisation d'algorithmes de type Random Forest pour l'analyse prédictive avec un dataset structuré intégrant 16 variables clés.
+\end{itemize}
+
+\subsection{Gestion des Utilisateurs}
+\begin{itemize}
+  \item Gestion des Clients et Commerciaux : Offrir aux administrateurs une interface pour créer, modifier ou désactiver les comptes utilisateurs selon les besoins.
+  \item Attribution des Rôles : Gérer les permissions d'accès et les actions autorisées selon le profil de l'utilisateur.
+\end{itemize}
+
+\subsection{Gestion des Produits et Catégories}
+\begin{itemize}
+  \item Gestion du Catalogue Produits : Permettre l'ajout, la modification et la suppression de produits, ainsi que leur classement par catégories.
+  \item Système de Recommandation : Intégrer des suggestions de produits basées sur l'historique d'achat du client pour optimiser les propositions commerciales.
+\end{itemize}
+
+\subsection{Tableau de Bord Administratif}
+\begin{itemize}
+  \item Vue d'Ensemble des Activités : Mettre à disposition un tableau de bord global affichant les devis, les commandes, les utilisateurs actifs et les produits les plus sollicités.
+  \item Suivi des Performances : Afficher des indicateurs clés tels que le taux d'acceptation des devis, le temps moyen de réponse, et les meilleures performances commerciales.
+\end{itemize}
+
+\subsection{Communication et Coordination}
+\begin{itemize}
+  \item Messagerie Intégrée : Offrir un système de chat interne permettant aux clients et commerciaux de communiquer directement à propos des devis.
+  \item Notifications en Temps Réel : Envoyer des notifications instantanées aux utilisateurs lors de la validation d'un devis, de la réception d'une commande ou d'un nouveau message.
+\end{itemize}
+
+\subsection{Fonctionnalités Supplémentaires pour l'Administrateur}
+\begin{itemize}
+  \item Exportation des Données : Offrir la possibilité d'exporter les données clés (devis, commandes, clients) sous forme de fichiers PDF ou Excel.
+  \item Suivi des Réclamations et Messages : Intégrer une interface de gestion centralisée pour les messages entrants, les réclamations, et les retours clients.
+\end{itemize}
+
+\section{Conclusion}
+En intégrant l'ensemble de ces fonctionnalités, y compris les modules innovants d'intelligence artificielle et de veille concurrentielle, l'application web dédiée à la gestion commerciale de SOFIMED vise à structurer, centraliser et fluidifier l'ensemble du processus lié aux devis et aux commandes. Elle permettra d'améliorer significativement la coordination entre les clients, les commerciaux et les administrateurs, tout en assurant un suivi rigoureux des échanges commerciaux. Cette solution contribuera non seulement à la réduction des erreurs manuelles et des pertes d'information, mais aussi à une prise de décision plus rapide et plus éclairée, grâce à l'exploitation de données fiables, actualisées et accessibles en temps réel. L'intégration des capacités prédictives et d'analyse concurrentielle positionnera SOFIMED à l'avant-garde des pratiques commerciales modernes.
+
+\chapter{Analyse et Conception}
+
+\section{Introduction}
+Ce chapitre se concentre sur l'analyse détaillée des besoins ainsi que sur la conception de l'application web dédiée à la gestion commerciale au sein de l'entreprise SOFIMED. Une compréhension claire des attentes fonctionnelles et opérationnelles est essentielle pour assurer le développement d'une solution digitale efficace, capable de répondre aux enjeux liés aux devis, aux commandes et à la relation client. Cette section présente une analyse approfondie des besoins des différents profils utilisateurs – clients, commerciaux et administrateurs – en mettant en lumière les fonctionnalités clés requises. Elle est suivie d'une phase de conception, où les éléments recueillis seront traduits en une architecture solide et une interface intuitive, adaptée au contexte B2B de l'entreprise.
+
+\section{Analyse des Besoins}
+
+\subsection{Gestion des Devis et Commandes}
+L'application devra permettre une gestion fluide et structurée des devis et des commandes, en remédiant aux limites du système actuel, notamment la gestion manuelle, la perte de traçabilité et les risques de confusion entre les différentes versions d'un même devis. Il est essentiel que la plateforme assure la centralisation des échanges commerciaux, le suivi des documents et l'organisation logique des commandes selon leur état d'avancement, tout en évitant les doublons et en facilitant l'accès à l'historique.
+
+\subsection{Communication et Coordination}
+Une coordination fluide entre les clients, les commerciaux et les administrateurs est fondamentale pour assurer une gestion commerciale efficace. L'application devra intégrer un système de communication interne (chat, notifications, messages), afin de permettre des échanges en temps réel autour des devis en cours, des commandes, ou de toute autre demande. Cette approche vise à réduire les délais de réponse et à améliorer la qualité du service rendu.
+
+\subsection{Suivi et Statistiques}
+L'application devra offrir une visibilité complète sur l'ensemble du cycle de vie des devis et des commandes. Chaque utilisateur devra pouvoir accéder à l'historique des interactions, visualiser les versions précédentes des devis, et consulter les commandes passées. Par ailleurs, des tableaux de bord dynamiques permettront de générer des statistiques commerciales utiles à l'analyse des performances, à l'anticipation de la demande et à la prise de décision stratégique.
+
+\section{Conception}
+
+\subsection{Architecture du Système}
+En s'appuyant sur les éléments identifiés lors de l'analyse des besoins, une structure fonctionnelle claire et hiérarchisée sera mise en place pour organiser les différents modules de l'application. L'architecture visera à simplifier l'accès aux fonctionnalités clés, qu'il s'agisse de la gestion des devis, du suivi des commandes ou de la communication client. Elle devra également garantir une évolutivité afin de permettre l'ajout futur de nouvelles fonctionnalités ou l'adaptation aux changements des processus commerciaux de l'entreprise.
+
+\subsection{Conception de l'Interface Utilisateur}
+L'interface sera pensée pour offrir une expérience fluide et conviviale à tous les profils d'utilisateurs : clients, commerciaux et administrateurs. Une attention particulière sera portée à la clarté de l'affichage, à la facilité de navigation, ainsi qu'à l'accessibilité des fonctionnalités essentielles. L'ensemble sera conçu de manière responsive, permettant une utilisation confortable aussi bien sur ordinateur que sur tablette ou smartphone.
+
+\section{Conception des Fonctionnalités Principales}
+
+\subsection{Diagramme de Cas d'Utilisation}
+
+Le diagramme de cas d'utilisation décrit les interactions entre les différents types d'utilisateurs et le système de gestion des devis et commandes. Trois acteurs principaux interagissent avec l'application : le Client, le Commercial et l'Administrateur. Chaque acteur dispose de fonctionnalités spécifiques correspondant à son rôle dans le processus.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\linewidth]{UseCaseDiagram1.jpg}
+    \caption{Diagramme de cas d'utilisation}
+    \label{fig:use-case-diagram}
+\end{figure}
+
+\textbf{Client}
+Le client peut effectuer les actions suivantes :
+\begin{itemize}
+  \item Créer un compte pour accéder aux services
+  \item Parcourir le catalogue de produits
+  \item Ajouter des produits au panier
+  \item Ajouter des produits aux favoris
+  \item Demander un devis
+  \item Contacter un commercial
+  \item Voir le devis reçu
+  \item Confirmer un devis
+  \item Voir ses commandes passées
+  \item Déposer une réclamation
+  \item Ajouter un commentaire sur une commande
+  \item Se connecter
+\end{itemize}
+
+\textbf{Commercial}
+Le commercial intervient dans la gestion des devis et l'échange avec les clients :
+\begin{itemize}
+  \item Recevoir les demandes de devis
+  \item Remplir ou modifier un devis
+  \item Contacter le client via chat
+  \item Voir les statistiques commerciales
+  \item Vérifier l'historique produit du client
+  \item Voir les notifications
+  \item Se connecter
+\end{itemize}
+
+\textbf{Administrateur}
+L'administrateur supervise l'ensemble du système :
+\begin{itemize}
+  \item Consulter tous les devis et commandes
+  \item Gérer les produits du catalogue
+  \item Consulter les réclamations
+  \item Voir les statistiques globales
+  \item Confirmer une commande
+  \item Se connecter
+\end{itemize}
+
+\subsection{Diagramme de Classes}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{diagram (5).png}
+    \caption{Diagramme de classes de l'application}
+    \label{fig:class-diagram}
+\end{figure}
+
+Le diagramme de classes présente la structure statique du système en illustrant les principales entités, leurs attributs et les relations entre elles. Cette modélisation UML permet de visualiser l'architecture du système et les interactions entre les différents composants.
+
+Le diagramme de classes comprend plusieurs groupes d'entités interconnectées :
+\begin{itemize}
+  \item \textbf{Utilisateurs} : Représente les différents profils (Client, Commercial, Admin) avec leurs attributs spécifiques et leur relation avec le système d'authentification.
+  
+  \item \textbf{Gestion commerciale} : Comprend les classes Cart, CartItem, Devis et Commande qui modélisent le processus de création de devis et de commandes.
+  
+  \item \textbf{Catalogue produits} : Décrit la structure des produits, catégories, marques et départements avec leurs caractéristiques techniques.
+  
+  \item \textbf{Communication} : Modélise le système de messagerie et de notifications entre utilisateurs.
+  
+  \item \textbf{Enums} : Définit les types énumérés utilisés pour les statuts des commandes, devis et paniers.
+\end{itemize}
+
+Les relations clés montrent comment :
+\begin{itemize}
+  \item Un client est associé à plusieurs paniers et commandes
+  \item Un commercial est rattaché à un département
+  \item Un devis est généré à partir d'un panier
+  \item Une commande est créée à partir d'un devis validé
+  \item Les messages sont liés à un devis spécifique
+\end{itemize}
+
+Cette structure modulaire permet une gestion cohérente des données tout au long du cycle de vie d'une transaction commerciale, depuis la demande de devis jusqu'à la livraison de la commande.
+
+\subsection{Diagrammes de Séquence}
+
+\subsubsection{Parcours Client}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\linewidth]{diagram (6).png}
+    \caption{Parcours client : connexion, consultation catalogue et gestion panier}
+    \label{fig:client-sequence}
+\end{figure}
+
+Ce diagramme de séquence illustre les premières interactions d'un client avec l'application, depuis la connexion jusqu'à l'ajout de produits dans le panier ou les favoris.
+
+\begin{itemize}
+  \item \textbf{Connexion du client} : Le client saisit ses informations d'identification via l'interface front-end. Ces données sont transmises au serveur back-end pour vérification. Si l'authentification est réussie, un jeton de session est retourné et la connexion est confirmée côté client.
+  
+  \item \textbf{Consultation du catalogue} : Une fois connecté, le client accède au catalogue de produits. L'application front-end envoie une requête au back-end pour récupérer la liste des produits, qui est ensuite affichée au client.
+  
+  \item \textbf{Ajout au panier ou aux favoris} : Le client peut interagir avec les produits affichés en les ajoutant soit à son panier, soit à sa liste de favoris. L'application transmet ces actions au back-end via des requêtes spécifiques. Une fois les mises à jour effectuées, le serveur renvoie une confirmation, et l'utilisateur est notifié de la réussite de l'opération.
+\end{itemize}
+
+\subsubsection{Demande de Devis}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\linewidth]{d2.png}
+    \caption{Processus de demande et traitement de devis}
+    \label{fig:devis-sequence}
+\end{figure}
+
+Ce diagramme décrit le processus de soumission d'une demande de devis par un client, et le traitement de cette demande par un commercial, via l'application.
+
+\begin{itemize}
+  \item \textbf{Soumission de la demande} : Le client initie la demande de devis depuis l'interface front-end de l'application. Cette action envoie une requête au serveur contenant les éléments du panier à convertir en devis. Une fois la demande créée côté serveur, une confirmation de soumission est renvoyée au client.
+  
+  \item \textbf{Notification du commercial} : Dès la création de la demande de devis, le serveur notifie automatiquement le commercial concerné en lui transmettant l'identifiant du devis à traiter.
+  
+  \item \textbf{Consultation et traitement du devis} : Le commercial se connecte ensuite au système pour récupérer les détails du devis soumis. Il consulte les informations nécessaires, puis complète le devis en y ajoutant les éléments commerciaux (prix, durée de validité, etc.).
+  
+  \item \textbf{Génération du devis final} : Le serveur génère le document de devis final ou enregistre les informations correspondantes, puis notifie le client que le devis est prêt à être consulté.
+\end{itemize}
+
+\subsubsection{Messagerie Client-Commercial}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\linewidth]{d3.png}
+    \caption{Échanges de messagerie autour d'un devis}
+    \label{fig:messaging-sequence}
+\end{figure}
+
+Ce diagramme illustre le processus de négociation entre un client et un commercial autour d'un devis spécifique, via une fonctionnalité de messagerie intégrée à l'application.
+
+\begin{itemize}
+  \item \textbf{Envoi du message par le client} : Le client initie la négociation en rédigeant un message relatif à un devis en cours. Ce message est transmis via l'interface front-end, qui l'envoie au serveur à l'aide de l'identifiant du devis.
+  
+  \item \textbf{Transmission au commercial} : Le serveur reçoit le message, l'enregistre et pousse une notification au commercial concerné pour l'informer d'un nouveau message relatif à un devis donné.
+  
+  \item \textbf{Accusé de réception côté client} : Une fois le message traité par le serveur, une confirmation de réception est envoyée à l'utilisateur pour valider que sa requête a bien été transmise.
+  
+  \item \textbf{Réponse du commercial} : Le commercial peut alors répondre au message du client en accédant au devis concerné. Sa réponse est envoyée au serveur, qui à son tour notifie le client de la réception d'une réponse.
+\end{itemize}
+
+\subsubsection{Cycle de Commande}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\linewidth]{p5.png}
+    \caption{Cycle complet de gestion d'une commande}
+    \label{fig:order-sequence}
+\end{figure}
+
+Ce diagramme illustre le cycle complet d'une commande, depuis la confirmation d'un devis par le client jusqu'au suivi de la commande, en passant par son traitement par l'administrateur.
+
+\begin{itemize}
+  \item \textbf{Confirmation de devis par le client} : Le client valide un devis existant, ce qui déclenche la création d'une commande dans le système. Cette opération est traitée par l'application, qui envoie une requête de création au serveur.
+  
+  \item \textbf{Notification de l'administrateur} : Une fois la commande enregistrée dans le back-end, le serveur notifie automatiquement l'administrateur de l'existence d'une nouvelle commande à examiner.
+  
+  \item \textbf{Consultation et traitement administratif} : L'administrateur accède aux détails de la commande pour l'évaluer. Il a alors deux options :
+    \begin{itemize}
+      \item Valider la commande, en y associant une date de livraison
+      \item Annuler la commande, en précisant une raison
+    \end{itemize}
+    Dans les deux cas, le statut est mis à jour et le client est notifié.
+  
+  \item \textbf{Suivi de la commande par le client} : Le client peut consulter à tout moment l'état d'avancement de sa commande. L'application interroge le serveur pour récupérer le statut actuel ainsi que la date estimée de livraison, qui sont ensuite affichés.
+  
+  \item \textbf{Évolution du statut} : À chaque mise à jour du statut par le système (par exemple, lors du passage à l'étape "préparation" ou "expédition"), l'application notifie automatiquement le client afin de garantir un suivi en temps réel.
+\end{itemize}
+
+\subsubsection{Gestion des Consultations}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\linewidth]{l44.png}
+    \caption{Traitement d'une consultation client}
+    \label{fig:consultation-sequence}
+\end{figure}
+
+Ce diagramme décrit le flux de traitement d'une consultation initiée par un client :
+
+\begin{itemize}
+  \item \textbf{Soumission} : Le client soumet une demande de consultation via l'application. Celle-ci est transmise au serveur qui notifie l'administrateur.
+  
+  \item \textbf{Affectation} : L'administrateur consulte les détails de la demande, puis affecte la consultation à un commercial disponible. Ce dernier est immédiatement notifié.
+  
+  \item \textbf{Réponse commerciale} : Le commercial consulte la demande, rédige une réponse et peut y joindre des documents. Le client est ensuite informé que la réponse est disponible.
+  
+  \item \textbf{Consultation de la réponse} : Le client accède à la réponse et aux pièces jointes depuis l'application.
+\end{itemize}
+
+\subsubsection{Gestion des Réclamations}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\linewidth]{diagram (7).png}
+    \caption{Gestion des réclamations client}
+    \label{fig:claim-sequence}
+\end{figure}
+
+Ce diagramme illustre le processus de soumission et de gestion des réclamations dans l'application :
+
+\begin{itemize}
+  \item \textbf{Soumission} : Le client soumet une réclamation (type, description, éventuelle pièce jointe) via l'application. Le serveur enregistre la réclamation et notifie l'administrateur.
+  
+  \item \textbf{Traitement administrateur} : L'administrateur consulte la liste des réclamations, filtre selon leur statut, puis accède aux détails et à l'historique de chaque dossier.
+  
+  \item \textbf{Suivi côté client} : Le client peut consulter l'historique de ses réclamations ainsi que les détails (statut, réponses, pièces jointes).
+\end{itemize}
+
+\subsubsection{Gestion des Devis par le Commercial}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\linewidth]{diagram (8).png}
+    \caption{Gestion et optimisation des devis par le commercial}
+    \label{fig:commercial-devis}
+\end{figure}
+
+Ce diagramme décrit le processus par lequel un commercial consulte, modifie et optimise les devis clients, en s'appuyant sur des outils d'analyse et d'intelligence artificielle.
+
+\begin{itemize}
+  \item \textbf{Tableau de bord des devis} : Le commercial accède à une vue centralisée des devis en cours avec leur statut, les clients concernés, et les montants.
+  
+  \item \textbf{Consultation et mise à jour} : Il peut consulter un devis en détail, modifier des éléments comme les quantités ou appliquer des remises, avec confirmation instantanée.
+  
+  \item \textbf{Analyse du marché} : Le commercial peut comparer les prix du marché pour un produit spécifique. L'application interroge une API externe pour récupérer des données concurrentielles, et lui affiche un graphique comparatif clair.
+  
+  \item \textbf{Prédiction d'acceptation} : Grâce à un service d'IA, le commercial peut estimer la probabilité qu'un devis soit accepté, avec des recommandations intelligentes pour maximiser ses chances.
+\end{itemize}
+
+\subsubsection{Statistiques Administrateur}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\linewidth]{diagram (9).png}
+    \caption{Accès aux statistiques et rapports pour l'administrateur}
+    \label{fig:admin-stats}
+\end{figure}
+
+Ce diagramme présente les différentes interactions entre l'administrateur, l'application, le serveur et le service d'analyse afin de consulter ou générer des données décisionnelles.
+
+\begin{itemize}
+  \item \textbf{Tableau de bord général} : L'administrateur accède à un tableau de bord synthétique contenant les principaux indicateurs de performance (KPI), récupérés via le service d'analytics.
+  
+  \item \textbf{Analyse des ventes} : Il peut consulter des statistiques détaillées sur les ventes par période, avec affichage de graphiques et tendances.
+  
+  \item \textbf{Analyse du comportement client} : L'application fournit une segmentation RFM (Récence, Fréquence, Montant) ainsi que le taux de fidélisation, permettant une meilleure compréhension des clients.
+  
+  \item \textbf{Rapports personnalisés} : L'administrateur peut configurer un rapport sur mesure (filtres, période, format), que le système génère et met à disposition sous forme de fichier téléchargeable (PDF ou CSV).
+\end{itemize}
+
+\subsubsection{Gestion des Produits}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\linewidth]{diagram (14).png}
+    \caption{Gestion des produits par l'administrateur}
+    \label{fig:product-management}
+\end{figure}
+
+Ce diagramme illustre les différentes opérations effectuées par l'administrateur pour gérer les produits via l'application, en interaction avec le serveur.
+
+\begin{itemize}
+  \item \textbf{Ajout de produit} : L'administrateur accède à un formulaire de création, saisit les informations du produit (nom, prix, description), puis soumet les données. Le serveur enregistre le produit et renvoie un message de confirmation.
+  
+  \item \textbf{Modification d'un produit existant} : L'administrateur effectue une recherche par nom, sélectionne un produit dans la liste des résultats, puis modifie ses données via un formulaire pré-rempli. Le serveur met à jour les informations et confirme la modification.
+  
+  \item \textbf{Suppression de produit} : Après sélection d'un produit, l'administrateur peut le supprimer. Le serveur procède à la suppression et envoie une confirmation.
+\end{itemize}
+
+\subsubsection{Tableau de Bord Commercial}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\linewidth]{diagram (11).png}
+    \caption{Tableau de bord commercial et génération de rapports}
+    \label{fig:commercial-dashboard}
+\end{figure}
+
+Ce diagramme illustre les fonctionnalités statistiques offertes aux commerciaux via leur tableau de bord.
+
+\begin{itemize}
+  \item \textbf{Accès aux indicateurs} : Le commercial peut accéder à une vue synthétique de ses performances : devis émis, taux de transformation, volume de consultations, etc. Ces données sont récupérées depuis le serveur via des requêtes spécifiques, puis affichées sous forme de graphiques ou d'analyses.
+  
+  \item \textbf{Visualisation de statistiques} : Des vues spécifiques permettent d'analyser les devis (nombre, statut, montant) ainsi que les consultations traitées (taux de réponse, délais, satisfaction client).
+  
+  \item \textbf{Rapport personnalisé} : Le commercial peut générer un rapport personnalisé en sélectionnant une période et des indicateurs. Le serveur compile les données, produit un rapport (PDF ou CSV), et le rend disponible en téléchargement.
+\end{itemize}
+
+\subsubsection{Gestion des Comptes}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\linewidth]{diagram (13).png}
+    \caption{Gestion des comptes et des permissions}
+    \label{fig:account-management}
+\end{figure}
+
+Ce diagramme présente les interactions entre l'administrateur, l'application et le serveur lors de la gestion des comptes utilisateurs.
+
+\begin{itemize}
+  \item \textbf{Création d'un compte} : L'administrateur peut créer un nouveau compte (commercial, gestionnaire, etc.) via un formulaire. Une fois les données soumises, le serveur enregistre le nouvel utilisateur et renvoie une confirmation.
+  
+  \item \textbf{Attribution de permissions} : L'administrateur a la possibilité de gérer les droits d'accès des gestionnaires. Il consulte la liste des utilisateurs, sélectionne un profil, modifie les modules accessibles (produits, devis, statistiques, etc.), puis soumet les modifications au serveur.
+  
+  \item \textbf{Création d'un gestionnaire avec droits initiaux} : Lors de la création d'un compte de type "gestionnaire", les permissions peuvent être définies dès l'enregistrement. Le gestionnaire est ainsi immédiatement opérationnel avec les accès adaptés à son rôle.
+\end{itemize}
+\subsection{Structuration du Dataset pour l'Analyse Prédictive}
+\label{subsec:dataset-structure}
+
+\subsubsection{Philosophie de Conception}
+Pour maximiser la pertinence prédictive de notre modèle d'intelligence artificielle, nous avons structuré le dataset autour de trois piliers fondamentaux :
+
+\begin{itemize}
+  \item \textbf{Données transactionnelles} : Historique des interactions commerciales (commandes, devis, montants)
+  \item \textbf{Données comportementales} : Interactions utilisateur dans l'application (temps, réactivité)
+  \item \textbf{Données conversationnelles} : Analyse des échanges clients-commerciaux (sentiment, mots-clés)
+\end{itemize}
+
+Cette triade permet de capturer une vue holistique du processus décisionnel client, comme illustré dans la figure \ref{fig:dataset-pillars}.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    pillar/.style={draw, rounded corners, text width=3.5cm, minimum height=2cm, align=center},
+    arrow/.style={-stealth, thick}
+]
+    \node[draw, circle, minimum size=3cm, fill=gray!15] (center) {\textbf{Modèle Prédictif}};
+    
+    \node[pillar, fill=blue!20] (trans) at (150:5cm) {\textbf{Données Transactionnelles} \\ Historique commercial};
+    \node[pillar, fill=green!20] (comport) at (30:5cm) {\textbf{Données Comportementales} \\ Interactions utilisateur};
+    \node[pillar, fill=red!20] (conv) at (270:5cm) {\textbf{Données Conversationnelles} \\ Analyse NLP};
+    
+    \draw[arrow, blue] (trans) -- (center) node[midway, above, sloped] {5 features};
+    \draw[arrow, green!60!black] (comport) -- (center) node[midway, above, sloped] {6 features};
+    \draw[arrow, red] (conv) -- (center) node[midway, below, sloped] {4 features};
+\end{tikzpicture}
+\caption{Triade des données pour l'analyse prédictive}
+\label{fig:dataset-pillars}
+\end{figure}
+
+\subsubsection{Architecture du Dataset}
+Notre dataset final comporte 16 features réparties en 3 catégories et 1 variable cible :
+
+\begin{table}[H]
+\centering
+\caption{Structure du dataset d'entraînement}
+\label{tab:dataset-structure}
+\begin{tabularx}{\textwidth}{|l|l|X|}
+\hline
+\textbf{Catégorie} & \textbf{Colonne} & \textbf{Description} \\ \hline
+\multirow{5}{*}{Transaction} & totalCommandes & Nombre total de commandes passées \\ \cline{2-3}
+ & totalDevis & Nombre total de devis demandés \\ \cline{2-3}
+ & totalMontantCommandes & Somme des montants des commandes \\ \cline{2-3}
+ & nb\_produits\_devis & Nombre de produits dans le devis actuel \\ \cline{2-3}
+ & nb\_produits\_deja\_achetes & Produits déjà achetés dans le devis \\ \hline
+\multirow{6}{*}{Comportement} & temps\_dans\_application\_min & Temps passé dans l'application (minutes) \\ \cline{2-3}
+ & temps\_reponse\_messagerie\_min & Temps moyen de réponse client \\ \cline{2-3}
+ & delai\_traitement\_devis\_hrs & Délai d'envoi du devis (heures) \\ \cline{2-3}
+ & taux\_conversion & Ratio commandes/devis \\ \cline{2-3}
+ & moyenne\_montant\_commande & Montant moyen des commandes \\ \cline{2-3}
+ & ratio\_produits\_achetes & \% des produits déjà achetés \\ \hline
+\multirow{4}{*}{Conversation} & dernier\_prix\_ecart & Écart prix proposé/dernier prix payé \\ \cline{2-3}
+ & sentiment\_moyen & Score de sentiment des échanges \\ \cline{2-3}
+ & nb\_messages & Nombre total de messages \\ \cline{2-3}
+ & nb\_mots\_cibles & Expressions critiques détectées \\ \hline
+Cible & pourcentage\_acceptation & Probabilité réelle d'acceptation \\ \hline
+\end{tabularx}
+\end{table}
+
+\subsubsection{Mécanisme de Collecte}
+Les données sont collectées automatiquement via trois flux principaux :
+
+\begin{enumerate}
+  \item \textbf{Système transactionnel} : Récupération des historiques commandes/devis
+  \item \textbf{Tracking applicatif} : Enregistrement des interactions utilisateur
+  \item \textbf{Module NLP} : Analyse en temps réel des conversations
+\end{enumerate}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    node/.style={draw, rounded corners, minimum width=3cm, minimum height=1.5cm, align=center},
+    arrow/.style={-stealth, thick}
+]
+    \node[node, fill=cyan!20] (systrans) at (0,0) {Système Transactionnel};
+    \node[node, fill=orange!20] (tracking) at (0,-2) {Tracking Applicatif};
+    \node[node, fill=purple!20] (nlp) at (0,-4) {Module NLP};
+    
+    \node[node, fill=yellow!30, minimum width=5cm] (dataset) at (6,-2) {Dataset d'Entraînement \\ (16 features)};
+    
+    \draw[arrow] (systrans) -| (dataset.north west) node[midway, above, sloped] {5 features};
+    \draw[arrow] (tracking) -- (dataset) node[midway, above] {6 features};
+    \draw[arrow] (nlp) -| (dataset.south west) node[midway, below, sloped] {4 features};
+    
+    \node[draw, dashed, red, inner sep=10pt, fit=(systrans) (nlp) (dataset)] {};
+\end{tikzpicture}
+\caption{Flux de collecte des données pour l'entraînement}
+\label{fig:data-collection}
+\end{figure}
+
+\subsubsection{Exemple Concret}
+Un exemple de ligne complète dans notre dataset :
+
+\begin{verbatim}
+totalCommandes,totalDevis,totalMontantCommandes,nb_produits_devis,
+nb_produits_deja_achetes,temps_dans_application_min,temps_reponse_messagerie_min,
+delai_traitement_devis_hrs,taux_conversion,moyenne_montant_commande,
+ratio_produits_achetes,dernier_prix_ecart,sentiment_moyen,nb_messages,
+nb_mots_cibles,pourcentage_acceptation
+6,8,1200.0,3,2,45,10,2,0.75,200.0,0.66,0.05,0.2,6,0,0.92
+\end{verbatim}
+
+\subsubsection{Intégration avec le Modèle IA}
+L'architecture d'intégration suit le processus suivant :
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    node/.style={draw, rounded corners, minimum height=1.5cm, align=center},
+    arrow/.style={-stealth, thick}
+]
+    \node[node, fill=blue!20, text width=3cm] (preproc) at (0,0) {Préprocessing \\ Nettoyage \\ Normalisation};
+    \node[node, fill=green!20, text width=3cm] (train) at (4,0) {Entraînement \\ RandomForestRegressor};
+    \node[node, fill=yellow!20, text width=3cm] (predict) at (8,0) {Prédiction \\ Temps réel};
+    \node[node, fill=red!20, text width=3cm] (feedback) at (4,-2) {Feedback \\ Amélioration continue};
+    
+    \draw[arrow] (preproc) -- (train) node[midway, above] {Dataset};
+    \draw[arrow] (train) -- (predict) node[midway, above] {Modèle};
+    \draw[arrow] (predict) -- (feedback) node[midway, right] {Résultats};
+    \draw[arrow] (feedback) -- (train) node[midway, below] {Nouvelles données};
+    
+    \node[below=0.5cm, align=center] at (train.south) 
+        {$\hat{y} = RF(X) \quad \text{où} \quad X = [x_1, x_2, ..., x_{16}]$};
+\end{tikzpicture}
+\caption{Intégration du dataset avec le modèle prédictif}
+\label{fig:model-integration}
+\end{figure}
+
+\begin{enumerate}
+  \item \textbf{Préprocessing} : Nettoyage et normalisation des données
+  \item \textbf{Entraînement} : Alimentation du RandomForestRegressor
+  \begin{equation*}
+    \hat{y} = RF(X) \quad \text{où} \quad X = [x_1, x_2, ..., x_{16}]
+  \end{equation*}
+  \item \textbf{Prédiction} : Calcul du score d'acceptation en temps réel
+  \item \textbf{Feedback} : Réintégration des résultats pour amélioration continue
+\end{enumerate}
+
+\subsubsection{Avantages de l'Approche}
+Cette structuration présente trois avantages clés :
+\begin{itemize}
+  \item \textbf{Robustesse prédictive} : Combinaison de signaux complémentaires
+  \item \textbf{Adaptabilité} : Ajout facile de nouvelles features
+  \item \textbf{Interprétabilit\'e} : Variables directement liées au métier
+\end{itemize}
+
+\textit{"La structuration triadique de notre dataset permet de capturer la complexité du processus décisionnel client tout en maintenant une forte adéquation avec les besoins métiers de SOFIMED. Cette approche assure que nos prédictions s'appuient sur une compréhension holistique du comportement client, combinant données historiques, interactions actuelles et signaux conversationnels."}
+\end{document}

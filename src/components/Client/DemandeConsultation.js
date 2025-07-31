@@ -58,10 +58,10 @@ const DemandeConsultation = () => {
               ...consultation,
               response: responseRes.data.response,
               responseDate: responseRes.data.responseDate,
-              status: responseRes.data.status || 'PENDING'
+              status: responseRes.data.status || consultation.status || 'EN_ATTENTE'
             };
           } catch (error) {
-            return { ...consultation, status: consultation.status || 'PENDING' };
+            return { ...consultation, status: consultation.status || 'EN_ATTENTE' };
           }
         })
       );
@@ -432,6 +432,21 @@ const DemandeConsultation = () => {
                       <div className="attachments">
                         <a 
                           href={`http://localhost:8080/api/consultations/files/${consultation.id}`}
+                          className="attachment-link"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          download
+                        >
+                          <Download size={14} />
+                          <span>Télécharger la pièce jointe</span>
+                        </a>
+                      </div>
+                    )}
+
+                    {consultation.fileName && (
+                      <div className="attachments">
+                        <a 
+                          href={`http://localhost:8080/api/consultations/download/${encodeURIComponent(consultation.fileName)}`}
                           className="attachment-link"
                           target="_blank"
                           rel="noopener noreferrer"

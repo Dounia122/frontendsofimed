@@ -1,3 +1,7 @@
+
+/* Importer le fichier CSS commun */
+@import '../../styles/dashboard-unified.css';
+
 :root {
   --primary: #93C5FD; /* Bleu très clair */
   --primary-light: #EFF8FF;
@@ -10,6 +14,10 @@
   --sidebar-width: 280px;
   --glow-effect: 0 0 15px rgba(96, 165, 250, 0.2);
   --soft-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.commercial-dashboard {
+  /* Styles spécifiques au tableau de bord Commercial */
 }
 
 .dashboard-container {
@@ -224,6 +232,17 @@
   color: var(--secondary);
 }
 
+.commercial-welcome-card {
+  /* Personnalisation de la carte de bienvenue */
+  background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
+}
+
+.commercial-stat-card:hover {
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+/* Vous pouvez ajouter d'autres styles spécifiques au tableau de bord Commercial ici */
+
 .welcome-card {
   background: linear-gradient(135deg, #93C5FD 0%, #60A5FA 100%);
   border-radius: 20px;
@@ -331,6 +350,19 @@
   background: rgba(255, 255, 255, 0.2);
   transform: translateY(-2px);
 }
+.commercial-sidebar {
+  /* Personnalisation de la barre latérale pour le Commercial */
+  border-right: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.commercial-sidebar-header {
+  /* Personnalisation de l'en-tête de la barre latérale */
+}
+
+.commercial-header {
+  /* Personnalisation de l'en-tête principal */
+}
+
 .dashboard-sidebar {
   width: var(--sidebar-width);
   background:  #ffffff;

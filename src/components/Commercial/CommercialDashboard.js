@@ -185,85 +185,86 @@ const CommercialDashboard = () => {
   }, [userData]);
 
   return (
-    <div className="dashboard-container">
-      <aside className="dashboard-sidebar">
-        <div className="sidebar-header">
-          <div className="brand-logo">
-            <img src={logo} alt="SOFIMED Logo" />
+    <div className="sofi-dashboard commercial-dashboard">
+      <aside className="sofi-sidebar commercial-sidebar">
+        <div className="sofi-sidebar-header commercial-sidebar-header">
+          <div className="sofi-logo-container">
+            <img src={logo} alt="SOFIMED Logo" className="sofi-logo" />
           </div>
-          <p className="brand-subtitle">Espace Commercial</p>
+          <p className="sofi-subtitle">Espace Commercial</p>
         </div>
 
-        <nav className="sidebar-nav">
-          {[
-            { icon: Home, label: "Tableau de bord", path: "/commercial/dashboard" },
-            { icon: Users, label: "Gestion Clients", path: "/commercial/dashboard/clients" },
-            { icon: FileText, label: "Devis", path: "/commercial/dashboard/devis" },
-            { icon: MessageCircle, label: "Consultations", path: "/commercial/dashboard/consultations" },
-            { icon: ChartBar, label: "Statistiques", path: "/commercial/dashboard/statistiques" },
-          ].map((item, index) => (
-            <div
-              key={index}
-              className="nav-item"
-              onClick={() => navigate(item.path)}
-              style={{ position: 'relative' }}
-            >
-              <item.icon size={18} />
-              <span>{item.label}</span>
-              {item.label === "Consultations" && unreadMessagesCount > 0 && (
-                <span className="message-badge">{unreadMessagesCount}</span>
-              )}
-            </div>
-          ))}
+        <nav className="sofi-sidebar-nav">
+          <ul className="sofi-nav-list">
+            {[
+              { icon: Home, label: "Tableau de bord", path: "/commercial/dashboard" },
+              { icon: Users, label: "Gestion Clients", path: "/commercial/dashboard/clients" },
+              { icon: FileText, label: "Devis", path: "/commercial/dashboard/devis" },
+              { icon: MessageCircle, label: "Consultations", path: "/commercial/dashboard/consultations" },
+              { icon: ChartBar, label: "Statistiques", path: "/commercial/dashboard/statistiques" },
+            ].map((item, index) => (
+              <li
+                key={index}
+                className={`sofi-nav-item ${location.pathname === item.path ? 'active' : ''}`}
+                onClick={() => navigate(item.path)}
+              >
+                <item.icon size={18} className="sofi-nav-icon" />
+                <span>{item.label}</span>
+                {item.label === "Consultations" && unreadMessagesCount > 0 && (
+                  <span className="sofi-badge">{unreadMessagesCount}</span>
+                )}
+              </li>
+            ))}
+          </ul>
         </nav>
 
-        <div className="sidebar-footer">
-          <div className="user-profile">
-            <div className="avatar">
+        <div className="sofi-sidebar-footer">
+          <div className="sofi-user-profile">
+            <div className="sofi-avatar">
               {userData?.username?.substring(0, 2).toUpperCase()}
             </div>
-            <div className="user-info">
-              <p className="user-name">{userData?.username}</p>
-              <p className="user-email">{userData?.email}</p>
+            <div className="sofi-user-info">
+              <p className="sofi-user-name">{userData?.username}</p>
+              <p className="sofi-user-email">{userData?.email}</p>
             </div>
           </div>
 
-          <div className="footer-menu">
-            <div className="footer-item">
-              <Settings size={16} />
+          <ul className="sofi-footer-menu">
+            <li className="sofi-footer-item">
+              <Settings size={16} className="sofi-footer-icon" />
               <span>Paramètres</span>
-            </div>
-            <div className="footer-item">
-              <HelpCircle size={16} />
+            </li>
+            <li className="sofi-footer-item">
+              <HelpCircle size={16} className="sofi-footer-icon" />
               <span>Aide & Support</span>
-            </div>
-            <div className="footer-item" onClick={handleLogout}>
-              <LogOut size={16} />
+            </li>
+            <li className="sofi-footer-item" onClick={handleLogout}>
+              <LogOut size={16} className="sofi-footer-icon" />
               <span>Déconnexion</span>
-            </div>
-          </div>
+            </li>
+          </ul>
         </div>
       </aside>
 
-      <main className="dashboard-main">
+      <main className="sofi-main">
         {location.pathname === "/commercial/dashboard" && (
-          <header className="main-header">
-            <h2>Tableau de bord</h2>
-            <div className="header-actions" style={{ position: "relative" }}>
+          <header className="sofi-main-header commercial-header">
+            <h2 className="sofi-page-title">Tableau de bord</h2>
+            <div className="sofi-header-actions">
               <button 
-                className="notif-btn" 
+                className="sofi-notif-btn" 
                 aria-label="Notifications" 
                 onClick={toggleNotifications}
               >
                 <Bell size={20} />
                 {unreadNotificationsCount > 0 && (
-                  <span className="notif-badge">{unreadNotificationsCount}</span>
+                  <span className="sofi-notif-badge">{unreadNotificationsCount}</span>
                 )}
               </button>
               
               {showNotifications && (
-                <div className="notif-dropdown">
-                  <div className="notif-dropdown-title">
+                <div className="sofi-notif-dropdown">
+                  <div className="sofi-notif-dropdown-title">
                     Notifications
                     {unreadNotificationsCount > 0 && (
                       <span className="mark-all-read" onClick={markAllNotificationsAsRead}>
@@ -271,14 +272,14 @@ const CommercialDashboard = () => {
                       </span>
                     )}
                   </div>
-                  <ul className="notif-dropdown-list">
+                  <ul className="sofi-notif-list">
                     {notifications.length === 0 ? (
-                      <li className="notif-dropdown-item empty">Aucune notification</li>
+                      <li className="sofi-notif-item empty">Aucune notification</li>
                     ) : (
                       notifications.map((notif) => (
                         <li
                           key={notif.id}
-                          className={`notif-dropdown-item${notif.isRead ? " read" : " unread"}`}
+                          className={`sofi-notif-item ${notif.isRead ? "" : "unread"}`}
                           onClick={() => notif.link && navigate(notif.link)}
                         >
                           <div className="notif-content">
@@ -324,22 +325,22 @@ const CommercialDashboard = () => {
           </header>
         )}
 
-        <div className="content-wrapper">
+        <div className="sofi-content">
           <Routes>
             <Route path="/" element={
               <>
-                <div className="welcome-card">
-                  <div className="card-content">
-                    <h1>Bienvenue dans votre espace Commercial</h1>
-                    <p className="welcome-text">
+                <div className="sofi-welcome-card commercial-welcome-card">
+                  <div className="sofi-card-content">
+                    <h1 className="sofi-welcome-title">Bienvenue dans votre espace Commercial</h1>
+                    <p className="sofi-welcome-text">
                       Gérez vos clients, consultez les devis et suivez vos performances.
                     </p>
-                    <div className="card-actions">
-                      <button className="btn btn-primary" onClick={() => navigate('/commercial/dashboard/clients')}>
+                    <div className="sofi-card-actions">
+                      <button className="sofi-btn sofi-btn-primary" onClick={() => navigate('/commercial/dashboard/clients')}>
                         <Users size={16} />
                         <span>Gérer mes clients</span>
                       </button>
-                      <button className="btn btn-secondary" onClick={() => navigate('/commercial/dashboard/devis')}>
+                      <button className="sofi-btn sofi-btn-secondary" onClick={() => navigate('/commercial/dashboard/devis')}>
                         <FileText size={16} />
                         <span>Voir les devis</span>
                       </button>
@@ -347,7 +348,7 @@ const CommercialDashboard = () => {
                   </div>
                 </div>
 
-                <div className="stats-grid">
+                <div className="sofi-stats-grid">
                   {[ 
                     { 
                       icon: Users, 
@@ -355,7 +356,6 @@ const CommercialDashboard = () => {
                       value: "45", 
                       change: "+3 ce mois", 
                       positive: true,
-                      bgColor: "rgba(29, 78, 216, 0.1)",
                       iconColor: "#1D4ED8"
                     },
                     { 
@@ -363,7 +363,6 @@ const CommercialDashboard = () => {
                       label: "Devis en attente", 
                       value: "12", 
                       change: "À traiter",
-                      bgColor: "rgba(16, 185, 129, 0.1)",
                       iconColor: "#10B981"
                     },
                     { 
@@ -372,7 +371,6 @@ const CommercialDashboard = () => {
                       value: "68%", 
                       change: "+5% ce mois", 
                       positive: true,
-                      bgColor: "rgba(99, 102, 241, 0.1)",
                       iconColor: "#6366F1"
                     },
                     { 
@@ -380,18 +378,17 @@ const CommercialDashboard = () => {
                       label: "Consultations", 
                       value: unreadMessagesCount.toString(), 
                       change: unreadMessagesCount > 0 ? "Messages non lus" : "Aucun message",
-                      bgColor: "rgba(236, 72, 153, 0.1)",
                       iconColor: "#EC4899"
                     }
                   ].map((stat, index) => (
-                    <div key={index} className="stat-card">
-                      <div className="stat-icon" style={{ background: stat.bgColor }}>
+                    <div key={index} className="sofi-stat-card commercial-stat-card">
+                      <div className="sofi-stat-icon" style={{ backgroundColor: `rgba(${stat.iconColor.replace('#', '').match(/.{2}/g).map(hex => parseInt(hex, 16)).join(', ')}, 0.1)` }}>
                         <stat.icon size={24} color={stat.iconColor} />
                       </div>
-                      <div className="stat-info">
-                        <p className="stat-label">{stat.label}</p>
-                        <p className="stat-value">{stat.value}</p>
-                        <p className={`stat-change ${stat.positive ? 'positive' : ''}`}>
+                      <div className="sofi-stat-info">
+                        <p className="sofi-stat-label">{stat.label}</p>
+                        <p className="sofi-stat-value">{stat.value}</p>
+                        <p className={`sofi-stat-change ${stat.positive ? 'positive' : ''}`}>
                           {stat.change}
                         </p>
                       </div>

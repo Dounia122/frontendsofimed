@@ -169,32 +169,47 @@ const AdminConsultations = () => {
         setLoadingCommercials(true);
         setError(null);
         
+        // Récupérer le token d'authentification
+        const token = localStorage.getItem('token');
+        if (!token) {
+          throw new Error('Session expirée. Veuillez vous reconnecter.');
+        }
+        
         const [consultationsRes, commercialsRes] = await Promise.all([
           fetch(`${API_URL}/api/consultations`, {
             method: 'GET',
             credentials: 'include',
             headers: {
               'Accept': 'application/json',
-              'Content-Type': 'application/json'
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}` // Ajout du token
             }
           }),
-          fetch(`${API_URL}/api/commercials`)
+          fetch(`${API_URL}/api/commercials`, {
+            method: 'GET',
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}` // Ajout du token
+            }
+          })
         ]);
-
+    
         if (!consultationsRes.ok) {
           const errorData = await consultationsRes.json().catch(() => ({}));
           throw new Error(errorData.message || 'Erreur lors du chargement des consultations');
         }
-
+    
         if (!commercialsRes.ok) {
-          throw new Error('Erreur lors du chargement des commerciaux');
+          const errorData = await commercialsRes.json().catch(() => ({}));
+          throw new Error(errorData.message || 'Erreur lors du chargement des commerciaux');
         }
-
+    
         const [consultationsData, commercialsData] = await Promise.all([
           consultationsRes.json(),
           commercialsRes.json()
         ]);
-
+    
         // Mise à jour du state avec les données des consultations
         setConsultations(consultationsData);
         setCommercials(commercialsData);
@@ -203,19 +218,32 @@ const AdminConsultations = () => {
         setError(err.message || 'Une erreur est survenue');
         setConsultations([]);
         setCommercials([]);
+        
+        // Si erreur d'authentification, rediriger vers login
+        if (err.message.includes('Session expirée') || err.message.includes('401')) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          window.location.href = '/login';
+        }
       } finally {
         setLoading(false);
         setLoadingCommercials(false);
       }
     };
-
+  
     fetchData();
   }, [API_URL]);
 
   // Handlers
   const openModal = useCallback((fileName) => {
     if (!fileName) return;
-    setModalFileUrl(`${API_URL}/api/consultations/download/${encodeURIComponent(fileName)}`);
+    const token = localStorage.getItem('token');
+    const fileUrl = `${API_URL}/api/consultations/download/${encodeURIComponent(fileName)}`;
+    
+    // Si un token existe, l'ajouter comme paramètre de requête pour le téléchargement
+    const urlWithAuth = token ? `${fileUrl}?token=${encodeURIComponent(token)}` : fileUrl;
+    
+    setModalFileUrl(urlWithAuth);
     setModalFileName(fileName);
   }, [API_URL]);
 
@@ -242,24 +270,56 @@ const AdminConsultations = () => {
     }
 
     try {
+      // Récupérer le token d'authentification
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert('Session expirée. Veuillez vous reconnecter.');
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+        return;
+      }
+
+      console.log(`Affectation consultation ${consultationId} au commercial ${selectedCommercial}`);
+      
       const response = await fetch(`${API_URL}/api/consultations/${consultationId}/assign-commercial/${selectedCommercial}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         credentials: 'include'
       });
-
+  
+      console.log('Réponse du serveur:', response.status, response.statusText);
+  
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Erreur lors de l\'affectation');
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch (e) {
+          errorData = { error: `Erreur ${response.status}: ${response.statusText}` };
+        }
+        
+        console.error('Erreur détaillée:', errorData);
+        
+        // Gestion spécifique des erreurs d'authentification
+        if (response.status === 401 || response.status === 403) {
+          alert('Session expirée ou permissions insuffisantes. Veuillez vous reconnecter.');
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          window.location.href = '/login';
+          return;
+        }
+        
+        throw new Error(errorData.error || errorData.message || `Erreur ${response.status}: ${response.statusText}`);
       }
-
+  
       const selectedCommercialObj = commercials.find(c => c.id === parseInt(selectedCommercial));
       const commercialName = selectedCommercialObj 
         ? `${selectedCommercialObj.firstName} ${selectedCommercialObj.lastName}`
         : 'Commercial inconnu';
-
+  
       setConsultations(prev => 
         prev.map(cons => 
           cons.id === consultationId 
@@ -267,10 +327,11 @@ const AdminConsultations = () => {
             : cons
         )
       );
-
+  
       setSelectedCommercials(prev => ({ ...prev, [consultationId]: '' }));
+      alert('Commercial affecté avec succès!');
     } catch (error) {
-      console.error('Erreur :', error);
+      console.error('Erreur complète :', error);
       alert(error.message || 'Erreur lors de l\'affectation du commercial');
     }
   };

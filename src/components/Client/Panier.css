@@ -746,3 +746,64 @@
     padding: 1.2rem;
   }
 }
+/* Style de base commun aux deux boutons */
+.back-button, 
+.clear-cart {
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: none;
+  outline: none;
+}
+
+/* Bouton "Retour" */
+.back-button {
+  background: #f0f2f5;
+  color: #2d3748;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.back-button:hover {
+  background: #e2e8f0;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.back-button:active {
+  transform: translateY(0);
+}
+
+/* Icône flèche (optionnelle - utiliser un SVG ou police d'icônes) */
+.back-button::before {
+  
+  font-weight: bold;
+}
+
+/* Bouton "Vider le panier" */
+.clear-cart {
+  background: #ff4757;
+  color: white;
+  box-shadow: 0 2px 4px rgba(255, 71, 87, 0.3);
+}
+
+.clear-cart:hover {
+  background: #ff2e43;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(255, 71, 87, 0.4);
+}
+
+.clear-cart:active {
+  transform: translateY(0);
+}
+
+/* Icône poubelle (optionnelle) */
+.clear-cart::before {
+  content: "🗑️";
+}

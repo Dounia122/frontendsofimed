@@ -213,64 +213,124 @@ const Dashboard = () => {
   const filteredNavItems = getFilteredNavItems();
 
   return (
-    <div className="dashboard-container">
-      <aside className="dashboard-sidebar">
-        <div className="sidebar-header">
-          <img src={logo} alt="SOFIMED Logo" className="logo-img" />
-          <p className="brand-subtitle">Espace Administrateur</p>
+    <div className="sofi-dashboard admin-dashboard">
+      <aside className="sofi-sidebar admin-sidebar">
+        <div className="sofi-sidebar-header admin-sidebar-header">
+          <div className="sofi-logo-container">
+            <img src={logo} alt="SOFIMED Logo" className="sofi-logo" />
+          </div>
+          <p className="sofi-subtitle">Espace Administrateur</p>
         </div>
 
-        <nav className="sidebar-nav">
-          <ul className="nav-menu">
+        <nav className="sofi-sidebar-nav">
+          <ul className="sofi-nav-list">
             {filteredNavItems.map(({ key, label, icon }) => (
               <li
                 key={key}
-                className={`nav-item ${activeItem === key ? 'active' : ''}`}
+                className={`sofi-nav-item ${activeItem === key ? 'active' : ''}`}
                 onClick={() => handleNavigation(key)}
               >
                 {icon}
                 <span>{label}</span>
                 {notifications[key] > 0 && ['devis', 'consultations', 'reclamations'].includes(key) && (
-                  <span className="badge">{notifications[key]}</span>
+                  <span className="sofi-badge">{notifications[key]}</span>
                 )}
               </li>
             ))}
           </ul>
         </nav>
 
-        <div className="sidebar-footer">
-          <div className="user-profile">
-            <div className="avatar">A</div>
-            <div className="user-info">
-              <p className="user-name">Admin</p>
-              <p className="user-email">admin@sofimed.com</p>
+        <div className="sofi-sidebar-footer">
+          <div className="sofi-user-profile">
+            <div className="sofi-avatar">A</div>
+            <div className="sofi-user-info">
+              <p className="sofi-user-name">Admin</p>
+              <p className="sofi-user-email">admin@sofimed.com</p>
             </div>
           </div>
-          <ul className="footer-menu">
-            <li className="footer-item">
-              <Settings size={16} />
+          <ul className="sofi-footer-menu">
+            <li className="sofi-footer-item">
+              <Settings size={16} className="sofi-footer-icon" />
               <span>Paramètres</span>
             </li>
-            <li className="footer-item" onClick={handleLogout}>
-              <LogOut size={16} />
+            <li className="sofi-footer-item" onClick={handleLogout}>
+              <LogOut size={16} className="sofi-footer-icon" />
               <span>Déconnexion</span>
             </li>
           </ul>
         </div>
       </aside>
 
-      <main className="dashboard-main">
-        {isDashboardHome && renderHeader()}
+      <main className="sofi-main">
+        {isDashboardHome && (
+          <header className="sofi-main-header admin-header">
+            <h2 className="sofi-page-title">Tableau de Bord Administrateur</h2>
+            <div className="sofi-header-actions">
+              <button 
+                className="sofi-notif-btn" 
+                onClick={() => setShowNotifications(!showNotifications)}
+              >
+                <Bell className="sofi-nav-icon" size={18} />
+                {totalNotifications > 0 && (
+                  <span className="sofi-notif-badge">{totalNotifications}</span>
+                )}
+              </button>
+            </div>
+          </header>
+        )}
 
-        <Routes>
-          <Route path="/" element={renderDashboardContent()} />
-          <Route path="devis" element={hasPermission('DEVIS_MANAGEMENT') ? <DevisAdmin /> : <div>Accès refusé</div>} />
-          <Route path="consultations" element={hasPermission('CONSULTATIONS_MANAGEMENT') ? <AdminConsultations /> : <div>Accès refusé</div>} />
-          <Route path="users" element={hasPermission('USER_MANAGEMENT') ? <UserManager /> : <div>Accès refusé</div>} />
-          <Route path="reclamations" element={<ReclamationAdmin />} />
-          <Route path="stats" element={hasPermission('STATISTICS_VIEW') ? <div>Statistiques</div> : <div>Accès refusé</div>} />
-          <Route path="products" element={hasPermission('PRODUCT_MANAGEMENT') ? <ProductManager /> : <div>Accès refusé</div>} />
-        </Routes>
+        <div className="sofi-content">
+          <Routes>
+            <Route path="/" element={
+              <>
+                <div className="sofi-welcome-card admin-welcome-card">
+                  <div className="sofi-card-content">
+                    <h1 className="sofi-welcome-title">Bienvenue dans l'espace administrateur</h1>
+                    <p className="sofi-welcome-text">
+                      Gérez les utilisateurs, les produits et suivez l'activité de la plateforme.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="sofi-stats-grid">
+                  {[
+                    {
+                      label: 'Utilisateurs actifs', value: '150', change: '+12 ce mois',
+                      icon: <Users size={24} color="#3B82F6" />, key: 'users', changeClass: 'positive'
+                    },
+                    {
+                      label: 'Produits', value: '1,240', change: 'En stock',
+                      icon: <Package size={24} color="#10B981" />, key: 'products'
+                    },
+                    {
+                      label: 'Devis en attente', value: notifications.devis, change: 'Nécessite attention',
+                      icon: <FileSpreadsheet size={24} color="#F59E0B" />, key: 'devis', changeClass: 'negative'
+                    },
+                    {
+                      label: 'Consultations', value: notifications.consultations, change: 'À traiter',
+                      icon: <MessageCircle size={24} color="#6366F1" />, key: 'consultations'
+                    }
+                  ].map((card) => (
+                    <div key={card.key} className="sofi-stat-card admin-stat-card" onClick={() => handleNavigation(card.key)}>
+                      <div className="sofi-stat-icon">{card.icon}</div>
+                      <div className="sofi-stat-info">
+                        <p className="sofi-stat-label">{card.label}</p>
+                        <p className="sofi-stat-value">{card.value}</p>
+                        <p className={`sofi-stat-change ${card.changeClass || ''}`}>{card.change}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            } />
+            <Route path="devis" element={hasPermission('DEVIS_MANAGEMENT') ? <DevisAdmin /> : <div>Accès refusé</div>} />
+            <Route path="consultations" element={hasPermission('CONSULTATIONS_MANAGEMENT') ? <AdminConsultations /> : <div>Accès refusé</div>} />
+            <Route path="users" element={hasPermission('USER_MANAGEMENT') ? <UserManager /> : <div>Accès refusé</div>} />
+            <Route path="reclamations" element={<ReclamationAdmin />} />
+            <Route path="stats" element={hasPermission('STATISTICS_VIEW') ? <div>Statistiques</div> : <div>Accès refusé</div>} />
+            <Route path="products" element={hasPermission('PRODUCT_MANAGEMENT') ? <ProductManager /> : <div>Accès refusé</div>} />
+          </Routes>
+        </div>
       </main>
     </div>
   );

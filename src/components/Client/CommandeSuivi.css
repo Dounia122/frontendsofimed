@@ -107,6 +107,30 @@ body {
   position: relative;
 }
 
+/* Bouton d'effacement de recherche */
+.clear-search-btn {
+  position: absolute;
+  right: 8px;
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+}
+
+.clear-search-btn:hover {
+  background-color: #f1f5f9;
+  color: #64748b;
+}
+
 .search-bar {
   display: flex;
   align-items: center;
@@ -117,6 +141,7 @@ body {
   width: 100%;
   max-width: 300px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  position: relative; /* Ajout pour le positionnement du bouton */
 }
 
 .search-bar input {

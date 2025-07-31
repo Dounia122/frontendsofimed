@@ -5,7 +5,8 @@ import {
   Settings, HelpCircle, LogOut, Heart
 } from 'react-feather';
 import logo from '../../assets/logosofi1.png'; 
-import './ClienDashboard.css';
+import '../../styles/dashboard-unified.css';
+import './ClientDashboard.css';
 import { Routes, Route } from 'react-router-dom';
 import CatalogueProduits from './CatalogueProduits';
 // Import the Panier component
@@ -286,81 +287,79 @@ const ClientDashboard = () => {
 
   // Dans le rendu, ajouter une nouvelle carte statistique
   return (
-    <div className="dashboard-container">
+    <div className="sofi-dashboard client-dashboard">
       {/* Sidebar */}
-      <aside className="dashboard-sidebar">
-        <div className="sidebar-header">
-          <div className="brand-logo">
-            <img src={logo} alt="SOFIMED Logo" className="logo-img" />
+      <aside className="sofi-sidebar client-sidebar">
+        <div className="sofi-sidebar-header client-sidebar-header">
+          <div className="sofi-logo-container">
+            <img src={logo} alt="SOFIMED Logo" className="sofi-logo" />
           </div>
-          <p className="brand-subtitle">Espace Client Professionnel</p>
+          <p className="sofi-subtitle">Espace Client Professionnel</p>
         </div>
         
-        <nav className="sidebar-nav">
-          <ul className="nav-menu">
-            <li className="nav-item" onClick={() => navigate('')}>
-              <Home className="nav-icon" size={18} />
+        <nav className="sofi-sidebar-nav">
+          <ul className="sofi-nav-list">
+            <li className="sofi-nav-item" onClick={() => navigate('')}>
+              <Home className="sofi-nav-icon" size={18} />
               <span>Accueil</span>
             </li>
-            <li className="nav-item" onClick={() => navigate('catalogue')}>
-              <Book className="nav-icon" size={18} />
+            <li className="sofi-nav-item" onClick={() => navigate('catalogue')}>
+              <Book className="sofi-nav-icon" size={18} />
               <span>Catalogue Produits</span>
             </li>
-            <li className="nav-item" onClick={() => navigate('panier')}>
-              <ShoppingCart className="nav-icon" size={18} />
+            <li className="sofi-nav-item" onClick={() => navigate('panier')}>
+              <ShoppingCart className="sofi-nav-icon" size={18} />
               <span>Mon Panier</span>
               {cartItems.length > 0 && (
-                <span className="cart-badge">{getTotalCartItems()}</span>
+                <span className="sofi-badge">{getTotalCartItems()}</span>
               )}
             </li>
-            <li className="nav-item" onClick={() => navigate('consultation')}>
-              <FileText className="nav-icon" size={18} />
+            <li className="sofi-nav-item" onClick={() => navigate('consultation')}>
+              <FileText className="sofi-nav-icon" size={18} />
               <span>Demande de consultation</span>
             </li>
-            <li className="nav-item" onClick={() => navigate('devis')}>
-              <FileText className="nav-icon" size={18} />
+            <li className="sofi-nav-item" onClick={() => navigate('devis')}>
+              <FileText className="sofi-nav-icon" size={18} />
               <span>Demande de devis</span>
             </li>
-            <li className="nav-item" onClick={() => navigate('reclamations')}>
-              <MessageCircle className="nav-icon" size={18} />
+            <li className="sofi-nav-item" onClick={() => navigate('reclamations')}>
+              <MessageCircle className="sofi-nav-icon" size={18} />
               <span>Réclamations</span>
             </li>
-            <li className="nav-item" onClick={() => navigate('suivi-commandes')}>
-              <Truck className="nav-icon" size={18} />
+            <li className="sofi-nav-item" onClick={() => navigate('suivi-commandes')}>
+              <Truck className="sofi-nav-icon" size={18} />
               <span>Suivi de commande</span>
             </li>
-            <li className="nav-item" onClick={() => navigate('favoris')}>
-              <Heart className="nav-icon" size={18} />
+            <li className="sofi-nav-item" onClick={() => navigate('favoris')}>
+              <Heart className="sofi-nav-icon" size={18} />
               <span>Mes Favoris</span>
               {favoritesCount > 0 && (
-                <span className="cart-badge">{favoritesCount}</span>
+                <span className="sofi-badge">{favoritesCount}</span>
               )}
             </li>
-           
           </ul>
         </nav>
         
-        <div className="sidebar-footer">
-          <div className="user-profile">
-            <div className="avatar">
+        <div className="sofi-sidebar-footer">
+          <div className="sofi-user-profile">
+            <div className="sofi-avatar">
               {userData?.username?.substring(0, 2).toUpperCase()}
             </div>
-            <div className="user-info">
-              <p className="user-name">{userData?.username}</p>
-              
+            <div className="sofi-user-info">
+              <p className="sofi-user-name">{userData?.username}</p>
             </div>
           </div>
-          <ul className="footer-menu">
-            <li className="footer-item">
-              <Settings size={16} />
+          <ul className="sofi-footer-menu">
+            <li className="sofi-footer-item">
+              <Settings size={16} className="sofi-footer-icon" />
               <span>Paramètres</span>
             </li>
-            <li className="footer-item">
-              <HelpCircle size={16} />
+            <li className="sofi-footer-item">
+              <HelpCircle size={16} className="sofi-footer-icon" />
               <span>Aide & Support</span>
             </li>
-            <li className="footer-item" onClick={handleLogout}>
-              <LogOut size={16} />
+            <li className="sofi-footer-item" onClick={handleLogout}>
+              <LogOut size={16} className="sofi-footer-icon" />
               <span>Déconnexion</span>
             </li>
           </ul>
@@ -368,7 +367,7 @@ const ClientDashboard = () => {
       </aside>
 
       {/* Main Content */}
-      <main className="dashboard-main">
+      <main className="sofi-main client-main">
         <Routes>
           <Route path="/catalogue" element={<CatalogueProduits />} />
           <Route path="/panier" element={<Panier />} />
@@ -379,31 +378,31 @@ const ClientDashboard = () => {
           <Route path="/favoris" element={<Favorites />} />
           <Route path="/" element={
             <>
-              <header className="main-header">
-                <h2>Tableau de Bord</h2>
-                <div className="header-actions" style={{ position: "relative" }}>
-                  <button className="notif-btn" aria-label="Notifications" onClick={toggleNotifications}>
-                    <span className="notif-icon">
-                      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <header className="sofi-main-header client-header">
+                <h2 className="sofi-page-title">Tableau de Bord</h2>
+                <div className="sofi-header-actions" style={{ position: "relative" }}>
+                  <button className="sofi-notif-btn" aria-label="Notifications" onClick={toggleNotifications}>
+                    <span className="sofi-notif-icon">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                         <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
                         <path d="M13.73 21a2 2 0 0 1-3.46 0" />
                       </svg>
                     </span>
                     {unreadMessages > 0 && (
-                      <span className="notif-badge">{unreadMessages}</span>
+                      <span className="sofi-notif-badge">{unreadMessages}</span>
                     )}
                   </button>
                   {showNotifications && (
-                    <div className="notif-dropdown">
-                      <div className="notif-dropdown-title">Notifications</div>
-                      <ul className="notif-dropdown-list">
+                    <div className="sofi-notif-dropdown">
+                      <div className="sofi-notif-dropdown-title">Notifications</div>
+                      <ul className="sofi-notif-list">
                         {notifications.length === 0 && (
-                          <li className="notif-dropdown-item empty">Aucune notification</li>
+                          <li className="sofi-notif-item">Aucune notification</li>
                         )}
                         {notifications.map((notif) => (
                           <li
                             key={notif.id}
-                            className={`notif-dropdown-item${notif.isRead ? " read" : " unread"}`}
+                            className={`sofi-notif-item ${notif.isRead ? "" : "unread"}`}
                           >
                             {notif.message}
                           </li>
@@ -414,79 +413,78 @@ const ClientDashboard = () => {
                 </div>
               </header>
               
-              <div className="content-wrapper">
-                <div className="welcome-card">
-                  <div className="card-content">
-                    <h1>Bienvenue dans votre espace SOFIMED</h1>
-                    <p className="welcome-text">
+              <div className="sofi-content client-content">
+                <div className="sofi-welcome-card client-welcome-card">
+                  <div className="sofi-card-content">
+                    <h1 className="sofi-welcome-title">Bienvenue dans votre espace SOFIMED</h1>
+                    <p className="sofi-welcome-text">
                       Découvrez notre catalogue complet de produits industriels et médicaux.
                       Commandez en ligne et profitez de nos offres exclusives.
                     </p>
-                    <div className="card-actionss">
-                      <button className="btn btn-primaryy" onClick={() => navigate('catalogue')}>
+                    <div className="sofi-card-actions">
+                      <button className="sofi-btn sofi-btn-primary" onClick={() => navigate('catalogue')}>
                         <Book size={16} style={{ marginRight: 8 }} />
                         Parcourir le catalogue
                       </button>
-                      <button className="btn btn-secondaryy" onClick={() => navigate('panier')}>
+                      <button className="sofi-btn sofi-btn-secondary" onClick={() => navigate('panier')}>
                         <ShoppingCart size={16} style={{ marginRight: 8 }} />
                         Voir mon panier
                       </button>
                     </div>
                   </div>
-                  <div className="card-illustration">
+                  <div className="sofi-card-illustration">
                     <svg width="180" height="180" viewBox="0 0 200 200" fill="none">
-                      <circle cx="100" cy="100" r="80" fill="#EFF6FF" />
-                      <path d="M70 120L90 140L130 100" stroke="#3B82F6" strokeWidth="8" strokeLinecap="round" />
-                      <path d="M60 80C60 68.9543 68.9543 60 80 60" stroke="#3B82F6" strokeWidth="8" strokeLinecap="round" />
-                      <path d="M140 60C140 48.9543 148.954 40 160 40" stroke="#3B82F6" strokeWidth="8" strokeLinecap="round" />
+                      <circle cx="100" cy="100" r="80" fill="rgba(255, 255, 255, 0.1)" />
+                      <path d="M70 120L90 140L130 100" stroke="#FFFFFF" strokeWidth="8" strokeLinecap="round" />
+                      <path d="M60 80C60 68.9543 68.9543 60 80 60" stroke="#FFFFFF" strokeWidth="8" strokeLinecap="round" />
+                      <path d="M140 60C140 48.9543 148.954 40 160 40" stroke="#FFFFFF" strokeWidth="8" strokeLinecap="round" />
                     </svg>
                   </div>
                 </div>
                 
-                <div className="stats-grid">
-                  {/* Update cart stat card to show actual data */}
-                  <div className="stat-card">
-                    <div className="stat-icon" style={{ backgroundColor: '#F0F9FF' }}>
+                <div className="sofi-stats-grid">
+                  <div className="sofi-stat-card client-stat-card">
+                    <div className="sofi-stat-icon" style={{ backgroundColor: '#F0F9FF' }}>
                       <ShoppingCart size={20} color="#0EA5E9" />
                     </div>
-                    <div className="stat-info">
-                      <p className="stat-label">Panier actuel</p>
-                      <p className="stat-value">{getTotalCartItems()} article{getTotalCartItems() !== 1 ? 's' : ''}</p>
-                      <p className="stat-change">
+                    <div className="sofi-stat-info">
+                      <p className="sofi-stat-label">Panier actuel</p>
+                      <p className="sofi-stat-value">{getTotalCartItems()} article{getTotalCartItems() !== 1 ? 's' : ''}</p>
+                      <p className="sofi-stat-change">
                         {cartItems.length > 0 ? 'Cliquez pour voir' : 'Panier vide'}
                       </p>
                     </div>
                   </div>
-                  <div className="stat-card">
-                    <div className="stat-icon" style={{ backgroundColor: '#EFF6FF' }}>
+                  <div className="sofi-stat-card client-stat-card">
+                    <div className="sofi-stat-icon" style={{ backgroundColor: '#EFF6FF' }}>
                       <FileText size={20} color="#3B82F6" />
                     </div>
-                    <div className="stat-info">
-                      <p className="stat-label">Demandes en cours</p>
-                      <p className="stat-value">5</p>
-                      <p className="stat-change positive">+2 cette semaine</p>
+                    <div className="sofi-stat-info">
+                      <p className="sofi-stat-label">Demandes en cours</p>
+                      <p className="sofi-stat-value">5</p>
+                      <p className="sofi-stat-change positive">+2 cette semaine</p>
                     </div>
                   </div>
                   
-                  <div className="stat-card">
-                    <div className="stat-icon" style={{ backgroundColor: '#ECFDF5' }}>
+                  <div className="sofi-stat-card client-stat-card">
+                    <div className="sofi-stat-icon" style={{ backgroundColor: '#ECFDF5' }}>
                       <Truck size={20} color="#10B981" />
                     </div>
-                    <div className="stat-info">
-                      <p className="stat-label">Commandes actives</p>
-                      <p className="stat-value">2</p>
-                      <p className="stat-change">En traitement</p>
+                    <div className="sofi-stat-info">
+                      <p className="sofi-stat-label">Commandes actives</p>
+                      <p className="sofi-stat-value">2</p>
+                      <p className="sofi-stat-change">En traitement</p>
                     </div>
                   </div>
                   
-                  <div className="stat-card">
-                    <div className="stat-icon" style={{ backgroundColor: '#FEF2F2' }}>
+                  <div className="sofi-stat-card client-stat-card">
+                    <div className="sofi-stat-icon" style={{ backgroundColor: '#FEF2F2' }}>
                       <MessageCircle size={20} color="#EF4444" />
                     </div>
-                    <div className="stat-info">
-                      <p className="stat-label">Messages non lus</p>
-                      <p className="stat-value">{unreadMessages}</p>
-                      <p className="stat-change negative">{unreadMessages > 0 ? 'Réponse urgente' : 'Aucun message'}</p>
+                    <div className="sofi-stat-info">
+                      <p className="sofi-stat-label">Messages non lus</p>
+                      <p className="sofi-stat-value">{unreadMessages}</p>
+                      <p className="sofi-stat-change negative">{unreadMessages > 0 ? 'Réponse urgente' : 'Aucun message'}</p>
                     </div>
                   </div>
                 </div>
