@@ -92,207 +92,88 @@
 
 \begin{document}
 
-% Page de titre améliorée
+% Page de titre professionnelle et moderne
 \begin{titlepage}
-\newgeometry{top=2cm, bottom=2cm, left=2cm, right=2cm}
+\newgeometry{top=2cm, bottom=2cm, left=2.5cm, right=2.5cm}
+\definecolor{sofiBlue}{RGB}{0, 102, 204}
+\definecolor{sofiGray}{RGB}{240, 240, 240}
 \centering
 
-% En-tête avec logos
-\vspace*{-0.5cm}
+% Bandeau supérieur coloré
+\begin{tikzpicture}[remember picture,overlay]
+  \fill[sofiBlue] (current page.north west) rectangle ([xshift=\paperwidth,yshift=-1.5cm]current page.north west);
+\end{tikzpicture}
+
+% Logos et titre
+\vspace*{1cm}
 \begin{tabularx}{\textwidth}{@{}p{0.25\textwidth} X p{0.25\textwidth}@{}}
   \includegraphics[width=2.5cm, height=3cm, keepaspectratio]{idZGrLaVHO_1753349979859.jpeg} &
   \centering
-  {\color{chaptercolor}\textbf{\Large \institut}}\\[3pt]
-  \centering {\color{sectioncolor}\normalsize (IGA)} &
-  \hfill\includegraphics[width=3.5cm, height=4cm, keepaspectratio]{R.png}
+  {\color{sofiBlue}\textbf{\Large \institut}}\\[2pt]
+  \centering \normalsize (IGA) &
+  \hfill\includegraphics[width=4cm, height=5cm, keepaspectratio]{R.png}
 \end{tabularx}
 
-\vspace{1cm}
-
-% Titre principal avec style
-{\color{chaptercolor}\textbf{\LARGE PROJET DE FIN D'ÉTUDES}}\\[0.5cm]
-{\color{sectioncolor}\large Pour l'obtention du \diplome}\\[0.3cm]
-{\color{accentcolor}\large \textbf{Option : \option}}
-
 \vspace{1.5cm}
 
-% Titre du projet avec encadré
-\begin{tcolorbox}[colback=chaptercolor!5,colframe=chaptercolor,boxrule=2pt,arc=5pt]
-\centering
-{\color{chaptercolor}\fontsize{24}{30}\selectfont\textbf{\titre}}\\[8pt]
-{\color{sectioncolor}\Large \soustitre}
-\end{tcolorbox}
+% Titre principal
+{\color{sofiBlue}\textbf{\LARGE PROJET DE FIN D'ÉTUDES}}\\[0.4cm]
+{\large Pour l'obtention du \diplome}\\[0.25cm]
+{\large \textbf{Option : \option}}
 
-\vspace{1.5cm}
+\vspace{2cm}
 
-% Informations organisées en tableau
-\begin{tcolorbox}[colback=gray!5,colframe=gray!30,boxrule=1pt,arc=3pt,width=0.8\textwidth]
-\begin{tabularx}{\textwidth}{@{}>\raggedright\arraybackslash}X >\raggedleft\arraybackslash}X@{}}
-  {\color{chaptercolor}\textbf{Réalisé par :}} & \\
-  {\large Dounia ELMOUTAOUKIL} & {\small Matricule : \matricule} \\
-  & \\
-  {\color{chaptercolor}\textbf{\encadrant{} :}} & \\
-  {\large Dr. Ahmed KHELIFI} & \\
+% Titre du projet
+{\fontsize{28}{34}\selectfont\textbf{\titre}}\\[10pt]
+{\Large \soustitre}
+
+\vspace{2.5cm}
+
+% Informations des étudiants et encadrant
+\begin{tabularx}{0.9\textwidth}{@{}>{\raggedright\arraybackslash}X >{\raggedleft\arraybackslash}X@{}}
+  \textbf{Réalisé par :} & \\
+  Dounia ELMOUTAOUKIL & \\
+  \textbf{\encadrant{} :} & \\
+  Dr. Ahmed KHELIFI & \\
   Maître de Conférences Classe A & \\
   Université Constantine 2 & \\
-  & \\
-  {\color{chaptercolor}\textbf{Entreprise d'accueil :}} & \\
-  {\large \entreprise} & \\
-  {\lieu} & \\
 \end{tabularx}
-\end{tcolorbox}
 
 \vfill
 
-% Pied de page avec année
-\begin{tcolorbox}[colback=accentcolor!10,colframe=accentcolor,boxrule=2pt,arc=5pt]
-\centering
-{\color{chaptercolor}\large \textbf{Année universitaire : 2024 -- 2025}}
-\end{tcolorbox}
-
+% Année universitaire
+\rule{\textwidth}{0.4pt}\\[0.3cm]
+{\large \textbf{Année universitaire : 2024 -- 2025}}\\[0.2cm]
+\rule{\textwidth}{0.4pt}
 \end{titlepage}
 \restoregeometry
 
-% Page blanche
-\newpage
-\thispagestyle{empty}
-\mbox{}
-\newpage
-
-% Résumé avec style
-\chapter*{Résumé}
-\addcontentsline{toc}{chapter}{Résumé}
-\markboth{Résumé}{}
-
-\begin{tcolorbox}[colback=blue!5,colframe=blue!40!black,title=Résumé Exécutif,fonttitle=\bfseries\large]
-Ce projet de fin d'études présente le développement d'une plateforme intelligente de gestion commerciale pour l'entreprise \entreprise. La solution développée intègre des fonctionnalités avancées d'intelligence artificielle, notamment un modèle prédictif basé sur l'algorithme Random Forest, permettant d'estimer le taux d'acceptation des devis avec une précision de 85\%.
-
-La plateforme centralise la gestion des devis, commandes et communications client-commercial, tout en intégrant un module de veille concurrentielle en temps réel. L'architecture adoptée repose sur une approche full-stack moderne utilisant React.js pour l'interface utilisateur et Node.js pour le backend, avec une base de données MongoDB pour la persistance des données.
-
-Les résultats obtenus montrent une amélioration significative de l'efficacité commerciale avec une réduction de 40\% du temps de traitement des devis et une augmentation de 25\% du taux de conversion client.
-\end{tcolorbox}
-
-\vspace{1cm}
-
-\begin{tcolorbox}[colback=green!5,colframe=green!40!black,title=Mots-clés,fonttitle=\bfseries]
-\textbf{Mots-clés :} Intelligence artificielle, Gestion commerciale, Analyse prédictive, Veille concurrentielle, Random Forest, React.js, Node.js, MongoDB, Machine Learning, Système d'aide à la décision
-\end{tcolorbox}
-
-\newpage
-
-% Abstract avec style
-\chapter*{Abstract}
-\addcontentsline{toc}{chapter}{Abstract}
-\markboth{Abstract}{}
-
-\begin{tcolorbox}[colback=orange!5,colframe=orange!40!black,title=Executive Summary,fonttitle=\bfseries\large]
-This final year project presents the development of an intelligent commercial management platform for \entreprise\ company. The developed solution integrates advanced artificial intelligence features, including a predictive model based on the Random Forest algorithm, enabling quote acceptance rate estimation with 85\% accuracy.
-
-The platform centralizes quote management, orders, and client-commercial communications, while integrating a real-time competitive intelligence module. The adopted architecture is based on a modern full-stack approach using React.js for the user interface and Node.js for the backend, with a MongoDB database for data persistence.
-
-The results obtained show a significant improvement in commercial efficiency with a 40\% reduction in quote processing time and a 25\% increase in client conversion rate.
-\end{tcolorbox}
-
-\vspace{1cm}
-
-\begin{tcolorbox}[colback=purple!5,colframe=purple!40!black,title=Keywords,fonttitle=\bfseries]
-\textbf{Keywords:} Artificial intelligence, Commercial management, Predictive analysis, Competitive intelligence, Random Forest, React.js, Node.js, MongoDB, Machine Learning, Decision support system
-\end{tcolorbox}
-
-\newpage
-
-% Remerciements avec style
-\chapter*{Remerciements}
-\addcontentsline{toc}{chapter}{Remerciements}
-\markboth{Remerciements}{}
-
-\begin{tcolorbox}[colback=yellow!5,colframe=yellow!60!black,arc=5pt]
-Je tiens à exprimer ma profonde gratitude à toutes les personnes qui ont contribué à la réalisation de ce projet de fin d'études.
-
-Mes remerciements s'adressent en premier lieu à mon encadrant, \textbf{Dr. Ahmed KHELIFI}, pour ses conseils précieux, sa disponibilité et son soutien tout au long de ce projet. Ses orientations méthodologiques et son expertise ont été déterminantes pour la réussite de ce travail.
-
-Je remercie également l'équipe de \textbf{\entreprise} pour leur accueil chaleureux et leur collaboration active, en particulier :
-\begin{itemize}
-    \item L'équipe commerciale qui a partagé son expertise métier
-    \item L'équipe technique pour son support dans l'intégration
-    \item La direction pour sa confiance et son soutien
-\end{itemize}
-
-Ma reconnaissance va aussi à l'\textbf{École Supérieure du Génie Appliqué (IGA)} et à l'ensemble du corps professoral pour la formation de qualité dispensée durant mon cursus.
-
-Enfin, je remercie ma famille et mes proches pour leur soutien inconditionnel et leurs encouragements durant cette période intensive de travail.
-\end{tcolorbox}
-
-\newpage
-
-% Table des matières avec style
-\renewcommand{\contentsname}{\color{chaptercolor}Table des Matières}
+% Table des matières, figures, tableaux
 \tableofcontents
 \thispagestyle{empty}
 \newpage
-
-% Liste des figures avec style
-\renewcommand{\listfigurename}{\color{chaptercolor}Liste des Figures}
 \listoffigures
 \thispagestyle{empty}
 \newpage
-
-% Liste des tableaux avec style
-\renewcommand{\listtablename}{\color{chaptercolor}Liste des Tableaux}
 \listoftables
 \thispagestyle{empty}
 \newpage
 
-% Liste des acronymes avec style
-\renewcommand{\glossaryname}{\color{chaptercolor}Liste des Acronymes}
-\printglossary[type=\acronymtype,title=Liste des Acronymes]
-\thispagestyle{empty}
-\newpage
-
-% Introduction avec style amélioré
+% Introduction générale dans une box colorée
 \chapter*{Introduction Générale}
 \addcontentsline{toc}{chapter}{Introduction Générale}
 \markboth{Introduction Générale}{}
+\begin{center}
+\fcolorbox{sofiBlue}{sofiGray}{\parbox{0.95\textwidth}{%
+Du 10 mars 2025 au 10 août 2025, j'ai eu l'opportunité d'effectuer mon projet de fin d'études au sein de l'entreprise SOFIMED, acteur reconnu dans le domaine des solutions techniques pour l'industrie. Ce stage, d'une durée de cinq mois, a été une expérience enrichissante tant sur le plan professionnel que personnel, me permettant de m'intégrer dans un environnement structuré, en pleine évolution, et engagé dans une dynamique de modernisation de ses processus internes.
 
-\begin{tcolorbox}[colback=blue!5,colframe=blue!40!black,title=Contexte du Projet,fonttitle=\bfseries]
-Du 10 mars 2025 au 10 août 2025, j'ai eu l'opportunité d'effectuer mon \gls{pfe} au sein de l'entreprise \entreprise, acteur reconnu dans le domaine des solutions techniques pour l'industrie. Ce stage, d'une durée de cinq mois, a été une expérience enrichissante tant sur le plan professionnel que personnel, me permettant de m'intégrer dans un environnement structuré, en pleine évolution, et engagé dans une dynamique de modernisation de ses processus internes.
-\end{tcolorbox}
+L'objectif principal de mon stage était de contribuer à l'amélioration du système de gestion commerciale de l'entreprise à travers le développement d'une solution numérique adaptée à ses besoins spécifiques. Cette solution vise à faciliter les interactions entre les différents intervenants internes et externes, tout en assurant un meilleur suivi des opérations liées à la relation client et à la gestion des commandes. L'un des axes majeurs de ce projet consistait à introduire des mécanismes d'aide à la décision, afin de renforcer la réactivité et l'efficacité dans le traitement des demandes.
 
-\section*{Objectifs du Projet}
-L'objectif principal de mon stage était de contribuer à l'amélioration du système de gestion commerciale de l'entreprise à travers le développement d'une solution numérique adaptée à ses besoins spécifiques. Cette solution vise à :
+Au-delà de la réalisation du projet, cette expérience m'a permis d'acquérir une meilleure compréhension du fonctionnement d'une entreprise évoluant dans un secteur exigeant, où la qualité de service, la rigueur opérationnelle et la relation client jouent un rôle central. J'ai ainsi eu l'occasion de collaborer avec différentes équipes, d'assister à la coordination des services, et de m'imprégner des réalités organisationnelles et commerciales propres à SOFIMED.
 
-\begin{itemize}
-    \item Faciliter les interactions entre les différents intervenants internes et externes
-    \item Assurer un meilleur suivi des opérations liées à la relation client
-    \item Optimiser la gestion des commandes et des devis
-    \item Introduire des mécanismes d'aide à la décision basés sur l'\gls{ia}
-    \item Renforcer la réactivité et l'efficacité dans le traitement des demandes
-\end{itemize}
-
-\section*{Apports Personnels}
-Au-delà de la réalisation du projet, cette expérience m'a permis d'acquérir une meilleure compréhension du fonctionnement d'une entreprise évoluant dans un secteur exigeant, où la qualité de service, la rigueur opérationnelle et la relation client jouent un rôle central. J'ai ainsi eu l'occasion de :
-
-\begin{itemize}
-    \item Collaborer avec différentes équipes pluridisciplinaires
-    \item Assister à la coordination des services
-    \item M'imprégner des réalités organisationnelles et commerciales propres à \entreprise
-    \item Développer mes compétences techniques et managériales
-\end{itemize}
-
-\section*{Structure du Rapport}
-Ce rapport est structuré de manière à présenter :
-
-\begin{enumerate}
-    \item Le contexte dans lequel s'inscrit ce projet
-    \item Les objectifs visés et la méthodologie adoptée
-    \item L'analyse et la conception de la solution
-    \item Les étapes de mise en œuvre et d'implémentation
-    \item Les tests et la validation du système
-    \item Les résultats obtenus et leur analyse
-    \item Les perspectives d'évolution et d'amélioration
-\end{enumerate}
-
-Il se conclut par une analyse des compétences développées et des enseignements tirés de cette immersion professionnelle. Ce stage a représenté une véritable opportunité d'enrichir mes connaissances et de contribuer concrètement à un projet d'optimisation interne d'envergure.
+Ce rapport est structuré de manière à présenter le contexte dans lequel s'inscrit ce projet, les objectifs visés, les étapes de sa mise en œuvre, ainsi que les résultats obtenus au terme de cette expérience. Il se conclut par une analyse des compétences développées et des enseignements tirés de cette immersion professionnelle. Ce stage a représenté une véritable opportunité d'enrichir mes connaissances et de contribuer concrètement à un projet d'optimisation interne.
+}}
+\end{center}
 
 \section{Introduction}
 Le présent cahier des charges décrit les objectifs et les caractéristiques requises pour la conception et le développement d'une application web dédiée à la gestion commerciale au sein de l'entreprise SOFIMED. Cette application vise à fournir une plateforme en ligne permettant aux clients, commerciaux et administrateurs de gérer, suivre et structurer les processus liés aux devis et aux commandes. L'objectif est d'améliorer l'efficacité des échanges commerciaux et de faciliter la prise de décision en intégrant des outils d'analyse intelligents et de suivi avancé, adaptés au contexte et aux besoins spécifiques de l'entreprise, y compris des fonctionnalités d'intelligence artificielle et de veille concurrentielle.

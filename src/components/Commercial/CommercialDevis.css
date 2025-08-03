@@ -6165,3 +6165,400 @@ th {
     padding: 16px;
   }
 }
+
+/* Filtres de devis */
+.devis-filters {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.search-box {
+  position: relative;
+  flex: 1;
+  min-width: 250px;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #64748b; /* Couleur grise */
+  pointer-events: none;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.625rem 1rem 0.625rem 2.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background-color: white;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.select-wrapper {
+  position: relative;
+  min-width: 200px;
+}
+
+.status-filter {
+  width: 100%;
+  padding: 0.625rem 2rem 0.625rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background-color: white;
+  font-size: 0.875rem;
+  appearance: none;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.select-arrow {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: #64748b;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .search-input,
+  .status-filter {
+    background-color: #1e293b;
+    border-color: #334155;
+    color: #f8fafc;
+  }
+  
+  .search-icon,
+  .select-arrow {
+    color: #94a3b8;
+  }
+}
+/* Filtres de devis */
+.devis-filters {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.search-box {
+  position: relative;
+  flex: 1;
+  min-width: 250px;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #64748b; /* Couleur grise */
+  pointer-events: none;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.625rem 1rem 0.625rem 2.5rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background-color: white;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.select-wrapper {
+  position: relative;
+  min-width: 200px;
+}
+
+.status-filter {
+  width: 100%;
+  padding: 0.625rem 2rem 0.625rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background-color: white;
+  font-size: 0.875rem;
+  appearance: none;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.select-arrow {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: #64748b;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .search-input,
+  .status-filter {
+    background-color: #1e293b;
+    border-color: #334155;
+    color: #f8fafc;
+  }
+  
+  .search-icon,
+  .select-arrow {
+    color: #94a3b8;
+  }
+}
+.devis-filterss {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 1.5rem;
+}
+
+.search-boxx {
+  flex: 1;
+  min-width: 200px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  padding: 0.5rem 1rem;
+  transition: all 0.2s ease;
+}
+
+.search-boxx:hover {
+  border-color: #cbd5e0;
+}
+
+.search-boxx svg {
+  margin-right: 0.75rem;
+  color: #718096;
+}
+
+.search-boxx input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 0.9375rem;
+}
+
+.search-boxx input::placeholder {
+  color: #a0aec0;
+}
+
+.status-filter {
+  flex: 0 0 200px;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  font-size: 0.9375rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.status-filter:hover {
+  border-color: #cbd5e0;
+}
+
+.status-filter:focus {
+  outline: none;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.2);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .devis-filterss {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .search-boxx,
+  .status-filter {
+    width: 100%;
+  }
+}
+/* Styles améliorés pour les statuts de devis */
+/* Styles pour les statuts clients */
+.client-status-random {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.client-status-random:hover {
+  transform: translateY(-1px);
+}
+
+.status-icon {
+  font-size: 14px;
+}
+
+.status-label {
+  color: #2c3e50;
+}
+
+.client-regulier {
+  background: #e3f2fd;
+  color: #1976d2;
+  border-left: 3px solid #1976d2;
+}
+
+.client-potentiel {
+  background: #f5f5f5;
+  color: #757575;
+  border-left: 3px solid #757575;
+}
+
+.client-prospect {
+  background: #fff8e1;
+  color: #ff9800;
+  border-left: 3px solid #ff9800;
+}
+
+.client-fidele {
+  background: #e8f5e9;
+  color: #4caf50;
+  border-left: 3px solid #4caf50;
+}
+
+.client-vip {
+  background: #fce4ec;
+  color: #e91e63;
+  border-left: 3px solid #e91e63;
+}
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.status-badge:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.status-en-cours {
+  background: linear-gradient(135deg, #ffeaa7, #fdcb6e);
+  color: #2d3436;
+  border: 2px solid #fdcb6e;
+}
+
+.status-termine {
+  background: linear-gradient(135deg, #00b894, #00cec9);
+  color: white;
+  border: 2px solid #00b894;
+}
+
+.status-en-attente {
+  background: linear-gradient(135deg, #ddd, #b2bec3);
+  color: #2d3436;
+  border: 2px solid #636e72;
+}
+
+.status-accepte {
+  background: linear-gradient(135deg, #74b9ff, #0984e3);
+  color: white;
+  border: 2px solid #0984e3;
+}
+
+.status-refuse {
+  background: linear-gradient(135deg, #ff7675, #e17055);
+  color: white;
+  border: 2px solid #d63031;
+}
+
+.status-valide {
+  background: linear-gradient(135deg, #55a3ff, #2d3436);
+  color: white;
+  border: 2px solid #0984e3;
+}
+
+.status-brouillon {
+  background: linear-gradient(135deg, #fd79a8, #e84393);
+  color: white;
+  border: 2px solid #e84393;
+}
+
+
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .status-badge,
+  .client-status-badge {
+    font-size: 0.75rem;
+    padding: 4px 8px;
+  }
+  
+  .status-icon,
+  .client-icon {
+    font-size: 0.9rem;
+  }
+}
+
+/* Styles pour les devis terminés */
+.devis-terminated {
+  background-color: #f8f9fa;
+  opacity: 0.8;
+}
+
+.reference-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.terminated-badge {
+  font-size: 0.9rem;
+}
+
+.btn-disabled {
+  background-color: #6c757d !important;
+  border-color: #6c757d !important;
+  cursor: not-allowed !important;
+  opacity: 0.6;
+}
+
+.action-btn.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: #6c757d;
+}

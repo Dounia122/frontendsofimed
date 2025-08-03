@@ -8,6 +8,7 @@ import AdminConsultations from './AdminConsultations';
 import DevisAdmin from './DevisAdmin';
 import ProductManager from './ProductManager';
 import UserManager from './UserManager';
+import AdminDashboard from './AdminDashboard'
 import {
   Home, FileText, MessageCircle, Settings, LogOut,
   Users, Package, FileSpreadsheet, BarChart2,
@@ -327,7 +328,7 @@ const Dashboard = () => {
             <Route path="consultations" element={hasPermission('CONSULTATIONS_MANAGEMENT') ? <AdminConsultations /> : <div>Accès refusé</div>} />
             <Route path="users" element={hasPermission('USER_MANAGEMENT') ? <UserManager /> : <div>Accès refusé</div>} />
             <Route path="reclamations" element={<ReclamationAdmin />} />
-            <Route path="stats" element={hasPermission('STATISTICS_VIEW') ? <div>Statistiques</div> : <div>Accès refusé</div>} />
+            <Route path="stats" element={hasPermission('STATISTICS_VIEW') ? <AdminDashboard /> : <div>Accès refusé</div>} />
             <Route path="products" element={hasPermission('PRODUCT_MANAGEMENT') ? <ProductManager /> : <div>Accès refusé</div>} />
           </Routes>
         </div>

@@ -1425,35 +1425,45 @@ const handleOpenChat = async (devis) => {
 
   const getStatusColor = (status) => {
   switch (status) {
-    case 'en_cours':
-      return 'status-en_cours';
-    case 'termine':
+    case 'EN_COURS':
+      return 'status-en-cours';
+    case 'TERMINE':
+    case 'TERMINEE':
       return 'status-termine';
-    case 'en_attente':
-      return 'status-en_attente';
+    case 'EN_ATTENTE':
+      return 'status-en-attente';
+    case 'ACCEPTE':
+      return 'status-accepte';
+    case 'REFUSE':
+    case 'ANNULE':
+      return 'status-refuse';
+    case 'VALIDE':
+      return 'status-valide';
+    case 'BROUILLON':
+      return 'status-brouillon';
     default:
       return 'status-unknown';
   }
 };
 
-  // Ajout de la fonction pour déterminer le statut du client
-  // Optimisation de la fonction getClientStatus
+  
+
+
+
+// Version avec affichage vraiment aléatoire
 const getClientStatus = (client) => {
-  if (!client) return { label: 'Inconnu', class: 'client-unknown' };
+  const statuses = [
+    { label: 'Client Potentiel', class: 'client-potentiel', icon: '🎯' },
+    { label: 'Client Régulier', class: 'client-regulier', icon: '🔄' }
+  ];
+
+  // Utilisation de Math.random() pour un affichage vraiment aléatoire
+  // à chaque rendu de la page
+  const index = Math.floor(Math.random() * statuses.length);
   
-  // Logique pour déterminer le statut du client
-  const orderCount = client.orderCount || 0;
-  const lastOrderDate = client.lastOrderDate ? new Date(client.lastOrderDate) : null;
+  console.log(`Statut aléatoire généré: ${statuses[index].label}`);
   
-  if (orderCount === 0) {
-    return { label: 'Nouveau', class: 'client-nouveau' };
-  } else if (orderCount > 10) {
-    return { label: 'Fidèle', class: 'client-fidele' };
-  } else if (lastOrderDate && (new Date() - lastOrderDate) < 90 * 24 * 60 * 60 * 1000) {
-    return { label: 'Régulier', class: 'client-regulier' };
-  } else {
-    return { label: 'Potentiel', class: 'client-potentiel' };
-  }
+  return statuses[index];
 };
 
 // Ajout d'un loader plus élégant
@@ -1475,28 +1485,29 @@ const LoadingState = () => (
             <h1 className="devis-title">Gestion des Devis</h1>
          
           
-          <div className="devis-filters">
-            <div className="search-box">
-              <Search size={20} />
-              <input
-                type="text"
-                placeholder="Rechercher un devis..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className="status-filter"
-            >
-              <option value="TOUS">Tous les statuts</option>
-              <option value="EN_COURS">En cours</option>
-              <option value="VALIDE">Validé</option>
-              <option value="REFUSE">Refusé</option>
-            </select>
-          </div>
+        <div className="devis-filterss">
+  <div className="search-boxx">
+    <Search size={20} />
+    <input
+      type="text"
+      placeholder="Rechercher un devis..."
+      value={searchTerm}
+      onChange={(e) => setSearchTerm(e.target.value)}
+      className="search-input"
+    />
+  </div>
+  
+  <select
+    value={filterStatus}
+    onChange={(e) => setFilterStatus(e.target.value)}
+    className="status-filter"
+  >
+    <option value="TOUS">Tous les statuts</option>
+    <option value="EN_COURS">En cours</option>
+    <option value="EN_ATTENTE">En attente</option>
+    <option value="TERMINE">Terminé</option>
+  </select>
+</div>
         </header>
 
       <div className="table-container">
@@ -1512,41 +1523,68 @@ const LoadingState = () => (
         </tr>
       </thead>
       <tbody>
-        {filteredDevis.map(devis => (
-          <tr key={devis.id}>
-            <td>{devis.reference}</td>
-            <td>
-              <div className="client-info clickable" onClick={() => handleViewClient(devis)}>
-                <User size={16} />
-                <span>
-                  {devis.client ? `${devis.client.firstName || ''} ${devis.client.lastName || ''}` : 'Client '}
+        {filteredDevis.map(devis => {
+          const isTerminated = devis.status === 'TERMINE' || devis.status === 'TERMINEE';
+          const clientStatus = devis.client ? getClientStatus(devis.client) : getClientStatus(null);
+          
+          return (
+            <tr key={devis.id} className={`devis-row ${isTerminated ? 'devis-terminated' : ''}`}>
+              <td>
+                <div className="reference-cell">
+                  <span className="reference-text">{devis.reference}</span>
+                  {isTerminated && <span className="terminated-badge">🔒</span>}
+                </div>
+              </td>
+              <td>
+                <div className="client-info clickable" onClick={() => handleViewClient(devis)}>
+                  <User size={16} />
+                  <span>
+                    {devis.client ? `${devis.client.firstName || ''} ${devis.client.lastName || ''}` : 'Client '}
+                  </span>
+                </div>
+              </td>
+              <td>
+                <div className={`client-status-random ${clientStatus.class}`}>
+                  <span className="status-icon">{clientStatus.icon}</span>
+                  <span className="status-label">{clientStatus.label}</span>
+                </div>
+              </td>
+              <td>{new Date(devis.createdAt).toLocaleDateString('fr-FR')}</td>
+              <td>
+                <span className={`status-badge ${getStatusColor(devis.status)}`}>
+                  <span className="status-icon">
+                    {devis.status === 'EN_COURS' && '⏳'}
+                    {devis.status === 'EN_ATTENTE' && '⏸️'}
+                    {(devis.status === 'TERMINE' || devis.status === 'TERMINEE') && '✅'}
+                    {devis.status === 'ACCEPTE' && '👍'}
+                    {(devis.status === 'REFUSE' || devis.status === 'ANNULE') && '❌'}
+                    {devis.status === 'VALIDE' && '✔️'}
+                    {devis.status === 'BROUILLON' && '📝'}
+                  </span>
+                  {devis.status ? devis.status.replace('_', ' ') : 'Statut inconnu'}
                 </span>
-              </div>
-            </td>
-            <td>
-              <span className={`client-status-badge ${devis.client ? getClientStatus(devis.client).class : 'client-unknown'}`}>
-                {devis.client ? getClientStatus(devis.client).label : 'Statut inconnu'}
-              </span>
-            </td>
-            <td>{new Date(devis.createdAt).toLocaleDateString('fr-FR')}</td>
-<td>
-  <span className={`status-badge ${getStatusColor(devis.status)}`}>
-    {devis.status ? devis.status.replace('_', ' ') : 'Statut inconnu'}
-  </span>
-</td>
-<td>
-              <div className="action-buttons">
-                <button className="action-btn view" title="Voir le devis" onClick={() => handleViewDevis(devis)}>
-                  <Eye size={16} />
-                </button>
-                <button className="contact-btn" onClick={() => handleOpenChat(devis)} disabled={!devis.id}>
-                  <MessageCircle size={16} />
-                </button>
-              </div>
-            </td>
-
-          </tr>
-        ))}
+              </td>
+              <td>
+                <div className="action-buttons">
+                  <button 
+                    className={`action-btn view ${isTerminated ? 'disabled' : ''}`} 
+                    title={isTerminated ? "Devis terminé - Consultation seule" : "Voir le devis"} 
+                    onClick={() => handleViewDevis(devis)}
+                  >
+                    <Eye size={16} />
+                  </button>
+                  <button 
+                    className="contact-btn" 
+                    onClick={() => handleOpenChat(devis)} 
+                    disabled={!devis.id}
+                  >
+                    <MessageCircle size={16} />
+                  </button>
+                </div>
+              </td>
+            </tr>
+          );
+        })}
       </tbody>
     </table>
   </div>
@@ -1968,7 +2006,19 @@ const PrixModal = ({ devis, onClose, onUpdate }) => {
       case 'EN_ATTENTE': return 'status-pending';
       case 'EN_COURS': return 'status-progress';
       case 'TERMINÉ': return 'status-completed';
-      default: return '';
+      case 'TERMINE':
+      case 'TERMINEE':
+        return 'status-termine';
+      case 'ACCEPTE':
+        return 'status-accepte';
+      case 'REFUSE':
+      case 'ANNULE':
+        return 'status-refuse';
+      case 'VALIDE':
+        return 'status-valide';
+      case 'BROUILLON':
+        return 'status-brouillon';
+      default: return 'status-unknown';
     }
   };
 
@@ -2189,99 +2239,339 @@ const analyzeProbability = async () => {
     const token = localStorage.getItem('token');
     const user = JSON.parse(localStorage.getItem('user'));
     
-    // Afficher modal de chargement avec barre linéaire
-const loadingModal = createModal('Analyse IA en cours', `
-  <style>
-    .ai-loader {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 20px;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
+    // Afficher modal de chargement avec barre linéaire ultra-moderne
+    const loadingModal = createModal('Analyse IA en cours', `
+      <style>
+        .ai-loader {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          padding: 40px;
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #667eea 100%);
+          background-size: 400% 400%;
+          animation: gradientShift 4s ease infinite;
+          color: white;
+          border-radius: 25px;
+          box-shadow: 0 25px 50px rgba(0,0,0,0.15), 0 0 0 1px rgba(255,255,255,0.1);
+          position: relative;
+          overflow: hidden;
+        }
 
-    .linear-progress {
-      width: 100%;
-      max-width: 400px;
-      margin: 20px 0;
-      background-color: #eee;
-      border-radius: 8px;
-      overflow: hidden;
-      height: 18px;
-      position: relative;
-    }
+        @keyframes gradientShift {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
 
-    .progress-bar {
-      height: 100%;
-    }
+        .ai-loader::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: -100%;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+          animation: sweep 3s infinite;
+        }
 
-    .progress-fill {
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg, #007bff, #00c6ff);
-      transition: width 0.4s ease-in-out;
-    }
+        @keyframes sweep {
+          0% { left: -100%; }
+          100% { left: 100%; }
+        }
 
-    .progress-text {
-      position: absolute;
-      top: -25px;
-      right: 0;
-      font-size: 14px;
-      color: #444;
-    }
+        .linear-progress {
+          width: 100%;
+          max-width: 500px;
+          margin: 30px 0;
+          background: rgba(255,255,255,0.15);
+          border-radius: 15px;
+          overflow: hidden;
+          height: 28px;
+          position: relative;
+          backdrop-filter: blur(15px);
+          box-shadow: 
+            inset 0 2px 4px rgba(0,0,0,0.1),
+            0 4px 8px rgba(0,0,0,0.1);
+          border: 1px solid rgba(255,255,255,0.2);
+        }
 
-    h3 {
-      margin-top: 25px;
-      color: #222;
-      font-size: 1.3rem;
-    }
+        .progress-bar {
+          height: 100%;
+          position: relative;
+          border-radius: 15px;
+          overflow: hidden;
+        }
 
-    #ai-status {
-      margin-top: 10px;
-      font-size: 14px;
-      color: #555;
-    }
-  </style>
+        .progress-fill {
+          height: 100%;
+          width: 0%;
+          background: linear-gradient(90deg, 
+            #00d4ff 0%, 
+            #5b86e5 25%, 
+            #36d1dc 50%, 
+            #4facfe 75%, 
+            #00f2fe 100%
+          );
+          background-size: 300% 100%;
+          animation: flowingGradient 2.5s ease infinite;
+          transition: width 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+          border-radius: 15px;
+          box-shadow: 
+            0 0 25px rgba(0, 212, 255, 0.6),
+            inset 0 1px 0 rgba(255,255,255,0.3);
+          position: relative;
+          overflow: hidden;
+        }
 
-  <div class="ai-loader">
-    <div class="linear-progress">
-      <div class="progress-bar">
-        <div class="progress-fill" style="width: 0%"></div>
+        @keyframes flowingGradient {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+
+        .progress-fill::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: -100%;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(90deg, 
+            transparent, 
+            rgba(255,255,255,0.6), 
+            transparent
+          );
+          animation: shine 2s infinite;
+        }
+
+        @keyframes shine {
+          0% { left: -100%; }
+          100% { left: 100%; }
+        }
+
+        .progress-fill::after {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: repeating-linear-gradient(
+            45deg,
+            transparent,
+            transparent 8px,
+            rgba(255,255,255,0.1) 8px,
+            rgba(255,255,255,0.1) 16px
+          );
+          animation: movingStripes 1.5s linear infinite;
+        }
+
+        @keyframes movingStripes {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(16px); }
+        }
+
+        .progress-text {
+          position: absolute;
+          top: -40px;
+          right: 0;
+          font-size: 18px;
+          font-weight: 800;
+          color: #fff;
+          text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+          background: rgba(255,255,255,0.1);
+          padding: 5px 12px;
+          border-radius: 20px;
+          backdrop-filter: blur(10px);
+          border: 1px solid rgba(255,255,255,0.2);
+          transition: all 0.3s ease;
+        }
+
+        .progress-text.updating {
+          transform: scale(1.1);
+          background: rgba(0, 212, 255, 0.3);
+        }
+
+        .ai-title {
+          margin-top: 35px;
+          color: #fff;
+          font-size: 2rem;
+          font-weight: 800;
+          text-shadow: 0 3px 6px rgba(0,0,0,0.4);
+          display: flex;
+          align-items: center;
+          gap: 18px;
+          letter-spacing: 0.5px;
+        }
+
+        .ai-icon {
+          font-size: 2.5rem;
+          animation: smartPulse 2.5s infinite;
+          filter: drop-shadow(0 0 10px rgba(255,255,255,0.3));
+        }
+
+        @keyframes smartPulse {
+          0%, 100% { 
+            transform: scale(1) rotate(0deg); 
+            filter: drop-shadow(0 0 10px rgba(255,255,255,0.3));
+          }
+          25% { 
+            transform: scale(1.05) rotate(2deg); 
+            filter: drop-shadow(0 0 15px rgba(0,212,255,0.5));
+          }
+          50% { 
+            transform: scale(1.1) rotate(0deg); 
+            filter: drop-shadow(0 0 20px rgba(91,134,229,0.6));
+          }
+          75% { 
+            transform: scale(1.05) rotate(-2deg); 
+            filter: drop-shadow(0 0 15px rgba(54,209,220,0.5));
+          }
+        }
+
+        #ai-status {
+          margin-top: 20px;
+          font-size: 17px;
+          color: rgba(255,255,255,0.95);
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+          background: rgba(255,255,255,0.1);
+          padding: 12px 20px;
+          border-radius: 25px;
+          backdrop-filter: blur(10px);
+          border: 1px solid rgba(255,255,255,0.15);
+          min-height: 50px;
+          justify-content: center;
+        }
+
+        .status-icon {
+          font-size: 1.4rem;
+          animation: dynamicRotate 3s linear infinite;
+          filter: drop-shadow(0 0 8px rgba(255,255,255,0.4));
+        }
+
+        @keyframes dynamicRotate {
+          0% { transform: rotate(0deg) scale(1); }
+          25% { transform: rotate(90deg) scale(1.1); }
+          50% { transform: rotate(180deg) scale(1); }
+          75% { transform: rotate(270deg) scale(1.1); }
+          100% { transform: rotate(360deg) scale(1); }
+        }
+
+        .status-change {
+          animation: statusTransition 0.8s ease;
+        }
+
+        @keyframes statusTransition {
+          0% { 
+            transform: scale(1) translateY(0); 
+            opacity: 1; 
+          }
+          25% { 
+            transform: scale(0.95) translateY(-5px); 
+            opacity: 0.7; 
+          }
+          50% { 
+            transform: scale(1.05) translateY(0); 
+            opacity: 0.9; 
+            background: rgba(0,212,255,0.2);
+          }
+          75% { 
+            transform: scale(1.02) translateY(2px); 
+            opacity: 0.95; 
+          }
+          100% { 
+            transform: scale(1) translateY(0); 
+            opacity: 1; 
+          }
+        }
+
+        .completion-effect {
+          animation: completionCelebration 1s ease;
+        }
+
+        @keyframes completionCelebration {
+          0% { transform: scale(1); }
+          25% { transform: scale(1.05); background: rgba(0,255,0,0.2); }
+          50% { transform: scale(1.1); background: rgba(0,255,0,0.3); }
+          75% { transform: scale(1.05); background: rgba(0,255,0,0.2); }
+          100% { transform: scale(1); }
+        }
+      </style>
+
+      <div class="ai-loader">
+        <div class="linear-progress">
+          <div class="progress-bar">
+            <div class="progress-fill" style="width: 0%"></div>
+          </div>
+          <div class="progress-text">0%</div>
+        </div>
+        <h3 class="ai-title">
+          <span class="ai-icon">🤖</span>
+          SofIMed Analytics Pro
+        </h3>
+        <p id="ai-status">
+          <span class="status-icon">⚙️</span>
+          Initialisation du système IA...
+        </p>
       </div>
-      <div class="progress-text">0%</div>
-    </div>
-    <h3>SofIMed Analytics Pro</h3>
-    <p id="ai-status">Initialisation...</p>
-  </div>
-`);
+    `);
 
-
-    // Animation de progression
+    // Animation de progression améliorée
     const statusTexts = [
-      "Initialisation...",
-      "Analyse des données...",
-      "Calcul des probabilités...",
-      "Génération du rapport..."
+      { text: "Initialisation du système IA...", icon: "⚙️" },
+      { text: "Collecte des données client...", icon: "📊" },
+      { text: "Analyse comportementale en cours...", icon: "🧠" },
+      { text: "Calcul des probabilités avancées...", icon: "🔬" },
+      { text: "Génération du rapport intelligent...", icon: "📋" },
+      { text: "Finalisation de l'analyse...", icon: "✨" }
     ];
 
     let currentStep = 0;
+    const maxSteps = statusTexts.length;
+
     progressInterval = setInterval(() => {
-      if (currentStep < statusTexts.length) {
-        const statusElement = document.getElementById('ai-status');
-        const progressFill = document.querySelector('.progress-fill');
-        const progressText = document.querySelector('.progress-text');
-        
-        if (statusElement && progressFill && progressText) {
-          statusElement.textContent = statusTexts[currentStep];
-          const percentage = Math.round((currentStep + 1) * (100 / statusTexts.length));
-          progressFill.style.width = `${percentage}%`;
-          progressText.textContent = `${percentage}%`;
-          currentStep++;
+      try {
+        if (currentStep < maxSteps) {
+          const statusElement = document.getElementById('ai-status');
+          const progressFill = document.querySelector('.progress-fill');
+          const progressText = document.querySelector('.progress-text');
+          
+          if (statusElement && progressFill && progressText) {
+            // Vérification robuste
+            const currentStatus = statusTexts[currentStep];
+            if (currentStatus) {
+              const icon = currentStatus.icon || "⚙️"; // Icône par défaut
+              const text = currentStatus.text || "Traitement en cours..."; // Texte par défaut
+              
+              // Ajouter effet de pulsation au changement
+              statusElement.classList.add('status-change');
+              
+              setTimeout(() => {
+                statusElement.innerHTML = `
+                  <span class="status-icon">${icon}</span>
+                  ${text}
+                `;
+                statusElement.classList.remove('status-change');
+              }, 300);
+              
+              const percentage = Math.round((currentStep + 1) * (100 / maxSteps));
+              progressFill.style.width = `${percentage}%`;
+              progressText.textContent = `${percentage}%`;
+            }
+            currentStep++;
+          }
+        } else {
+          clearInterval(progressInterval);
         }
-      } else {
+      } catch (error) {
+        console.error('Erreur dans l\'animation de progression:', error);
         clearInterval(progressInterval);
       }
-    }, 800);
+    }, 1200); // Temps entre chaque étape augmenté à 1.2 secondes
 
     // Récupération des données (inchangé)
     const clientStats = await axios.get(
@@ -2353,9 +2643,17 @@ const loadingModal = createModal('Analyse IA en cours', `
       }
     );
 
-    // Fermer le modal de chargement
+    // Animation de fermeture du modal de chargement
     clearInterval(progressInterval);
-    loadingModal.remove();
+    
+    // Effet de fondu pour fermer le modal
+    loadingModal.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+    loadingModal.style.opacity = '0';
+    loadingModal.style.transform = 'scale(0.9)';
+    
+    setTimeout(() => {
+      loadingModal.remove();
+    }, 500);
 
     // Créer le modal avec résultats professionnels - DESIGN CLAIR
     const modal = createModal('📊 Rapport d\'Analyse IA', `
@@ -2665,22 +2963,29 @@ const loadingModal = createModal('Analyse IA en cours', `
     }
     console.error('Erreur lors de l\'analyse:', error);
     createModal('❌ Erreur IA', `
-      <div style="text-align: center; padding: 30px; max-width: 500px; margin: 0 auto;">
-        <div style="font-size: 3rem; color: #F44336; margin-bottom: 20px;">🤖💥</div>
-        <h3 style="color: #333;">Erreur lors de l'analyse IA</h3>
-        <p style="color: #666;">Une erreur est survenue lors de l'analyse :</p>
-        <p style="color: #F44336; font-weight: bold; background: #ffebee; padding: 12px; border-radius: 8px; margin: 20px 0;">
+      <div style="text-align: center; padding: 30px; max-width: 500px; margin: 0 auto; background: linear-gradient(135deg, #ff6b6b, #ee5a52); color: white; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.1);">
+        <div style="font-size: 4rem; margin-bottom: 20px; animation: shake 0.5s ease-in-out infinite alternate;">🤖💥</div>
+        <h3 style="color: white; margin-bottom: 15px;">Erreur lors de l'analyse IA</h3>
+        <p style="color: rgba(255,255,255,0.9); margin-bottom: 20px;">Une erreur est survenue lors de l'analyse :</p>
+        <p style="color: #fff; font-weight: bold; background: rgba(255,255,255,0.2); padding: 15px; border-radius: 10px; margin: 20px 0; backdrop-filter: blur(10px);">
           ${error.response?.data?.message || error.message}
         </p>
-        <div style="background: #f9f9f9; padding: 20px; border-radius: 10px; margin-top: 25px;">
-          <p style="font-weight: bold; color: #333; margin-top: 0;">💡 Suggestions :</p>
-          <ul style="text-align: left; padding-left: 20px; color: #666; margin-bottom: 0;">
+        <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 15px; margin-top: 25px; backdrop-filter: blur(10px);">
+          <p style="font-weight: bold; color: white; margin-top: 0;">💡 Suggestions :</p>
+          <ul style="text-align: left; padding-left: 20px; color: rgba(255,255,255,0.9); margin-bottom: 0; line-height: 1.6;">
             <li>Vérifiez votre connexion internet</li>
             <li>Assurez-vous que le serveur IA est accessible</li>
             <li>Réessayez dans quelques instants</li>
             <li>Contactez le support technique</li>
           </ul>
         </div>
+        
+        <style>
+          @keyframes shake {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(5px); }
+          }
+        </style>
       </div>
     `);
   }
@@ -3102,15 +3407,19 @@ const handleFormSubmit = async () => {
                   Probabilité IA
                 </button>
                 <button 
-                  className="btn btn-primary"
+                  className={`btn btn-primary ${(devis.status === 'TERMINE' || devis.status === 'TERMINEE') ? 'btn-disabled' : ''}`}
                   onClick={handleFormSubmit}
-                  disabled={savingPrices}
-                  
+                  disabled={savingPrices || devis.status === 'TERMINE' || devis.status === 'TERMINEE'}
+                  title={(devis.status === 'TERMINE' || devis.status === 'TERMINEE') ? "Impossible de modifier un devis terminé" : ""}
                 >
                   {savingPrices ? (
                     <>
                       <Loader size={16} className="spinner" />
                       Enregistrement...
+                    </>
+                  ) : (devis.status === 'TERMINE' || devis.status === 'TERMINEE') ? (
+                    <>
+                      🔒 Devis terminé
                     </>
                   ) : (
                     <>

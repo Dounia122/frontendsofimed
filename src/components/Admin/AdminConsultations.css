@@ -744,3 +744,49 @@
   font-size: 1rem;
   font-weight: 500;
 }
+/* Header compact */
+.admin-consultations-wrapper .admin-consultations-header {
+  background: white;
+  border-radius: var(--admin-border-radius);
+  padding: 0.75rem 1.25rem; /* Réduction du padding */
+  margin-bottom: 1.25rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08); /* Ombre plus légère */
+  border: 1px solid var(--admin-gray-200);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem; /* Espacement réduit */
+}
+
+.admin-consultations-wrapper .title-section {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem; /* Espacement réduit */
+}
+
+.admin-consultations-wrapper .title-icon {
+  font-size: 1.25rem; /* Taille réduite */
+  color: var(--admin-primary);
+}
+
+.admin-consultations-wrapper .admin-consultations-header h1 {
+  font-size: 1.25rem; /* Taille réduite */
+  font-weight: 600; /* Gras modéré */
+  color: var(--admin-gray-800);
+  margin: 0;
+  line-height: 1.3;
+  /* Suppression du dégradé pour plus de simplicité */
+}
+
+
+.admin-consultations-wrapper .admin-consultations-header {
+  padding: 0.5rem 1rem;
+  background: transparent;
+  box-shadow: none;
+  border: none;
+  margin-bottom: 1rem;
+}
+
+.admin-consultations-wrapper .admin-consultations-header h1 {
+  font-size: 1.1rem;
+  color: var(--admin-gray-700);
+}

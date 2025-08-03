@@ -17,72 +17,72 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 
 // Composants d'état
-const LoadingState = () => (
-  <div className="loading-state">
-    <FontAwesomeIcon icon={faSpinner} spin className="loading-icon" />
+const LoadingView = () => (
+  <div className="cc-loading">
+    <FontAwesomeIcon icon={faSpinner} spin className="cc-loading-icon" />
     <p>Chargement des consultations...</p>
   </div>
 );
 
-const ErrorState = ({ error }) => (
-  <div className="empty-state">
-    <FontAwesomeIcon icon={faExclamationCircle} className="error-icon" />
+const ErrorView = ({ error }) => (
+  <div className="cc-empty">
+    <FontAwesomeIcon icon={faExclamationCircle} className="cc-error-icon" />
     <p>Une erreur est survenue : {error}</p>
   </div>
 );
 
-const EmptyState = () => (
-  <div className="empty-state">
-    <FontAwesomeIcon icon={faInbox} className="empty-icon" />
+const EmptyView = () => (
+  <div className="cc-empty">
+    <FontAwesomeIcon icon={faInbox} className="cc-empty-icon" />
     <p>Aucune consultation trouvée</p>
   </div>
 );
 
 // Modals
-const MessageModal = ({ message, onClose }) => (
-  <div className="modal-overlay" onClick={onClose}>
-    <div className="modal-content message-modal" onClick={(e) => e.stopPropagation()}>
-      <button className="modal-close-button" onClick={onClose}>
+const MessageViewer = ({ message, onClose }) => (
+  <div className="cc-modal-overlay" onClick={onClose}>
+    <div className="cc-modal cc-message-modal" onClick={(e) => e.stopPropagation()}>
+      <button className="cc-modal-close" onClick={onClose}>
         <FontAwesomeIcon icon={faTimes} />
       </button>
-      <div className="modal-header">
+      <div className="cc-modal-header">
         <h3>Message complet</h3>
       </div>
-      <div className="modal-body message-body">
+      <div className="cc-modal-body">
         {message}
       </div>
     </div>
   </div>
 );
 
-const FilePreviewModal = ({ fileUrl, fileName, onClose }) => {
+const FileViewer = ({ fileUrl, fileName, onClose }) => {
   const fileExtension = useMemo(() => fileName?.split('.').pop().toLowerCase(), [fileName]);
   const isImage = useMemo(() => ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].includes(fileExtension), [fileExtension]);
   const isPDF = useMemo(() => fileExtension === 'pdf', [fileExtension]);
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <button className="modal-close-button" onClick={onClose}>
+    <div className="cc-modal-overlay" onClick={onClose}>
+      <div className="cc-modal" onClick={(e) => e.stopPropagation()}>
+        <button className="cc-modal-close" onClick={onClose}>
           <FontAwesomeIcon icon={faTimes} />
         </button>
-        <div className="modal-header">
+        <div className="cc-modal-header">
           <h3>{fileName}</h3>
         </div>
-        <div className="modal-body">
+        <div className="cc-modal-body">
           {isImage ? (
-            <img src={fileUrl} alt={fileName} className="modal-image" />
+            <img src={fileUrl} alt={fileName} className="cc-modal-img" />
           ) : isPDF ? (
-            <iframe src={fileUrl} title="Document PDF" className="modal-pdf" />
+            <iframe src={fileUrl} title="Document PDF" className="cc-modal-pdf" />
           ) : (
-            <div className="unsupported-file">
+            <div className="cc-unsupported-file">
               <FontAwesomeIcon icon={faFile} size="3x" />
               <p>Prévisualisation non disponible pour ce type de fichier</p>
             </div>
           )}
         </div>
-        <div className="modal-footer">
-          <a href={fileUrl} className="modal-download" download>
+        <div className="cc-modal-footer">
+          <a href={fileUrl} className="cc-modal-dl" download>
             <FontAwesomeIcon icon={faDownload} />
             Télécharger
           </a>
@@ -92,7 +92,7 @@ const FilePreviewModal = ({ fileUrl, fileName, onClose }) => {
   );
 };
 
-const ConsultationCard = ({
+const ConsultationItem = ({
   consultation,
   getUserInitials,
   formatDate,
@@ -103,10 +103,10 @@ const ConsultationCard = ({
 }) => {
   const [replyText, setReplyText] = useState('');
   return (
-    <div className="consultation-card">
-      <div className="consultation-header">
-        <div className="user-info">
-          <div className="user-avatar">
+    <div className="cc-card">
+      <div className="cc-card-header">
+        <div className="cc-client-info">
+          <div className="cc-client-avatar">
             {getUserInitials(consultation.client?.firstName + ' ' + consultation.client?.lastName)}
           </div>
           <div>
@@ -114,23 +114,23 @@ const ConsultationCard = ({
             <small>{formatDate(consultation.createdAt)}</small>
           </div>
         </div>
-        <span className={`status ${consultation.status?.toLowerCase()}`}>
+        <span className={`cc-status cc-status-${consultation.status?.toLowerCase()}`}>
           {formatStatus(consultation.status)}
         </span>
       </div>
       
-      <div className="consultation-content">
-        <div className="consultation-meta">
-          <div className="meta-item">
+      <div className="cc-card-body">
+        <div className="cc-meta">
+          <div className="cc-meta-item">
             <strong>Objet :</strong>
             <span>{consultation.subject || 'Non spécifié'}</span>
           </div>
         </div>
       
-        <div className="consultation-message">
+        <div className="cc-message-preview">
           <p>{consultation.message?.substring(0, 200) || 'Aucun message'}...</p>
           <button
-            className="view-more-button"
+            className="cc-view-btn"
             onClick={onViewMessage}
             aria-label="Voir le message complet"
           >
@@ -140,9 +140,9 @@ const ConsultationCard = ({
         </div>
 
         {consultation.fileName && (
-          <div className="file-section">
+          <div className="cc-file-section">
             <button
-              className="document-button"
+              className="cc-file-btn"
               onClick={onViewFile}
               aria-label="Voir le document"
             >
@@ -153,16 +153,16 @@ const ConsultationCard = ({
         )}
 
         {consultation.status === 'EN_COURS' && (
-          <div className="reply-section">
+          <div className="cc-reply-section">
             <textarea
               value={replyText}
               onChange={(e) => setReplyText(e.target.value)}
               placeholder="Votre réponse..."
               rows={4}
-              className="reply-textarea"
+              className="cc-reply-input"
             />
             <button
-              className="reply-button"
+              className="cc-reply-btn"
               onClick={() => {
                 onReply(consultation.id, replyText);
                 setReplyText('');
@@ -251,7 +251,6 @@ const CommercialConsultations = () => {
           throw new Error('Non authentifié');
         }
 
-        // Récupérer d'abord l'ID du commercial
         const commercialResponse = await fetch(`${API_URL}/api/commercials/user/${user.id}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -268,7 +267,6 @@ const CommercialConsultations = () => {
           throw new Error('ID du commercial non trouvé');
         }
 
-        // Récupérer les consultations du commercial
         const response = await fetch(`${API_URL}/api/consultations/commercial/${commercialData.id}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -343,29 +341,29 @@ const CommercialConsultations = () => {
   }, []);
 
   return (
-    <div className="commercial-consultations-container">
-      <header className="commercial-consultations-header">
-        <div className="title-section">
-          <FontAwesomeIcon icon={faComments} className="title-icon" />
+    <div className="cc-container">
+      <header className="cc-header">
+        <div className="cc-title-section">
+          <FontAwesomeIcon icon={faComments} className="cc-title-icon" />
           <h1>Mes Consultations</h1>
         </div>
         
-        <div className="filter-controls">
-          <div className="search-input-wrapper">
-            <FontAwesomeIcon icon={faSearch} className="search-icon" />
+        <div className="cc-filters">
+          <div className="cc-search-wrapper">
+            <FontAwesomeIcon icon={faSearch} className="cc-search-icon" />
             <input
               type="text"
-              className="search-input"
+              className="cc-search-input"
               placeholder="Rechercher..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               aria-label="Rechercher des consultations"
             />
           </div>
-          <div className="filter-select-wrapper">
-            <FontAwesomeIcon icon={faFilter} className="filter-icon" />
+          <div className="cc-filter-wrapper">
+            <FontAwesomeIcon icon={faFilter} className="cc-filter-icon" />
             <select
-              className="status-filter"
+              className="cc-status-filter"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               aria-label="Filtrer par statut"
@@ -379,15 +377,15 @@ const CommercialConsultations = () => {
       </header>
 
       {loading ? (
-        <LoadingState />
+        <LoadingView />
       ) : error ? (
-        <ErrorState error={error} />
+        <ErrorView error={error} />
       ) : filteredConsultations.length === 0 ? (
-        <EmptyState />
+        <EmptyView />
       ) : (
-        <div className="consultations-grid">
+        <div className="cc-grid">
           {filteredConsultations.map((consultation) => (
-            <ConsultationCard
+            <ConsultationItem
               key={consultation.id}
               consultation={consultation}
               getUserInitials={getUserInitials}
@@ -402,7 +400,7 @@ const CommercialConsultations = () => {
       )}
 
       {modalFileUrl && (
-        <FilePreviewModal
+        <FileViewer
           fileUrl={modalFileUrl}
           fileName={modalFileName}
           onClose={closeModal}
@@ -410,7 +408,7 @@ const CommercialConsultations = () => {
       )}
 
       {isMessageModalOpen && (
-        <MessageModal
+        <MessageViewer
           message={selectedMessage}
           onClose={closeMessageModal}
         />
@@ -420,7 +418,7 @@ const CommercialConsultations = () => {
 };
 
 // PropTypes
-ConsultationCard.propTypes = {
+ConsultationItem.propTypes = {
   consultation: PropTypes.shape({
     id: PropTypes.number.isRequired,
     client: PropTypes.shape({
@@ -441,18 +439,18 @@ ConsultationCard.propTypes = {
   onReply: PropTypes.func.isRequired
 };
 
-MessageModal.propTypes = {
+MessageViewer.propTypes = {
   message: PropTypes.string,
   onClose: PropTypes.func.isRequired
 };
 
-FilePreviewModal.propTypes = {
+FileViewer.propTypes = {
   fileUrl: PropTypes.string,
   fileName: PropTypes.string,
   onClose: PropTypes.func.isRequired
 };
 
-ErrorState.propTypes = {
+ErrorView.propTypes = {
   error: PropTypes.string.isRequired
 };
 

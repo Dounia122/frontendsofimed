@@ -4,8 +4,7 @@ import { Home, FileText, MessageCircle, Users, History, Settings, HelpCircle, Lo
 import logo from '../../assets/logosofi1.png';
 import './CommercialDashboard.css';
 import CommercialDevis from './CommercialDevis';
-import CommercialClients from './CommercialClients';
-import CommercialStatistiques from './CommercialStatistiques';
+import CommercialDashboardUnifie from './CommercialDashboardUnifie';
 import CommercialHistorique from './CommercialHistorique';
 import CommercialConsultations from './CommercialConsultations';
 import notificationService from '../../services/notificationService';
@@ -198,10 +197,9 @@ const CommercialDashboard = () => {
           <ul className="sofi-nav-list">
             {[
               { icon: Home, label: "Tableau de bord", path: "/commercial/dashboard" },
-              { icon: Users, label: "Gestion Clients", path: "/commercial/dashboard/clients" },
+              { icon: Users, label: "Clients & Statistiques", path: "/commercial/dashboard/unifie" },
               { icon: FileText, label: "Devis", path: "/commercial/dashboard/devis" },
               { icon: MessageCircle, label: "Consultations", path: "/commercial/dashboard/consultations" },
-              { icon: ChartBar, label: "Statistiques", path: "/commercial/dashboard/statistiques" },
             ].map((item, index) => (
               <li
                 key={index}
@@ -336,7 +334,7 @@ const CommercialDashboard = () => {
                       Gérez vos clients, consultez les devis et suivez vos performances.
                     </p>
                     <div className="sofi-card-actions">
-                      <button className="sofi-btn sofi-btn-primary" onClick={() => navigate('/commercial/dashboard/clients')}>
+                      <button className="sofi-btn sofi-btn-primary" onClick={() => navigate('/commercial/dashboard/unifie')}>
                         <Users size={16} />
                         <span>Gérer mes clients</span>
                       </button>
@@ -353,7 +351,7 @@ const CommercialDashboard = () => {
                     { 
                       icon: Users, 
                       label: "Clients actifs", 
-                      value: "45", 
+                      value: "7", 
                       change: "+3 ce mois", 
                       positive: true,
                       iconColor: "#1D4ED8"
@@ -376,7 +374,7 @@ const CommercialDashboard = () => {
                     { 
                       icon: MessageCircle, 
                       label: "Consultations", 
-                      value: unreadMessagesCount.toString(), 
+                      value: 1, 
                       change: unreadMessagesCount > 0 ? "Messages non lus" : "Aucun message",
                       iconColor: "#EC4899"
                     }
@@ -397,9 +395,8 @@ const CommercialDashboard = () => {
                 </div>
               </>
             } />
-            <Route path="/clients" element={<CommercialClients />} />
+            <Route path="/unifie" element={<CommercialDashboardUnifie />} />
             <Route path="/devis" element={<CommercialDevis />} />
-            <Route path="/statistiques" element={<CommercialStatistiques />} />
             <Route path="/historique" element={<CommercialHistorique />} />
             <Route path="/consultations" element={<CommercialConsultations />} />
           </Routes>
