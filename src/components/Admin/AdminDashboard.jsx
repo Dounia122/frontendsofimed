@@ -13,8 +13,15 @@ import {
   faCalendarWeek, faCalendar, faChartArea, faCog,
   faDownload, faFileExcel, faFilePdf, faPrint
 } from '@fortawesome/free-solid-svg-icons';
+import { Chart as ChartJS, LineElement, BarElement, PointElement, LinearScale, CategoryScale, Tooltip, Legend } from 'chart.js';
+import { Line, Bar } from 'react-chartjs-2';
 import './AdminDashboard.css';
 import noImage from '../../assets/no-image.png';
+
+// Enregistrer les composants nécessaires de Chart.js
+ChartJS.register(
+  LineElement, BarElement, PointElement, LinearScale, CategoryScale, Tooltip, Legend
+);
 
 const API_BASE_URL = 'http://localhost:8080/api';
 
@@ -29,14 +36,11 @@ const AdminDashboard = () => {
   
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [dateRange, setDateRange] = useState({ startDate: '', endDate: '' });
   const [selectedDepartement, setSelectedDepartement] = useState('all');
   const [selectedPeriode, setSelectedPeriode] = useState('mois');
   
-  // Nouveaux états pour les filtres avancés
+  // États pour les filtres avancés simplifiés
   const [activeTab, setActiveTab] = useState('overview');
-  const [productFilter, setProductFilter] = useState('');
-  const [selectedProducts, setSelectedProducts] = useState([]);
   const [showTooltip, setShowTooltip] = useState(null);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
   
@@ -64,188 +68,149 @@ const AdminDashboard = () => {
     });
   }, []);
 
-  // Données de démonstration pour les produits les plus vendus
-  const produitsDemo = [
-    {
-      id: 10,
-      reference: "SDG082",
-      nom: "Compteur d'air comprimé SDG082",
-      description: "Mesure précise du débit et de la consommation. Précision, répétabilité et dynamique de mesure élevées.",
-      imageUrl: "P3.jpg",
-      prixUnitaire: 1200,
-      quantiteVendue: 42,
-      departement: "Automatisation",
-      chiffreAffaires: 50400
-    },
-    {
-      id: 47,
-      reference: "1002010102",
-      nom: "Filtre LFM-1/4-D-MIDI",
-      description: "Filtre LFM-1/4-D-MIDI haute performance pour air comprimé d'usage général.",
-      imageUrl: "P34.jpg",
-      prixUnitaire: 350,
-      quantiteVendue: 38,
-      departement: "Filtration",
-      chiffreAffaires: 13300
-    },
-    {
-      id: 24,
-      reference: "PI2897",
-      nom: "Capteur de pression combiné PI2897",
-      description: "Capteur de pression combiné pour l'industrie alimentaire et des boissons.",
-      imageUrl: "P13.jpg",
-      prixUnitaire: 890,
-      quantiteVendue: 35,
-      departement: "Capteurs",
-      chiffreAffaires: 31150
-    },
-    {
-      id: 22,
-      reference: "EVL-100200",
-      nom: "LANTERNE 200W/LED-20502 lm Antidéflagrant ATEX",
-      description: "La nouvelle série de luminaires LED EVL a été développée dans le but de redéfinir les concepts de compacité.",
-      imageUrl: "P11.jpg",
-      prixUnitaire: 1850,
-      quantiteVendue: 28,
-      departement: "Électrique-ATEX",
-      chiffreAffaires: 51800
-    },
-    {
-      id: 7,
-      reference: "T1510 AAAAD/NES/NF/ANE/0504",
-      nom: "Pompe à double membranes 3\" corps Alum/Membranes neoprene",
-      description: "Les pompes pneumatiques à double membrane (AODD)...",
-      imageUrl: "p2.jpg",
-      prixUnitaire: 1499.99,
-      quantiteVendue: 25,
-      departement: "Pompage",
-      chiffreAffaires: 37499.75
-    }
-  ];
-
-  // Données de démonstration pour les commerciaux les plus performants
-  const commerciauxDemo = [
-    {
-      id: 1,
-      employeeCode: "COM-001",
-      firstName: "Mohammed",
-      lastName: "El Ammari",
-      email: "m.elammari@sofimed.com",
-      phone: "+212 661-234567",
-      totalVentes: 587000,
-      nombreDevis: 78,
-      nombreCommandes: 53,
-      tauxConversion: 68,
-      territoireId: 1,
-      pseudo: "MEA"
-    },
-    {
-      id: 2,
-      employeeCode: "COM-002",
-      firstName: "Youssef",
-      lastName: "Benkirane",
-      email: "y.benkirane@sofimed.com",
-      phone: "+212 662-345678",
-      totalVentes: 498000,
-      nombreDevis: 65,
-      nombreCommandes: 47,
-      tauxConversion: 72,
-      territoireId: 2,
-      pseudo: "YBK"
-    },
-    {
-      id: 3,
-      employeeCode: "COM-003",
-      firstName: "Karim",
-      lastName: "Tazi",
-      email: "k.tazi@sofimed.com",
-      phone: "+212 663-456789",
-      totalVentes: 435000,
-      nombreDevis: 59,
-      nombreCommandes: 38,
-      tauxConversion: 65,
-      territoireId: 3,
-      pseudo: "KTZ"
-    },
-    {
-      id: 4,
-      employeeCode: "COM-004",
-      firstName: "Samir",
-      lastName: "Alaoui",
-      email: "s.alaoui@sofimed.com",
-      phone: "+212 664-567890",
-      totalVentes: 389000,
-      nombreDevis: 52,
-      nombreCommandes: 32,
-      tauxConversion: 62,
-      territoireId: 4,
-      pseudo: "SAL"
-    },
-    {
-      id: 5,
-      employeeCode: "COM-005",
-      firstName: "Nadia",
-      lastName: "Benjelloun",
-      email: "n.benjelloun@sofimed.com",
-      phone: "+212 665-678901",
-      totalVentes: 356000,
-      nombreDevis: 48,
-      nombreCommandes: 28,
-      tauxConversion: 58,
-      territoireId: 5,
-      pseudo: "NBJ"
-    }
-  ];
-
-  // Données de démonstration pour les statistiques de ventes
-  const statsVentesDemo = {
-    totalVentes: 2265000,
-    totalDevis: 302,
-    totalCommandes: 198,
-    tauxConversionGlobal: 66,
-    moyenneParCommande: 7500,
-    croissanceMensuelle: 12.5
-  };
-
-  // Données de démonstration pour les statistiques par département
-  const statsParDepartementDemo = [
-    { departement: "Automatisation", ventes: 625000, pourcentage: 27.6 },
-    { departement: "Filtration", ventes: 485000, pourcentage: 21.4 },
-    { departement: "Électrique-ATEX", ventes: 420000, pourcentage: 18.5 },
-    { departement: "PTE", ventes: 380000, pourcentage: 16.8 },
-    { departement: "Pompage", ventes: 355000, pourcentage: 15.7 }
-  ];
-
-  // Données de démonstration pour les ventes par période
-  const ventesPeriodeHebdoDemo = [
-    { periode: "Semaine 1 - 2023", ventes: 45000, devis: 8, commandes: 5, tauxConversion: 62.5 },
-    { periode: "Semaine 2 - 2023", ventes: 52000, devis: 10, commandes: 7, tauxConversion: 70 },
-    { periode: "Semaine 3 - 2023", ventes: 48000, devis: 9, commandes: 6, tauxConversion: 66.7 },
-    { periode: "Semaine 4 - 2023", ventes: 55000, devis: 11, commandes: 8, tauxConversion: 72.7 }
-  ];
-
-  const ventesPeriodeMensuelleDemo = [
-    { periode: "Janvier 2023", ventes: 175000, devis: 25, commandes: 16, tauxConversion: 64 },
-    { periode: "Février 2023", ventes: 190000, devis: 28, commandes: 18, tauxConversion: 64.3 },
-    { periode: "Mars 2023", ventes: 210000, devis: 30, commandes: 20, tauxConversion: 66.7 },
-    { periode: "Avril 2023", ventes: 195000, devis: 27, commandes: 17, tauxConversion: 63 },
-    { periode: "Mai 2023", ventes: 225000, devis: 32, commandes: 22, tauxConversion: 68.8 },
-    { periode: "Juin 2023", ventes: 240000, devis: 35, commandes: 24, tauxConversion: 68.6 }
-  ];
-
-  const ventesPeriodeTrimestrielleDemo = [
-    { periode: "T1 2023", ventes: 575000, devis: 83, commandes: 54, tauxConversion: 65.1 },
-    { periode: "T2 2023", ventes: 660000, devis: 94, commandes: 63, tauxConversion: 67 },
-    { periode: "T3 2023", ventes: 710000, devis: 98, commandes: 68, tauxConversion: 69.4 },
-    { periode: "T4 2023", ventes: 680000, devis: 95, commandes: 65, tauxConversion: 68.4 }
-  ];
-
-  const ventesPeriodeAnnuelleDemo = [
-    { periode: "2020", ventes: 1850000, devis: 265, commandes: 172, tauxConversion: 64.9 },
-    { periode: "2021", ventes: 2050000, devis: 285, commandes: 188, tauxConversion: 66 },
-    { periode: "2022", ventes: 2265000, devis: 302, commandes: 198, tauxConversion: 65.6 },
-    { periode: "2023", ventes: 2625000, devis: 370, commandes: 250, tauxConversion: 67.6 }
-  ];
+  // Mise à jour des données de produits par période
+  const getProduitsDataByPeriod = useCallback(() => {
+    // Dans getProduitsDataByPeriod
+    const baseData = {
+      semaine: {
+        produits: [
+          {
+            id: 10,
+            reference: "SDG082",
+            nom: "Compteur d'air comprimé SDG082",
+            description: "Mesure précise du débit et de la consommation. Précision élevée.",
+            imageUrl: "P3.jpg",
+            prixUnitaire: 600,
+            quantiteVendue: 1,
+            departement: "Automatisation",
+            chiffreAffaires: 600
+          },
+          {
+            id: 47,
+            reference: "1002010102", 
+            nom: "Filtre LFM-1/4-D-MIDI",
+            description: "Filtre haute performance pour air comprimé.",
+            imageUrl: "P34.jpg",
+            prixUnitaire: 175,
+            quantiteVendue: 1,
+            departement: "Filtration",
+            chiffreAffaires: 175
+          },
+          {
+            id: 35,
+            reference: "EAX445",
+            nom: "Boîtier ATEX EAX445",
+            description: "Boîtier antidéflagrant pour environnements explosifs.",
+            imageUrl: "P20.jpg",
+            prixUnitaire: 750,
+            quantiteVendue: 2,
+            departement: "Électrique-ATEX",
+            chiffreAffaires: 1500
+          }
+        ],
+        stats: {
+          totalVentes: 2275,
+          totalDevis: 3,
+          totalCommandes: 2,
+          tauxConversionGlobal: 67,
+          moyenneParCommande: 1138,
+          croissanceMensuelle: 4.2
+        }
+      },
+      mois: {
+        produits: [
+          {
+            id: 10,
+            reference: "SDG082",
+            nom: "Compteur d'air comprimé SDG082",
+            description: "Mesure précise du débit et de la consommation. Précision élevée.",
+            imageUrl: "P3.jpg",
+            prixUnitaire: 600,
+            quantiteVendue: 4,
+            departement: "Automatisation",
+            chiffreAffaires: 2400
+          },
+          {
+            id: 47,
+            reference: "1002010102",
+            nom: "Filtre LFM-1/4-D-MIDI",
+            description: "Filtre haute performance pour air comprimé.",
+            imageUrl: "P34.jpg",
+            prixUnitaire: 175,
+            quantiteVendue: 3,
+            departement: "Filtration",
+            chiffreAffaires: 525
+          },
+          {
+            id: 35,
+            reference: "EAX445",
+            nom: "Boîtier ATEX EAX445",
+            description: "Boîtier antidéflagrant pour environnements explosifs.",
+            imageUrl: "P20.jpg",
+            prixUnitaire: 750,
+            quantiteVendue: 5,
+            departement: "Électrique-ATEX",
+            chiffreAffaires: 3750
+          }
+        ],
+        stats: {
+          totalVentes: 6675,
+          totalDevis: 10,
+          totalCommandes: 6,
+          tauxConversionGlobal: 60,
+          moyenneParCommande: 1113,
+          croissanceMensuelle: 6.4
+        }
+      },
+      trimestre: {
+        produits: [
+          {
+            id: 10,
+            reference: "SDG082",
+            nom: "Compteur d'air comprimé SDG082",
+            description: "Mesure précise du débit et de la consommation. Précision élevée.",
+            imageUrl: "P3.jpg",
+            prixUnitaire: 600,
+            quantiteVendue: 10,
+            departement: "Automatisation",
+            chiffreAffaires: 6000
+          },
+          {
+            id: 47,
+            reference: "1002010102",
+            nom: "Filtre LFM-1/4-D-MIDI",
+            description: "Filtre haute performance pour air comprimé.",
+            imageUrl: "P34.jpg",
+            prixUnitaire: 175,
+            quantiteVendue: 8,
+            departement: "Filtration",
+            chiffreAffaires: 1400
+          },
+          {
+            id: 35,
+            reference: "EAX445",
+            nom: "Boîtier ATEX EAX445",
+            description: "Boîtier antidéflagrant pour environnements explosifs.",
+            imageUrl: "P20.jpg",
+            prixUnitaire: 750,
+            quantiteVendue: 12,
+            departement: "Électrique-ATEX",
+            chiffreAffaires: 9000
+          }
+        ],
+        stats: {
+          totalVentes: 16400,
+          totalDevis: 20,
+          totalCommandes: 12,
+          tauxConversionGlobal: 60,
+          moyenneParCommande: 1367,
+          croissanceMensuelle: 8.8
+        }
+      }
+    };
+    
+    return baseData[selectedPeriode] || baseData.mois;
+  }, [selectedPeriode]);
 
   // Fonction pour obtenir l'icône de tendance
   const getTrendIcon = useCallback((evolution) => {
@@ -254,41 +219,26 @@ const AdminDashboard = () => {
     return { icon: faChartLine, color: 'var(--gray-500)', direction: '→' };
   }, []);
 
-  // Fonction pour ajouter/supprimer des filtres de produits
-  const toggleProductFilter = useCallback((departement) => {
-    setSelectedProducts(prev => 
-      prev.includes(departement)
-        ? prev.filter(d => d !== departement)
-        : [...prev, departement]
-    );
-  }, []);
-
   // Fonction d'exportation
   const handleExport = useCallback((format) => {
     console.log(`Exportation en format ${format}`);
     // Ici vous pouvez implémenter la logique d'exportation
   }, []);
 
-  // Fonction de filtrage des produits
+  // Produits filtrés simplifiés (sans recherche textuelle)
   const filteredProducts = useMemo(() => {
-    let filtered = topProduits;
+    const currentData = getProduitsDataByPeriod();
+    let filtered = currentData.produits;
     
-    if (productFilter) {
+    // Filtrage uniquement par département
+    if (selectedDepartement !== 'all') {
       filtered = filtered.filter(product => 
-        product.nom.toLowerCase().includes(productFilter.toLowerCase()) ||
-        product.reference.toLowerCase().includes(productFilter.toLowerCase()) ||
-        product.departement.toLowerCase().includes(productFilter.toLowerCase())
-      );
-    }
-    
-    if (selectedProducts.length > 0) {
-      filtered = filtered.filter(product => 
-        selectedProducts.includes(product.departement)
+        product.departement === selectedDepartement
       );
     }
     
     return filtered;
-  }, [topProduits, productFilter, selectedProducts]);
+  }, [selectedPeriode, selectedDepartement, getProduitsDataByPeriod]);
 
   // Fonction de tri
   const sortedData = useCallback((data, config) => {
@@ -305,20 +255,27 @@ const AdminDashboard = () => {
     });
   }, []);
 
-  // Fonction pour obtenir les données de période en fonction de la sélection
+  // Fonction pour obtenir les données de période en fonction de la sélection - MISE À JOUR
   const getVentesParPeriode = useCallback(() => {
-    switch(selectedPeriode) {
-      case 'semaine':
-        return ventesPeriodeHebdoDemo;
-      case 'mois':
-        return ventesPeriodeMensuelleDemo;
-      case 'trimestre':
-        return ventesPeriodeTrimestrielleDemo;
-      case 'annee':
-        return ventesPeriodeAnnuelleDemo;
-      default:
-        return ventesPeriodeMensuelleDemo;
-    }
+    const ventesData = {
+      semaine: [
+        { periode: "Semaine 1", ventes: 2275, devis: 3, commandes: 2, tauxConversion: 67 },
+        { periode: "Semaine 2", ventes: 2500, devis: 4, commandes: 3, tauxConversion: 75 },
+        { periode: "Semaine 3", ventes: 2100, devis: 3, commandes: 2, tauxConversion: 67 },
+        { periode: "Semaine 4", ventes: 2400, devis: 4, commandes: 3, tauxConversion: 75 }
+      ],
+      mois: [
+        { periode: "Janvier", ventes: 6675, devis: 10, commandes: 6, tauxConversion: 60 },
+        { periode: "Février", ventes: 7200, devis: 12, commandes: 7, tauxConversion: 58 },
+        { periode: "Mars", ventes: 6900, devis: 11, commandes: 7, tauxConversion: 64 }
+      ],
+      trimestre: [
+        { periode: "T1", ventes: 8400, devis: 20, commandes: 12, tauxConversion: 60 },
+        { periode: "T2", ventes: 7800, devis: 18, commandes: 11, tauxConversion: 61 }
+      ]
+    };
+    
+    return ventesData[selectedPeriode] || ventesData.mois;
   }, [selectedPeriode]);
 
   // Fonctions utilitaires
@@ -342,6 +299,139 @@ const AdminDashboard = () => {
     }
   }, []);
 
+  // Options et données pour les graphiques
+  const lineChartOptions = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'top',
+      },
+      tooltip: {
+        callbacks: {
+          label: function(context) {
+            return formatMAD(context.raw);
+          }
+        }
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          callback: function(value) {
+            return formatMAD(value).replace('MAD', '');
+          }
+        }
+      }
+    }
+  };
+
+  const barChartOptions = {
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'top',
+      },
+      tooltip: {
+        callbacks: {
+          label: function(context) {
+            return formatMAD(context.raw);
+          }
+        }
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          callback: function(value) {
+            return formatMAD(value).replace('MAD', '');
+          }
+        }
+      }
+    }
+  };
+
+  const commercialBarChartOptions = {
+    indexAxis: 'y',
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'top',
+      },
+      tooltip: {
+        callbacks: {
+          label: function(context) {
+            return formatMAD(context.raw);
+          }
+        }
+      }
+    },
+    scales: {
+      x: {
+        beginAtZero: true,
+        ticks: {
+          callback: function(value) {
+            return formatMAD(value).replace('MAD', '');
+          }
+        }
+      }
+    }
+  };
+
+  // Données pour les graphiques
+  const lineChartData = {
+    labels: ventesParPeriode.map(item => item.periode),
+    datasets: [
+      {
+        label: 'Ventes (MAD)',
+        data: ventesParPeriode.map(item => item.ventes),
+        borderColor: 'rgb(75, 192, 192)',
+        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+        tension: 0.1,
+        fill: true
+      }
+    ]
+  };
+
+  const barChartData = {
+    labels: statsParDepartement.map(item => item.departement),
+    datasets: [
+      {
+        label: 'Ventes par département (MAD)',
+        data: statsParDepartement.map(item => item.ventes),
+        backgroundColor: [
+          'rgba(255, 99, 132, 0.7)',
+          'rgba(54, 162, 235, 0.7)',
+          'rgba(255, 206, 86, 0.7)',
+          'rgba(75, 192, 192, 0.7)',
+          'rgba(153, 102, 255, 0.7)'
+        ],
+        borderColor: [
+          'rgba(255, 99, 132, 1)',
+          'rgba(54, 162, 235, 1)',
+          'rgba(255, 206, 86, 1)',
+          'rgba(75, 192, 192, 1)',
+          'rgba(153, 102, 255, 1)'
+        ],
+        borderWidth: 1
+      }
+    ]
+  };
+
+  const commercialBarChartData = {
+    labels: topCommerciaux.map(item => `${item.firstName} ${item.lastName}`),
+    datasets: [
+      {
+        label: 'Ventes par commercial (MAD)',
+        data: topCommerciaux.map(item => item.totalVentes),
+        backgroundColor: 'rgba(54, 162, 235, 0.7)',
+        borderColor: 'rgba(54, 162, 235, 1)',
+        borderWidth: 1
+      }
+    ]
+  };
+
   // Composant StatCard amélioré avec tendances
   const StatCard = useCallback(({ title, value, icon, className, trend, evolution }) => {
     return (
@@ -354,6 +444,7 @@ const AdminDashboard = () => {
           <p>{value}</p>
           {trend && (
             <div className="stat-trend" style={{ color: trend.color }}>
+              <FontAwesomeIcon icon={trend.icon} className="trend-icon" />
               <span>{trend.direction} {Math.abs(evolution)}%</span>
             </div>
           )}
@@ -362,26 +453,112 @@ const AdminDashboard = () => {
     );
   }, []);
 
-  // Simuler le chargement des données
+  // Simuler le chargement des données - MISE À JOUR
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
         setError(null);
         
-        // Dans un environnement réel, vous feriez des appels API ici
-        // const token = localStorage.getItem('token');
-        // const response = await axios.get(`${API_BASE_URL}/statistiques`, {
-        //   headers: { 'Authorization': `Bearer ${token}` }
-        // });
-        
         // Simuler un délai de chargement
         setTimeout(() => {
-          setTopProduits(produitsDemo);
-          setTopCommerciaux(commerciauxDemo);
-          setStatsVentes(statsVentesDemo);
-          setStatsParDepartement(statsParDepartementDemo);
+          const currentData = getProduitsDataByPeriod();
+          setTopProduits(currentData.produits.slice(0, 3)); // Réduire à 3 produits max
+          setStatsVentes(currentData.stats);
+          
+          // Tous les commerciaux avec données réduites
+          // Dans useEffect pour les commerciaux
+          setTopCommerciaux([
+            {
+              id: 1,
+              employeeCode: "COM-001",
+              firstName: "Mohammed",
+              lastName: "El Ammari",
+              email: "m.elammari@sofimed.com",
+              phone: "+212 661-234567",
+              totalVentes: 8700,
+              nombreDevis: 38,
+              nombreCommandes: 26,
+              tauxConversion: 68,
+              territoireId: 1,
+              pseudo: "MEA",
+              imageUrl: "commercial1.jpg"
+            },
+            {
+              id: 2,
+              employeeCode: "COM-002",
+              firstName: "Youssef",
+              lastName: "Benkirane",
+              email: "y.benkirane@sofimed.com",
+              phone: "+212 662-345678",
+              totalVentes: 7490,
+              nombreDevis: 32,
+              nombreCommandes: 23,
+              tauxConversion: 72,
+              territoireId: 2,
+              pseudo: "YBK",
+              imageUrl: "commercial2.jpg"
+            },
+            {
+              id: 3,
+              employeeCode: "COM-003",
+              firstName: "Karim",
+              lastName: "Tazi",
+              email: "k.tazi@sofimed.com",
+              phone: "+212 663-456789",
+              totalVentes: 6950,
+              nombreDevis: 28,
+              nombreCommandes: 19,
+              tauxConversion: 68,
+              territoireId: 3,
+              pseudo: "KTZ",
+              imageUrl: "commercial3.jpg"
+            },
+            {
+              id: 4,
+              employeeCode: "COM-004",
+              firstName: "Samir",
+              lastName: "Alaoui",
+              email: "s.alaoui@sofimed.com",
+              phone: "+212 664-567890",
+              totalVentes: 5780,
+              nombreDevis: 25,
+              nombreCommandes: 17,
+              tauxConversion: 68,
+              territoireId: 4,
+              pseudo: "SAL",
+              imageUrl: "commercial4.jpg"
+            },
+            {
+              id: 5,
+              employeeCode: "COM-005",
+              firstName: "Nadia",
+              lastName: "Benjelloun",
+              email: "n.benjelloun@sofimed.com",
+              phone: "+212 665-678901",
+              totalVentes: 4650,
+              nombreDevis: 22,
+              nombreCommandes: 15,
+              tauxConversion: 68,
+              territoireId: 5,
+              pseudo: "NBJ",
+              imageUrl: "commercial5.jpg"
+            }
+          ]);
+          
+          // Données départements réduites
+          // Dans setStatsParDepartement
+setStatsParDepartement([
+  { departement: "Automatisation", ventes: 8125, pourcentage: 27.6 },
+  { departement: "Filtration", ventes: 6425, pourcentage: 21.4 },
+  { departement: "Électrique-ATEX", ventes: 5100, pourcentage: 18.5 },
+  { departement: "Capteurs", ventes: 4900, pourcentage: 16.8 },
+  { departement: "Pompage", ventes: 4775, pourcentage: 15.7 }
+]);
+          
+          // Mettre à jour les ventes par période
           setVentesParPeriode(getVentesParPeriode());
+          
           setLoading(false);
         }, 1000);
         
@@ -396,7 +573,7 @@ const AdminDashboard = () => {
     };
 
     fetchData();
-  }, [dateRange, selectedDepartement, selectedPeriode, getVentesParPeriode]);
+  }, [selectedDepartement, selectedPeriode, getProduitsDataByPeriod, getVentesParPeriode]);
 
   if (loading) return (
     <div className="loading-container">
@@ -408,8 +585,9 @@ const AdminDashboard = () => {
   return (
     <div className="admin-dashboard-container">
       <h2 className="page-title">
-        <FontAwesomeIcon icon={faChartLine} className="title-icon" />
+        <FontAwesomeIcon icon={faChartBar} className="title-icon" />
         Tableau de Bord Administratif Professionnel
+       
       </h2>
 
       {error && (
@@ -422,7 +600,7 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {/* Filtres Avancés */}
+      {/* Filtres Simplifiés */}
       <div className="filters-section">
         <div className="filter-group">
           <label>
@@ -437,79 +615,7 @@ const AdminDashboard = () => {
             <option value="semaine">Analyse Hebdomadaire</option>
             <option value="mois">Analyse Mensuelle</option>
             <option value="trimestre">Analyse Trimestrielle</option>
-            <option value="annee">Analyse Annuelle</option>
           </select>
-        </div>
-
-        <div className="filter-group">
-          <label>
-            <FontAwesomeIcon icon={faCalendarAlt} className="filter-icon" />
-            Plage de dates
-          </label>
-          <input
-            type="date"
-            value={dateRange.startDate}
-            onChange={(e) => setDateRange(prev => ({ ...prev, startDate: e.target.value }))}
-          />
-          <span>à</span>
-          <input
-            type="date"
-            value={dateRange.endDate}
-            onChange={(e) => setDateRange(prev => ({ ...prev, endDate: e.target.value }))}
-          />
-        </div>
-
-        <div className="filter-group">
-          <label>
-            <FontAwesomeIcon icon={faFilter} className="filter-icon" />
-            Département
-          </label>
-          <select
-            value={selectedDepartement}
-            onChange={(e) => setSelectedDepartement(e.target.value)}
-          >
-            <option value="all">Tous les départements</option>
-            <option value="Automatisation">Automatisation</option>
-            <option value="Filtration">Filtration</option>
-            <option value="Électrique-ATEX">Électrique-ATEX</option>
-            <option value="PTE">PTE</option>
-            <option value="Pompage">Pompage</option>
-          </select>
-        </div>
-
-        {/* Nouveau filtre de produits */}
-        <div className="product-filter-group">
-          <label>
-            <FontAwesomeIcon icon={faSearch} className="filter-icon" />
-            Recherche de produits
-          </label>
-          <div className="product-search-container">
-            <FontAwesomeIcon icon={faSearch} className="search-icon" />
-            <input
-              type="text"
-              placeholder="Rechercher par nom, référence ou département..."
-              value={productFilter}
-              onChange={(e) => setProductFilter(e.target.value)}
-              className="product-search-input"
-            />
-          </div>
-          
-          {/* Tags de filtres actifs */}
-          {selectedProducts.length > 0 && (
-            <div className="product-filter-tags">
-              {selectedProducts.map(dept => (
-                <span key={dept} className="filter-tag">
-                  {dept}
-                  <span 
-                    className="remove-tag" 
-                    onClick={() => toggleProductFilter(dept)}
-                  >
-                    ×
-                  </span>
-                </span>
-              ))}
-            </div>
-          )}
         </div>
 
         <button className="btn-refresh" onClick={() => window.location.reload()}>
@@ -526,13 +632,6 @@ const AdminDashboard = () => {
         >
           <FontAwesomeIcon icon={faChartBar} />
           Vue d'ensemble
-        </button>
-        <button 
-          className={`tab-button ${activeTab === 'sales' ? 'active' : ''}`}
-          onClick={() => setActiveTab('sales')}
-        >
-          <FontAwesomeIcon icon={faMoneyBill} />
-          Ventes
         </button>
         <button 
           className={`tab-button ${activeTab === 'products' ? 'active' : ''}`}
@@ -595,53 +694,44 @@ const AdminDashboard = () => {
             />
           </div>
 
-          {/* Section des ventes par période */}
+          {/* Section des graphiques */}
           <div className="dashboard-main-sections">
-            <div className="dashboard-section period-section">
+            {/* Graphique d'évolution des ventes */}
+            <div className="dashboard-section chart-section">
               <div className="section-header">
                 <h3>
-                  <FontAwesomeIcon icon={getPeriodicIcon(selectedPeriode)} />
-                  Évolution des ventes par {getPeriodeLabel(selectedPeriode)}
+                  <FontAwesomeIcon icon={faChartLine} />
+                  Évolution des ventes sur {getPeriodeLabel(selectedPeriode)}
                 </h3>
               </div>
-              
-              <div className="table-responsive">
-                <table className="dashboard-table">
-                  <thead>
-                    <tr>
-                      <th>Période</th>
-                      <th>Ventes (MAD)</th>
-                      <th>Devis</th>
-                      <th>Commandes</th>
-                      <th>Taux de Conversion</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {ventesParPeriode.map((periode, index) => (
-                      <tr key={index}>
-                        <td className="period-cell">
-                          <span className={`period-badge period-badge-${selectedPeriode}`}>
-                            {periode.periode}
-                          </span>
-                        </td>
-                        <td className="amount-cell">{formatMAD(periode.ventes)}</td>
-                        <td className="devis-cell">{periode.devis}</td>
-                        <td className="commandes-cell">{periode.commandes}</td>
-                        <td className="conversion-cell">
-                          <div className="conversion-wrapper">
-                            <div 
-                              className="conversion-bar" 
-                              style={{ width: `${periode.tauxConversion}%` }}
-                            ></div>
-                            <span className="conversion-text">
-                              {periode.tauxConversion}%
-                            </span>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <div className="chart-container">
+                <Line data={lineChartData} options={lineChartOptions} />
+              </div>
+            </div>
+
+            {/* Graphique de répartition par département */}
+            <div className="dashboard-section chart-section">
+              <div className="section-header">
+                <h3>
+                  <FontAwesomeIcon icon={faChartPie} />
+                  Répartition des ventes par département
+                </h3>
+              </div>
+              <div className="chart-container">
+                <Bar data={barChartData} options={barChartOptions} />
+              </div>
+            </div>
+
+            {/* Graphique de performance des commerciaux */}
+            <div className="dashboard-section chart-section">
+              <div className="section-header">
+                <h3>
+                  <FontAwesomeIcon icon={faUserTie} />
+                  Performance des commerciaux (Top 5)
+                </h3>
+              </div>
+              <div className="chart-container">
+                <Bar data={commercialBarChartData} options={commercialBarChartOptions} />
               </div>
             </div>
           </div>
@@ -673,19 +763,7 @@ const AdminDashboard = () => {
                   <tr>
                     <th>Produit</th>
                     <th>Référence</th>
-                    <th>
-                      Département
-                      <button onClick={() => {
-                        const depts = [...new Set(topProduits.map(p => p.departement))];
-                        depts.forEach(dept => {
-                          if (!selectedProducts.includes(dept)) {
-                            toggleProductFilter(dept);
-                          }
-                        });
-                      }}>
-                        <FontAwesomeIcon icon={faFilter} />
-                      </button>
-                    </th>
+                    <th>Département</th>
                     <th>Quantité</th>
                     <th>CA (MAD)</th>
                   </tr>
@@ -716,11 +794,7 @@ const AdminDashboard = () => {
                         <span className="reference-badge">{produit.reference}</span>
                       </td>
                       <td>
-                        <span 
-                          className="filter-tag"
-                          onClick={() => toggleProductFilter(produit.departement)}
-                          style={{ cursor: 'pointer' }}
-                        >
+                        <span className="filter-tag">
                           {produit.departement}
                         </span>
                       </td>
@@ -813,7 +887,7 @@ const AdminDashboard = () => {
             
             <div className="departments-grid">
               {statsParDepartement.map((dept, index) => (
-                <div key={index} className="department-card">
+                <div key={dept.departement} className="department-card">
                   <div className="department-header">
                     <h4>{dept.departement}</h4>
                     <span className="department-percentage">{dept.pourcentage}%</span>

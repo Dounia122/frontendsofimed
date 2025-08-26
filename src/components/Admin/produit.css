@@ -399,12 +399,32 @@ textarea {
   font-size: 1.75rem;
 }
 
-.page-title h1 {
-  font-size: 2rem;
-  font-weight: 600;
-  color: #333;
+.product-manager-container .admin-header {
+  display: flex;
+  justify-content: flex-start; /* Aligne le contenu à gauche */
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 15px 25px;
+  background: white;
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border);
+}
+
+.product-manager-container .page-title {
+  text-align: left; /* Aligne le texte à gauche */
+  font-size: 24px;
+  font-weight: 800;
+  background: var(--primary-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  display: flex;
+  align-items: center;
+  gap: 10px;
   margin: 0;
 }
+
 /* Search Box */
 .search-box {
   display: flex;
@@ -492,4 +512,174 @@ textarea {
     padding: 12px;
     border-radius: 0 0 12px 12px;
   }
+}/* Style d'en-tête unifié */
+.product-manager-container .admin-header {
+  display: flex;
+  justify-content: flex-end; /* Aligne le contenu à droite */
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 15px 25px;
+  background: white;
+  border-radius: var(--card-radius);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border);
+}
+
+
+
+.product-manager-container .title-icon {
+  font-size: 24px;
+  color: var(--primary);
+}
+
+.product-management-header {
+  display: flex;
+  justify-content: flex-start; /* Aligne le contenu à gauche */
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 15px 25px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.page-main-title {
+  text-align: left; /* Aligne le texte à gauche */
+  font-size: 24px;
+  font-weight: 700;
+  color: #4361ee;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+}
+
+.header-icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background-color: #4e73df;
+  border-radius: 50%;
+}
+
+.header-icon {
+  color: white;
+  font-size: 1.2rem;
+}
+
+.page-main-title {
+  margin: 0;
+  color: #2e3a59;
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+
+/* Styles pour la zone de recherche */
+.product-search-container {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  max-width: 800px;
+  width: 100%;
+}
+
+.search-input {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: 1px solid #d1d3e2;
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #4e73df;
+  box-shadow: 0 0 0 3px rgba(78, 115, 223, 0.25);
+}
+
+.search-button {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.primary-button {
+  background-color: #4e73df;
+  color: white;
+}
+
+.primary-button:hover:not(:disabled) {
+  background-color: #3a5ccc;
+}
+
+.primary-button:disabled {
+  background-color: #d1d3e2;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* Animation pendant le chargement */
+@keyframes pulse {
+  0% { opacity: 0.7; }
+  50% { opacity: 1; }
+  100% { opacity: 0.7; }
+}
+
+.search-button[disabled] {
+  animation: pulse 1.5s infinite;
+}
+
+/* Amélioration des formulaires */
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 15px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  transition: var(--transition);
+  background: white;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+/* Style des boutons */
+.btn-action {
+  padding: 8px 16px;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+}
+
+.btn-primary {
+  background: var(--primary-gradient);
+  color: white;
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }

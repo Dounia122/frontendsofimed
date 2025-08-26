@@ -211,28 +211,30 @@ const handleDelete = async () => {
   return (
     <div className="product-manager-container">
       <div className="search-section">
-        <div className="page-title">
-          <div className="title-icon-container">
-            <FontAwesomeIcon icon={faClipboardList} className="title-icon" />
-          </div>
-          <h1>Gestion des Produits</h1>
-        </div>
-        <div className="search-box">
-          <input
-            type="text"
-            placeholder="Rechercher un produit..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-          />
-          <button
-            className="btn btn-primary"
-            onClick={handleSearch}
-            disabled={isLoading || !searchTerm.trim()}
-          >
-            {isLoading ? 'Recherche...' : 'Rechercher'}
-          </button>
-        </div>
+       <div className="product-management-header">
+  <div className="header-icon-wrapper">
+    <FontAwesomeIcon icon={faClipboardList} className="header-icon" />
+  </div>
+  <h1 className="page-main-title">Gestion des Produits</h1>
+</div>
+
+<div className="product-search-container">
+  <input
+    type="text"
+    className="search-input"
+    placeholder="Rechercher un produit..."
+    value={searchTerm}
+    onChange={(e) => setSearchTerm(e.target.value)}
+    onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+  />
+  <button
+    className="search-button primary-button"
+    onClick={handleSearch}
+    disabled={isLoading || !searchTerm.trim()}
+  >
+    {isLoading ? 'Recherche...' : 'Rechercher'}
+  </button>
+</div>
 
         {showSearchResults && (
           <div className="search-results">

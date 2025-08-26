@@ -33,6 +33,7 @@ const ClientDashboard = () => {
   const [sessionId, setSessionId] = useState(null); // <-- Add state for session ID
   const [sessionDuration, setSessionDuration] = useState(0);
   const [favoritesCount, setFavoritesCount] = useState(0); // Add favoritesCount state
+  const [unreadNotifications, setUnreadNotifications] = useState(0); // ✅ NOUVEAU: Compteur notifications non lues
 
   useEffect(() => {
     // Get user data from navigation state or localStorage
@@ -203,6 +204,9 @@ const ClientDashboard = () => {
       if (response.ok) {
         const data = await response.json();
         setNotifications(data);
+        // ✅ NOUVEAU: Compter les notifications non lues
+        const unreadCount = data.filter(notif => !notif.isRead).length;
+        setUnreadNotifications(unreadCount);
       }
     } catch (error) {
       console.error("Erreur lors de la récupération des notifications:", error);
@@ -226,11 +230,15 @@ const ClientDashboard = () => {
         }
       });
       if (response.ok) {
-        setNotifications((prev) =>
-          prev.map((notif) =>
+        setNotifications((prev) => {
+          const updated = prev.map((notif) =>
             notif.id === notifId ? { ...notif, isRead: true } : notif
-          )
-        );
+          );
+          // ✅ NOUVEAU: Mettre à jour le compteur
+          const unreadCount = updated.filter(notif => !notif.isRead).length;
+          setUnreadNotifications(unreadCount);
+          return updated;
+        });
       }
     } catch (error) {
       console.error("Erreur lors de la mise à jour de la notification:", error);
@@ -388,13 +396,19 @@ const ClientDashboard = () => {
                         <path d="M13.73 21a2 2 0 0 1-3.46 0" />
                       </svg>
                     </span>
-                    {unreadMessages > 0 && (
-                      <span className="sofi-notif-badge">{unreadMessages}</span>
+                    {/* ✅ MODIFIÉ: Utiliser unreadNotifications au lieu de unreadMessages */}
+                    {unreadNotifications > 0 && (
+                      <span className="sofi-notif-badge">{unreadNotifications}</span>
                     )}
                   </button>
                   {showNotifications && (
                     <div className="sofi-notif-dropdown">
-                      <div className="sofi-notif-dropdown-title">Notifications</div>
+                      <div className="sofi-notif-dropdown-title">
+                        Notifications 
+                        {unreadNotifications > 0 && (
+                          <span className="sofi-unread-count">({unreadNotifications} non lues)</span>
+                        )}
+                      </div>
                       <ul className="sofi-notif-list">
                         {notifications.length === 0 && (
                           <li className="sofi-notif-item">Aucune notification</li>
@@ -403,8 +417,18 @@ const ClientDashboard = () => {
                           <li
                             key={notif.id}
                             className={`sofi-notif-item ${notif.isRead ? "" : "unread"}`}
+                            onClick={() => !notif.isRead && markNotificationAsRead(notif.id)}
                           >
-                            {notif.message}
+                            <div className="sofi-notif-content">
+                              {!notif.isRead && <span className="sofi-unread-dot"></span>}
+                              <div className="sofi-notif-text">
+                                <strong>{notif.title}</strong>
+                                <p>{notif.message}</p>
+                                {notif.createdAt && (
+                                  <small>{new Date(notif.createdAt).toLocaleDateString('fr-FR')}</small>
+                                )}
+                              </div>
+                            </div>
                           </li>
                         ))}
                       </ul>
@@ -418,7 +442,7 @@ const ClientDashboard = () => {
                   <div className="sofi-card-content">
                     <h1 className="sofi-welcome-title">Bienvenue dans votre espace SOFIMED</h1>
                     <p className="sofi-welcome-text">
-                      Découvrez notre catalogue complet de produits industriels et médicaux.
+                      Découvrez notre catalogue complet de produits industriels .
                       Commandez en ligne et profitez de nos offres exclusives.
                     </p>
                     <div className="sofi-card-actions">

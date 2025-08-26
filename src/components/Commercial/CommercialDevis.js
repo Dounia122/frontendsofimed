@@ -1,11 +1,148 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import notificationService from '../../services/notificationService';
-import './CommercialDevis.css'; // Ajoutez cette ligne
+import './CommercialDevis.css';
 import { FileText, MessageCircle, User, Search, Filter, Download, Eye, AlertCircle, Loader, Home, Users, ChartBar, History, Settings, HelpCircle, LogOut, Bell, Mail, Phone, Send, CheckCircle } from 'lucide-react';
 import axios from 'axios';
 import './CommercialDashboard.css';
 import logo from '../../assets/logosofi1.png';
+
+// ===== FONCTIONS UTILITAIRES POUR LES NOTIFICATIONS =====
+
+/**
+ * Récupère l'ID utilisateur d'un client
+ * @param {number} clientId - ID du client
+ * @returns {Promise<number>} - ID utilisateur du client
+ */
+const getClientUserId = async (clientId) => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('Token d\'authentification manquant');
+    }
+
+    const response = await axios.get(`http://localhost:8080/api/clients/${clientId}/user-id`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    const userId = response.data;
+    if (!userId || typeof userId !== 'number' || userId <= 0) {
+      throw new Error(`ID utilisateur client invalide: ${userId}`);
+    }
+
+    return userId;
+  } catch (error) {
+    console.error(`Erreur lors de la récupération de l'ID utilisateur du client ${clientId}:`, error);
+    throw error;
+  }
+};
+
+/**
+ * Récupère les informations du commercial connecté
+ * @returns {Promise<Object>} - Informations du commercial
+ */
+const getCurrentCommercialInfo = async () => {
+  try {
+    const token = localStorage.getItem('token');
+    const user = JSON.parse(localStorage.getItem('user'));
+    
+    if (!token || !user?.id) {
+      throw new Error('Informations d\'authentification manquantes');
+    }
+
+    const response = await axios.get(`http://localhost:8080/api/commercials/user/${user.id}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+
+    const commercial = response.data;
+    return {
+      id: commercial.id,
+      name: `${commercial.firstName || ''} ${commercial.lastName || ''}`.trim() || 'Commercial',
+      userId: user.id
+    };
+  } catch (error) {
+    console.error('Erreur lors de la récupération des informations du commercial:', error);
+    return {
+      id: null,
+      name: 'Commercial',
+      userId: null
+    };
+  }
+};
+
+/**
+ * Envoie une notification unifiée (REST + WebSocket)
+ * @param {Object} notificationData - Données de la notification
+ * @param {number} notificationData.userId - ID utilisateur destinataire
+ * @param {string} notificationData.type - Type de notification
+ * @param {string} notificationData.title - Titre de la notification
+ * @param {string} notificationData.message - Message de la notification
+ * @param {string} notificationData.senderName - Nom de l'expéditeur
+ * @param {number} [notificationData.devisId] - ID du devis (optionnel)
+ * @param {string} [notificationData.link] - Lien de redirection (optionnel)
+ * @returns {Promise<boolean>} - Succès de l'envoi
+ */
+const sendUnifiedNotification = async (notificationData) => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('Token d\'authentification manquant');
+    }
+
+    // Validation des données obligatoires
+    const { userId, type, title, message, senderName } = notificationData;
+    if (!userId || !type || !title || !message || !senderName) {
+      throw new Error('Données de notification incomplètes');
+    }
+
+    // Structure de notification standardisée
+    const notification = {
+      userId: parseInt(userId),
+      type,
+      title,
+      message,
+      senderName,
+      ...(notificationData.devisId && { devisId: notificationData.devisId }),
+      ...(notificationData.link && { link: notificationData.link })
+    };
+
+    console.log('📤 Envoi de notification:', notification);
+
+    // 1. Envoi via API REST
+    const restResponse = await axios.post('http://localhost:8080/api/notifications/', notification, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    console.log('✅ Notification REST envoyée:', restResponse.data);
+
+    // 2. Envoi via WebSocket (si connecté)
+    if (notificationService.isConnected()) {
+      notificationService.sendNotification(`/topic/notifications/${userId}`, {
+        ...notification,
+        timestamp: new Date().toISOString()
+      });
+      console.log('✅ Notification WebSocket envoyée');
+    } else {
+      console.warn('⚠️ WebSocket non connecté, notification envoyée via REST uniquement');
+      
+      // Tentative de reconnexion WebSocket
+      const currentUser = JSON.parse(localStorage.getItem('user'));
+      if (currentUser?.id) {
+        notificationService.connect(currentUser.id, () => {
+          console.log('🔄 Reconnexion WebSocket réussie');
+        });
+      }
+    }
+
+    return true;
+  } catch (error) {
+    console.error('❌ Erreur lors de l\'envoi de la notification:', error);
+    return false;
+  }
+};
 
 
 const calculateDiscountPercentage = (prixUnitaire, prixApresRemise) => {
@@ -2239,295 +2376,136 @@ const analyzeProbability = async () => {
     const token = localStorage.getItem('token');
     const user = JSON.parse(localStorage.getItem('user'));
     
-    // Afficher modal de chargement avec barre linéaire ultra-moderne
-    const loadingModal = createModal('Analyse IA en cours', `
-      <style>
-        .ai-loader {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          padding: 40px;
-          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #667eea 100%);
-          background-size: 400% 400%;
-          animation: gradientShift 4s ease infinite;
-          color: white;
-          border-radius: 25px;
-          box-shadow: 0 25px 50px rgba(0,0,0,0.15), 0 0 0 1px rgba(255,255,255,0.1);
-          position: relative;
-          overflow: hidden;
-        }
+    // Modal de chargement avec design moderne et épuré
+   const loadingModal = createModal('Traitement en cours', `
+  <style>
+    .loader-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px;
+      font-family: 'Inter', 'Segoe UI', sans-serif;
+      background: white;
+      color: #333;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      width: 100%;
+      max-width: 600px;
+      margin: 0 auto;
+      text-align: center;
+    }
 
-        @keyframes gradientShift {
-          0% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
-        }
+    .loader-title {
+      margin: 0 0 15px;
+      color: #2c3e50;
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
 
-        .ai-loader::before {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: -100%;
-          width: 100%;
-          height: 100%;
-          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-          animation: sweep 3s infinite;
-        }
+    .loader-description {
+      margin: 0 0 30px;
+      color: #7f8c8d;
+      font-size: 1rem;
+    }
 
-        @keyframes sweep {
-          0% { left: -100%; }
-          100% { left: 100%; }
-        }
+    .progress-container {
+      width: 100%;
+      margin-bottom: 30px;
+    }
 
-        .linear-progress {
-          width: 100%;
-          max-width: 500px;
-          margin: 30px 0;
-          background: rgba(255,255,255,0.15);
-          border-radius: 15px;
-          overflow: hidden;
-          height: 28px;
-          position: relative;
-          backdrop-filter: blur(15px);
-          box-shadow: 
-            inset 0 2px 4px rgba(0,0,0,0.1),
-            0 4px 8px rgba(0,0,0,0.1);
-          border: 1px solid rgba(255,255,255,0.2);
-        }
+    .progress-bar {
+      height: 6px;
+      width: 100%;
+      background: #ecf0f1;
+      border-radius: 3px;
+      overflow: hidden;
+    }
 
-        .progress-bar {
-          height: 100%;
-          position: relative;
-          border-radius: 15px;
-          overflow: hidden;
-        }
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: #3498db;
+      border-radius: 3px;
+      transition: width 0.4s ease;
+    }
 
-        .progress-fill {
-          height: 100%;
-          width: 0%;
-          background: linear-gradient(90deg, 
-            #00d4ff 0%, 
-            #5b86e5 25%, 
-            #36d1dc 50%, 
-            #4facfe 75%, 
-            #00f2fe 100%
-          );
-          background-size: 300% 100%;
-          animation: flowingGradient 2.5s ease infinite;
-          transition: width 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-          border-radius: 15px;
-          box-shadow: 
-            0 0 25px rgba(0, 212, 255, 0.6),
-            inset 0 1px 0 rgba(255,255,255,0.3);
-          position: relative;
-          overflow: hidden;
-        }
+    .progress-info {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 8px;
+      font-size: 0.85rem;
+      color: #95a5a6;
+    }
 
-        @keyframes flowingGradient {
-          0% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
-        }
+    .loading-indicator {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 20px;
+    }
 
-        .progress-fill::before {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: -100%;
-          width: 100%;
-          height: 100%;
-          background: linear-gradient(90deg, 
-            transparent, 
-            rgba(255,255,255,0.6), 
-            transparent
-          );
-          animation: shine 2s infinite;
-        }
+    .loading-dot {
+      width: 10px;
+      height: 10px;
+      background: #bdc3c7;
+      border-radius: 50%;
+      margin: 0 5px;
+      animation: loadingPulse 1.5s infinite ease-in-out;
+    }
 
-        @keyframes shine {
-          0% { left: -100%; }
-          100% { left: 100%; }
-        }
+    .loading-dot:nth-child(1) { animation-delay: 0s; }
+    .loading-dot:nth-child(2) { animation-delay: 0.2s; }
+    .loading-dot:nth-child(3) { animation-delay: 0.4s; }
 
-        .progress-fill::after {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: repeating-linear-gradient(
-            45deg,
-            transparent,
-            transparent 8px,
-            rgba(255,255,255,0.1) 8px,
-            rgba(255,255,255,0.1) 16px
-          );
-          animation: movingStripes 1.5s linear infinite;
-        }
+    @keyframes loadingPulse {
+      0%, 100% { transform: scale(1); opacity: 0.6; }
+      50% { transform: scale(1.2); opacity: 1; background: #3498db; }
+    }
 
-        @keyframes movingStripes {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(16px); }
-        }
+    .status-message {
+      margin-top: 25px;
+      padding: 12px 20px;
+      background: #f8f9fa;
+      border-radius: 20px;
+      font-size: 0.95rem;
+      color: #34495e;
+      display: inline-block;
+      transition: all 0.3s ease;
+    }
+  </style>
 
-        .progress-text {
-          position: absolute;
-          top: -40px;
-          right: 0;
-          font-size: 18px;
-          font-weight: 800;
-          color: #fff;
-          text-shadow: 0 2px 8px rgba(0,0,0,0.4);
-          background: rgba(255,255,255,0.1);
-          padding: 5px 12px;
-          border-radius: 20px;
-          backdrop-filter: blur(10px);
-          border: 1px solid rgba(255,255,255,0.2);
-          transition: all 0.3s ease;
-        }
-
-        .progress-text.updating {
-          transform: scale(1.1);
-          background: rgba(0, 212, 255, 0.3);
-        }
-
-        .ai-title {
-          margin-top: 35px;
-          color: #fff;
-          font-size: 2rem;
-          font-weight: 800;
-          text-shadow: 0 3px 6px rgba(0,0,0,0.4);
-          display: flex;
-          align-items: center;
-          gap: 18px;
-          letter-spacing: 0.5px;
-        }
-
-        .ai-icon {
-          font-size: 2.5rem;
-          animation: smartPulse 2.5s infinite;
-          filter: drop-shadow(0 0 10px rgba(255,255,255,0.3));
-        }
-
-        @keyframes smartPulse {
-          0%, 100% { 
-            transform: scale(1) rotate(0deg); 
-            filter: drop-shadow(0 0 10px rgba(255,255,255,0.3));
-          }
-          25% { 
-            transform: scale(1.05) rotate(2deg); 
-            filter: drop-shadow(0 0 15px rgba(0,212,255,0.5));
-          }
-          50% { 
-            transform: scale(1.1) rotate(0deg); 
-            filter: drop-shadow(0 0 20px rgba(91,134,229,0.6));
-          }
-          75% { 
-            transform: scale(1.05) rotate(-2deg); 
-            filter: drop-shadow(0 0 15px rgba(54,209,220,0.5));
-          }
-        }
-
-        #ai-status {
-          margin-top: 20px;
-          font-size: 17px;
-          color: rgba(255,255,255,0.95);
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-          background: rgba(255,255,255,0.1);
-          padding: 12px 20px;
-          border-radius: 25px;
-          backdrop-filter: blur(10px);
-          border: 1px solid rgba(255,255,255,0.15);
-          min-height: 50px;
-          justify-content: center;
-        }
-
-        .status-icon {
-          font-size: 1.4rem;
-          animation: dynamicRotate 3s linear infinite;
-          filter: drop-shadow(0 0 8px rgba(255,255,255,0.4));
-        }
-
-        @keyframes dynamicRotate {
-          0% { transform: rotate(0deg) scale(1); }
-          25% { transform: rotate(90deg) scale(1.1); }
-          50% { transform: rotate(180deg) scale(1); }
-          75% { transform: rotate(270deg) scale(1.1); }
-          100% { transform: rotate(360deg) scale(1); }
-        }
-
-        .status-change {
-          animation: statusTransition 0.8s ease;
-        }
-
-        @keyframes statusTransition {
-          0% { 
-            transform: scale(1) translateY(0); 
-            opacity: 1; 
-          }
-          25% { 
-            transform: scale(0.95) translateY(-5px); 
-            opacity: 0.7; 
-          }
-          50% { 
-            transform: scale(1.05) translateY(0); 
-            opacity: 0.9; 
-            background: rgba(0,212,255,0.2);
-          }
-          75% { 
-            transform: scale(1.02) translateY(2px); 
-            opacity: 0.95; 
-          }
-          100% { 
-            transform: scale(1) translateY(0); 
-            opacity: 1; 
-          }
-        }
-
-        .completion-effect {
-          animation: completionCelebration 1s ease;
-        }
-
-        @keyframes completionCelebration {
-          0% { transform: scale(1); }
-          25% { transform: scale(1.05); background: rgba(0,255,0,0.2); }
-          50% { transform: scale(1.1); background: rgba(0,255,0,0.3); }
-          75% { transform: scale(1.05); background: rgba(0,255,0,0.2); }
-          100% { transform: scale(1); }
-        }
-      </style>
-
-      <div class="ai-loader">
-        <div class="linear-progress">
-          <div class="progress-bar">
-            <div class="progress-fill" style="width: 0%"></div>
-          </div>
-          <div class="progress-text">0%</div>
-        </div>
-        <h3 class="ai-title">
-          <span class="ai-icon">🤖</span>
-          SofIMed Analytics Pro
-        </h3>
-        <p id="ai-status">
-          <span class="status-icon">⚙️</span>
-          Initialisation du système IA...
-        </p>
+  <div class="loader-container">
+    <h3 class="loader-title">Analyse en cours</h3>
+    <p class="loader-description">Veuillez patienter pendant le traitement des données</p>
+    
+    <div class="progress-container">
+      <div class="progress-bar">
+        <div class="progress-fill" style="width: 0%"></div>
       </div>
-    `);
+      <div class="progress-info">
+        <span>0%</span>
+        <span>Terminé</span>
+      </div>
+    </div>
+    
+    <div class="loading-indicator">
+      <div class="loading-dot"></div>
+      <div class="loading-dot"></div>
+      <div class="loading-dot"></div>
+    </div>
+    
+    <div class="status-message" id="status-message">Initialisation du système...</div>
+  </div>
+`);
 
-    // Animation de progression améliorée
+    // Animation de progression
     const statusTexts = [
-      { text: "Initialisation du système IA...", icon: "⚙️" },
-      { text: "Collecte des données client...", icon: "📊" },
-      { text: "Analyse comportementale en cours...", icon: "🧠" },
-      { text: "Calcul des probabilités avancées...", icon: "🔬" },
-      { text: "Génération du rapport intelligent...", icon: "📋" },
-      { text: "Finalisation de l'analyse...", icon: "✨" }
+      "Initialisation du système IA...",
+      "Collecte des données client...",
+      "Analyse des patterns comportementaux...",
+      "Traitement de la négociation...",
+      "Génération du rapport intelligent...",
+      "Finalisation de l'analyse..."
     ];
 
     let currentStep = 0;
@@ -2537,31 +2515,18 @@ const analyzeProbability = async () => {
       try {
         if (currentStep < maxSteps) {
           const statusElement = document.getElementById('ai-status');
-          const progressFill = document.querySelector('.progress-fill');
-          const progressText = document.querySelector('.progress-text');
+          const progressPercentage = document.querySelector('.progress-percentage');
           
-          if (statusElement && progressFill && progressText) {
-            // Vérification robuste
-            const currentStatus = statusTexts[currentStep];
-            if (currentStatus) {
-              const icon = currentStatus.icon || "⚙️"; // Icône par défaut
-              const text = currentStatus.text || "Traitement en cours..."; // Texte par défaut
-              
-              // Ajouter effet de pulsation au changement
-              statusElement.classList.add('status-change');
-              
-              setTimeout(() => {
-                statusElement.innerHTML = `
-                  <span class="status-icon">${icon}</span>
-                  ${text}
-                `;
-                statusElement.classList.remove('status-change');
-              }, 300);
-              
-              const percentage = Math.round((currentStep + 1) * (100 / maxSteps));
-              progressFill.style.width = `${percentage}%`;
-              progressText.textContent = `${percentage}%`;
-            }
+          if (statusElement && progressPercentage) {
+            statusElement.classList.add('status-change');
+            
+            setTimeout(() => {
+              statusElement.textContent = statusTexts[currentStep];
+              statusElement.classList.remove('status-change');
+            }, 300);
+            
+            const percentage = Math.round((currentStep + 1) * (100 / maxSteps));
+            progressPercentage.textContent = `${percentage}%`;
             currentStep++;
           }
         } else {
@@ -2571,15 +2536,14 @@ const analyzeProbability = async () => {
         console.error('Erreur dans l\'animation de progression:', error);
         clearInterval(progressInterval);
       }
-    }, 1200); // Temps entre chaque étape augmenté à 1.2 secondes
+    }, 1000);
 
-    // Récupération des données (inchangé)
+    // Récupération des données client
     const clientStats = await axios.get(
       `http://localhost:8080/api/client-stats/${clientInfo.id}`,
       { headers: { 'Authorization': `Bearer ${token}` } }
     );
 
-    // Récupérer l'userId du client pour les sessions
     const clientUserResponse = await axios.get(
       `http://localhost:8080/api/clients/${clientInfo.id}/user-id`,
       { headers: { 'Authorization': `Bearer ${token}` } }
@@ -2587,7 +2551,6 @@ const analyzeProbability = async () => {
     
     const clientUserId = clientUserResponse.data;
 
-    // Récupérer le temps total passé dans l'application
     const sessionResponse = await axios.get(
       `http://localhost:8080/api/sessions/totalDuration/${clientUserId}`,
       { headers: { 'Authorization': `Bearer ${token}` } }
@@ -2595,8 +2558,7 @@ const analyzeProbability = async () => {
     
     const tempsPasseMinutes = Math.round(sessionResponse.data / (1000 * 60));
 
-    // Récupérer le temps de réponse moyen de la messagerie
-    let tempsReponseMessagerie = 2; // Valeur par défaut
+    let tempsReponseMessagerie = 2;
     try {
       const messageResponse = await axios.get(
         `http://localhost:8080/api/messages/temps-reponse-moyen-client/${devis.id}?clientId=${clientInfo.id}`,
@@ -2610,7 +2572,6 @@ const analyzeProbability = async () => {
     const nbProduitsDevis = produits.length;
     const nbProduitsDejaPurchased = produits.filter(p => purchaseCounts[p.id] > 0).length;
     
-    // Calcul du délai de traitement
     let delaiTraitementHeures = 0;
     if (devis && devis.createdAt) {
         const currentTime = new Date();
@@ -2632,6 +2593,7 @@ const analyzeProbability = async () => {
       ratio_produits_achetes: nbProduitsDevis > 0 ? nbProduitsDejaPurchased / nbProduitsDevis : 0
     };
 
+    // Appel à l'API de prédiction
     const response = await axios.post(
       'http://localhost:8080/api/predictions/analyze',
       modelData,
@@ -2643,10 +2605,21 @@ const analyzeProbability = async () => {
       }
     );
 
+    // Appel à l'API de négociation
+    let negotiationData = null;
+    try {
+      const negotiationResponse = await axios.get(
+        `http://localhost:8080/api/negotiation/devis/${devis.id}/analysis`,
+        { headers: { 'Authorization': `Bearer ${token}` } }
+      );
+      negotiationData = negotiationResponse.data;
+    } catch (error) {
+      console.warn('Impossible de récupérer l\'analyse de négociation:', error);
+    }
+
     // Animation de fermeture du modal de chargement
     clearInterval(progressInterval);
     
-    // Effet de fondu pour fermer le modal
     loadingModal.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
     loadingModal.style.opacity = '0';
     loadingModal.style.transform = 'scale(0.9)';
@@ -2655,337 +2628,287 @@ const analyzeProbability = async () => {
       loadingModal.remove();
     }, 500);
 
-    // Créer le modal avec résultats professionnels - DESIGN CLAIR
-    const modal = createModal('📊 Rapport d\'Analyse IA', `
-      <div class="ai-report" style="font-family: 'Segoe UI', sans-serif; max-width: 900px; margin: 0 auto; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 5px 25px rgba(0,0,0,0.05);">
-        <header style="padding: 25px; background: #f8f9fc; border-bottom: 1px solid #eaeef5; display: flex; justify-content: space-between; align-items: center;">
-          <div style="display: flex; align-items: center; gap: 15px;">
-            <div style="width: 50px; height: 50px; background: #f0f7ff; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-              <div style="width: 30px; height: 30px; background: #4CAF50; border-radius: 50%;"></div>
-            </div>
-            <div>
-              <h1 style="margin: 0; color: #333; font-size: 1.5rem; font-weight: 600;">SofIMed AI</h1>
-              <p style="margin: 5px 0 0; color: #666;">Intelligence Artificielle Avancée</p>
-              <div style="font-size: 0.85rem; color: #999; margin-top: 5px;">
-                Analyse générée le ${new Date().toLocaleDateString('fr-FR', { 
-                  day: 'numeric', 
-                  month: 'long', 
-                  year: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit'
-                })}
+    // NOUVEAU DESIGN PROFESSIONNEL SANS ANALYSE COMPORTEMENTALE
+    const modal = createModal('📊 Rapport d\'Analyse IA Avancée', `
+      <div class="ai-report-container" style="font-family: 'Inter', 'Segoe UI', sans-serif; max-width: 1000px; margin: 0 auto; background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.1);">
+        
+        <!-- En-tête Premium -->
+        <header style="padding: 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; position: relative; overflow: hidden;">
+          <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: url('data:image/svg+xml,%3Csvg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"%3E%3Cdefs%3E%3Cpattern id=\"grain\" width=\"100\" height=\"100\" patternUnits=\"userSpaceOnUse\"%3E%3Ccircle cx=\"50\" cy=\"50\" r=\"1\" fill=\"%23ffffff\" opacity=\"0.1\"/%3E%3C/pattern%3E%3C/defs%3E%3Crect width=\"100\" height=\"100\" fill=\"url(%23grain)\"/%3E%3C/svg%3E'); opacity: 0.3;"></div>
+          <div style="position: relative; z-index: 1; display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 20px;">
+              <div style="width: 60px; height: 60px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px);">
+                <div style="width: 35px; height: 35px; background: #4CAF50; border-radius: 50%; animation: pulse 2s infinite;"></div>
+              </div>
+              <div>
+                <h1 style="margin: 0; font-size: 1.8rem; font-weight: 700; letter-spacing: -0.5px;">SofIMed AI Analytics</h1>
+                <p style="margin: 5px 0 0; opacity: 0.9; font-size: 1rem;">Intelligence Artificielle Avancée</p>
+                <div style="font-size: 0.85rem; opacity: 0.8; margin-top: 8px;">
+                  📅 ${new Date().toLocaleDateString('fr-FR', { 
+                    day: 'numeric', 
+                    month: 'long', 
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })}
+                </div>
               </div>
             </div>
-          </div>
-          <div style="background: #e8f5e9; border-radius: 8px; padding: 10px 15px; display: flex; align-items: center; gap: 10px;">
-            <div style="font-size: 1.2rem;">🎯</div>
-            <div>
-              <div style="font-size: 0.9rem; color: #388e3c;">Rapport Certifié</div>
-              <div style="font-weight: 600; color: #2e7d32;">IA Premium</div>
+            <div style="background: rgba(255,255,255,0.15); border-radius: 12px; padding: 15px 20px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2);">
+              <div style="font-size: 1.1rem; margin-bottom: 5px;">🎯 Rapport Certifié</div>
+              <div style="font-weight: 600; font-size: 1.1rem;">IA Premium</div>
             </div>
           </div>
         </header>
 
-        <section style="padding: 30px; display: flex; flex-wrap: wrap; gap: 30px; border-bottom: 1px solid #eee;">
-          <div style="flex: 1; min-width: 250px; display: flex; justify-content: center;">
-            <div style="text-align: center;">
-              <div style="font-size: 3rem; font-weight: bold; color: #4CAF50; line-height: 1;">${Math.round(response.data.pourcentageAcceptation)}%</div>
-              <div style="color: #666; margin-top: 10px; font-size: 1.1rem;">Probabilité d'Acceptation</div>
-            </div>
-          </div>
-          
-          <div style="flex: 1; min-width: 250px;">
-            <h3 style="margin-top: 0; color: #333; font-size: 1.2rem;">Niveau de Confiance</h3>
-            <div style="margin-top: 15px;">
-              <div style="height: 10px; background: #f0f0f0; border-radius: 5px; overflow: hidden;">
-                <div class="confidence-bar" style="height: 100%; background: #4CAF50; width: 0%; border-radius: 5px;"></div>
+        <!-- Section Probabilité Principale -->
+        <section style="padding: 40px; background: linear-gradient(135deg, #f8f9fc 0%, #ffffff 100%); border-bottom: 1px solid #eee;">
+          <div style="display: flex; flex-wrap: wrap; gap: 40px; align-items: center;">
+            
+            <!-- Probabilité Principale -->
+            <div style="flex: 1; min-width: 300px; text-align: center;">
+              <div style="position: relative; display: inline-block;">
+                <div style="width: 180px; height: 180px; border-radius: 50%; background: conic-gradient(from 0deg, #4CAF50 0%, #4CAF50 ${Math.round(response.data.pourcentageAcceptation)}%, #e0e0e0 ${Math.round(response.data.pourcentageAcceptation)}%, #e0e0e0 100%); display: flex; align-items: center; justify-content: center; animation: rotateIn 1s ease-out;">
+                  <div style="width: 140px; height: 140px; background: white; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 5px 20px rgba(0,0,0,0.1);">
+                    <div style="font-size: 2.5rem; font-weight: 800; color: #4CAF50; line-height: 1;">${Math.round(response.data.pourcentageAcceptation)}%</div>
+                    <div style="color: #666; font-size: 0.9rem; margin-top: 5px;">Probabilité</div>
+                  </div>
+                </div>
               </div>
-              <div style="display: flex; justify-content: space-between; margin-top: 8px; color: #666; font-size: 0.9rem;">
-                <span>Faible</span>
-                <span>${Math.round(response.data.details.confiance * 100)}%</span>
-                <span>Élevée</span>
-              </div>
+              <h3 style="margin: 20px 0 10px; color: #333; font-size: 1.4rem; font-weight: 600;">Probabilité d'Acceptation</h3>
+              <p style="color: #666; margin: 0; font-size: 1rem;">Analyse prédictive basée sur l'IA</p>
             </div>
             
-            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 30px;">
-              <div style="display: flex; align-items: center; gap: 10px; background: #f9f9f9; padding: 12px; border-radius: 8px;">
-                <div style="font-size: 1.2rem; color: #4CAF50;">🔬</div>
-                <span style="font-size: 0.9rem;">Analyse Multi-Factorielle</span>
+            <!-- Niveau de Confiance -->
+            <div style="flex: 1; min-width: 300px;">
+              <h3 style="margin-top: 0; color: #333; font-size: 1.3rem; font-weight: 600; margin-bottom: 20px;">📊 Niveau de Confiance</h3>
+              <div style="margin-bottom: 25px;">
+                <div style="height: 12px; background: #f0f0f0; border-radius: 6px; overflow: hidden; position: relative;">
+                  <div class="confidence-bar" style="height: 100%; background: linear-gradient(90deg, #4CAF50, #66BB6A); width: 0%; border-radius: 6px; transition: width 2s ease-out;"></div>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-top: 10px; color: #666; font-size: 0.9rem;">
+                  <span>Faible</span>
+                  <span style="font-weight: 600; color: #4CAF50;">${Math.round(response.data.details.confiance * 100)}%</span>
+                  <span>Élevée</span>
+                </div>
               </div>
-              <div style="display: flex; align-items: center; gap: 10px; background: #f9f9f9; padding: 12px; border-radius: 8px;">
-                <div style="font-size: 1.2rem; color: #4CAF50;">⚡</div>
-                <span style="font-size: 0.9rem;">Traitement Temps Réel</span>
-              </div>
-              <div style="display: flex; align-items: center; gap: 10px; background: #f9f9f9; padding: 12px; border-radius: 8px;">
-                <div style="font-size: 1.2rem; color: #4CAF50;">📊</div>
-                <span style="font-size: 0.9rem;">Algorithme Avancé</span>
-              </div>
-              <div style="display: flex; align-items: center; gap: 10px; background: #f9f9f9; padding: 12px; border-radius: 8px;">
-                <div style="font-size: 1.2rem; color: #4CAF50;">🛡️</div>
-                <span style="font-size: 0.9rem;">Données Sécurisées</span>
+              
+              <!-- Indicateurs de Qualité -->
+              <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                <div style="display: flex; align-items: center; gap: 10px; background: #f8f9fc; padding: 12px; border-radius: 10px; border-left: 4px solid #4CAF50;">
+                  <span style="font-size: 1.1rem;">🔬</span>
+                  <span style="font-size: 0.9rem; font-weight: 500;">Multi-Factorielle</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px; background: #f8f9fc; padding: 12px; border-radius: 10px; border-left: 4px solid #2196F3;">
+                  <span style="font-size: 1.1rem;">⚡</span>
+                  <span style="font-size: 0.9rem; font-weight: 500;">Temps Réel</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px; background: #f8f9fc; padding: 12px; border-radius: 10px; border-left: 4px solid #FF9800;">
+                  <span style="font-size: 1.1rem;">📊</span>
+                  <span style="font-size: 0.9rem; font-weight: 500;">Algorithme Avancé</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px; background: #f8f9fc; padding: 12px; border-radius: 10px; border-left: 4px solid #9C27B0;">
+                  <span style="font-size: 1.1rem;">🛡️</span>
+                  <span style="font-size: 0.9rem; font-weight: 500;">Sécurisé</span>
+                </div>
               </div>
             </div>
           </div>
         </section>
 
-        <section style="padding: 30px; background: #f8f9fc;">
-          <h2 style="display: flex; align-items: center; gap: 10px; color: #333; margin-top: 0; font-size: 1.4rem;">
-            <span>📊</span> Analyse Détaillée des Métriques
+        ${negotiationData ? `
+        <!-- Section Analyse de Négociation -->
+        <section style="padding: 40px; background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%); border-bottom: 1px solid #ddd;">
+          <h2 style="display: flex; align-items: center; gap: 12px; color: #2e7d32; margin-top: 0; font-size: 1.5rem; font-weight: 700; margin-bottom: 25px;">
+            <span style="font-size: 1.8rem;">🤝</span> Analyse de Négociation
           </h2>
-          <p style="color: #666; margin-bottom: 25px; font-size: 0.95rem;">Toutes les données analysées par l'IA</p>
           
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
-            <!-- Section Métriques Commerciales -->
-            <div style="background: #fff; border-radius: 10px; padding: 20px; box-shadow: 0 3px 10px rgba(0,0,0,0.03);">
-              <h3 style="display: flex; align-items: center; gap: 8px; color: #333; margin-top: 0; font-size: 1.1rem;">💼 Métriques Commerciales</h3>
-              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px;">
-                <div>
-                  <div style="font-size: 1.5rem; font-weight: bold; color: #333;">${modelData.totalCommandes}</div>
-                  <div style="color: #666; font-size: 0.9rem;">Total Commandes</div>
-                  <div style="color: #4CAF50; font-size: 0.85rem; margin-top: 5px;">Performance excellente</div>
-                </div>
-                <div>
-                  <div style="font-size: 1.5rem; font-weight: bold; color: #333;">${modelData.totalDevis}</div>
-                  <div style="color: #666; font-size: 0.9rem;">Total Devis</div>
-                  <div style="color: #666; font-size: 0.85rem; margin-top: 5px;">Flux régulier</div>
-                </div>
-                <div>
-                  <div style="font-size: 1.5rem; font-weight: bold; color: #333;">${modelData.totalMontantCommandes.toLocaleString('fr-FR')} MAD</div>
-                  <div style="color: #666; font-size: 0.9rem;">Montant Total</div>
-                  <div style="color: #4CAF50; font-size: 0.85rem; margin-top: 5px;">Croissance solide</div>
-                </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px;">
+            
+            <!-- Interprétation Principale -->
+            <div style="background: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-left: 5px solid #4CAF50;">
+              <h3 style="display: flex; align-items: center; gap: 10px; color: #2e7d32; margin-top: 0; font-size: 1.2rem; margin-bottom: 15px;">
+                <span style="font-size: 1.5rem;">${negotiationData.sentimentEmoji}</span>
+                Interprétation IA
+              </h3>
+              <div style="background: linear-gradient(135deg, #e8f5e9, #f1f8e9); padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                <p style="margin: 0; font-size: 1.1rem; font-weight: 600; color: #2e7d32; text-align: center;">
+                  "${negotiationData.interpretation}"
+                </p>
+              </div>
+              <div style="display: flex; align-items: center; gap: 10px; color: #666; font-size: 0.9rem;">
+                <span>📈</span>
+                <span>Probabilité de négociation: <strong>${Math.round(negotiationData.acceptanceProbability)}%</strong></span>
               </div>
             </div>
-
-            <!-- Section Métriques Produits -->
-            <div style="background: #fff; border-radius: 10px; padding: 20px; box-shadow: 0 3px 10px rgba(0,0,0,0.03);">
-              <h3 style="display: flex; align-items: center; gap: 8px; color: #333; margin-top: 0; font-size: 1.1rem;">🛍️ Métriques Produits</h3>
-              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px;">
-                <div>
-                  <div style="font-size: 1.5rem; font-weight: bold; color: #333;">${modelData.nb_produits_devis}</div>
-                  <div style="color: #666; font-size: 0.9rem;">Produits dans Devis</div>
-                  <div style="color: #666; font-size: 0.85rem; margin-top: 5px;">Panier moyen</div>
-                </div>
-                <div>
-                  <div style="font-size: 1.5rem; font-weight: bold; color: #333;">${modelData.nb_produits_deja_achetes}</div>
-                  <div style="color: #666; font-size: 0.9rem;">Produits Déjà Achetés</div>
-                  <div style="color: #4CAF50; font-size: 0.85rem; margin-top: 5px;">Fidélité prouvée</div>
-                </div>
-                <div>
-                  <div style="font-size: 1.5rem; font-weight: bold; color: #333;">${(modelData.ratio_produits_achetes * 100).toFixed(1)}%</div>
-                  <div style="color: #666; font-size: 0.9rem;">Ratio Produits Achetés</div>
-                  <div style="color: ${modelData.ratio_produits_achetes > 0.5 ? '#4CAF50' : '#FF9800'}; font-size: 0.85rem; margin-top: 5px;">
-                    ${modelData.ratio_produits_achetes > 0.5 ? 'Excellent' : 'Modéré'}
+            
+            <!-- Recommandations -->
+            <div style="background: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); grid-column: 1 / -1;">
+              <h3 style="display: flex; align-items: center; gap: 10px; color: #333; margin-top: 0; font-size: 1.2rem; margin-bottom: 20px;">
+                <span>💡</span> Recommandations Stratégiques
+              </h3>
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                ${negotiationData.recommendations.map((rec, index) => `
+                  <div style="display: flex; align-items: center; gap: 12px; padding: 15px; background: linear-gradient(135deg, #e3f2fd, #f3e5f5); border-radius: 10px; border-left: 4px solid #2196F3;">
+                    <div style="width: 30px; height: 30px; background: #2196F3; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.9rem;">
+                      ${index + 1}
+                    </div>
+                    <span style="color: #333; font-weight: 500;">${rec}</span>
                   </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Section Métriques Temporelles -->
-            <div style="background: #fff; border-radius: 10px; padding: 20px; box-shadow: 0 3px 10px rgba(0,0,0,0.03);">
-              <h3 style="display: flex; align-items: center; gap: 8px; color: #333; margin-top: 0; font-size: 1.1rem;">⏱️ Métriques Temporelles</h3>
-              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px;">
-                <div>
-                  <div style="font-size: 1.5rem; font-weight: bold; color: #333;">${modelData.temps_dans_application_min} min</div>
-                  <div style="color: #666; font-size: 0.9rem;">Temps dans Application</div>
-                  <div style="color: #666; font-size: 0.85rem; margin-top: 5px;">
-                    ${modelData.temps_dans_application_min > 60 ? 'Très engagé' : 'Engagement modéré'}
-                  </div>
-                </div>
-                <div>
-                  <div style="font-size: 1.5rem; font-weight: bold; color: #333;">${tempsReponseMessagerie} min</div>
-                  <div style="color: #666; font-size: 0.9rem;">Temps Réponse Messagerie</div>
-                  <div style="color: ${tempsReponseMessagerie <= 5 ? '#4CAF50' : '#FF9800'}; font-size: 0.85rem; margin-top: 5px;">
-                    ${tempsReponseMessagerie <= 5 ? 'Rapide' : 'Lent'}
-                  </div>
-                </div>
-                <div>
-                  <div style="font-size: 1.5rem; font-weight: bold; color: #333;">${delaiTraitementHeures}h</div>
-                  <div style="color: #666; font-size: 0.9rem;">Délai Traitement Devis</div>
-                  <div style="color: ${delaiTraitementHeures <= 24 ? '#4CAF50' : '#FF9800'}; font-size: 0.85rem; margin-top: 5px;">
-                    ${delaiTraitementHeures <= 24 ? 'Urgent' : 'En cours'}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Section Métriques Performance -->
-            <div style="background: #fff; border-radius: 10px; padding: 20px; box-shadow: 0 3px 10px rgba(0,0,0,0.03);">
-              <h3 style="display: flex; align-items: center; gap: 8px; color: #333; margin-top: 0; font-size: 1.1rem;">📈 Métriques Performance</h3>
-              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px;">
-                <div>
-                  <div style="font-size: 1.5rem; font-weight: bold; color: #333;">${modelData.taux_conversion.toFixed(1)}%</div>
-                  <div style="color: #666; font-size: 0.9rem;">Taux de Conversion</div>
-                  <div style="color: ${modelData.taux_conversion > 20 ? '#4CAF50' : '#FF9800'}; font-size: 0.85rem; margin-top: 5px;">
-                    ${modelData.taux_conversion > 20 ? 'Excellent' : 'À améliorer'}
-                  </div>
-                </div>
-                <div>
-                  <div style="font-size: 1.5rem; font-weight: bold; color: #333;">${modelData.moyenne_montant_commande.toLocaleString('fr-FR')} MAD</div>
-                  <div style="color: #666; font-size: 0.9rem;">Moyenne Montant Commande</div>
-                  <div style="color: #666; font-size: 0.85rem; margin-top: 5px;">Valeur moyenne</div>
-                </div>
+                `).join('')}
               </div>
             </div>
           </div>
         </section>
+        ` : ''}
 
-        <section style="padding: 30px;">
-          <h2 style="display: flex; align-items: center; gap: 10px; color: #333; margin-top: 0; font-size: 1.4rem;">
-            <span>🧠</span> Insights IA Avancés
+        <!-- Section Métriques Détaillées -->
+        <section style="padding: 40px; background: #f8f9fc;">
+          <h2 style="display: flex; align-items: center; gap: 12px; color: #333; margin-top: 0; font-size: 1.4rem; font-weight: 700; margin-bottom: 30px;">
+            <span>📊</span> Métriques Détaillées
           </h2>
-          <p style="color: #666; margin-bottom: 25px; font-size: 0.95rem;">Analyse prédictive et recommandations</p>
           
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
-            <div style="display: flex; gap: 15px; background: #f9f9f9; border-radius: 12px; padding: 20px;">
-              <div style="font-size: 1.8rem; color: #4CAF50;">🎯</div>
-              <div>
-                <h4 style="margin: 0 0 8px 0; color: #333; font-size: 1.2rem;">Analyse Prédictive</h4>
-                <p style="margin: 0; color: #666; font-size: 0.95rem; line-height: 1.5;">
-                  Le modèle d'IA a analysé <strong>${Object.keys(modelData).length} paramètres</strong> avec un algorithme de machine learning pour cette prédiction.
-                </p>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+            
+            <!-- Métriques Commerciales -->
+            <div style="background: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+              <h3 style="display: flex; align-items: center; gap: 10px; color: #333; margin-top: 0; font-size: 1.1rem; margin-bottom: 20px;">
+                💼 Métriques Commerciales
+              </h3>
+              <div style="display: grid; gap: 15px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f8f9fc; border-radius: 8px;">
+                  <span style="color: #666; font-size: 0.9rem;">Total Commandes</span>
+                  <span style="font-weight: 700; color: #333; font-size: 1.1rem;">${modelData.totalCommandes}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f8f9fc; border-radius: 8px;">
+                  <span style="color: #666; font-size: 0.9rem;">Total Devis</span>
+                  <span style="font-weight: 700; color: #333; font-size: 1.1rem;">${modelData.totalDevis}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f8f9fc; border-radius: 8px;">
+                  <span style="color: #666; font-size: 0.9rem;">Montant Total</span>
+                  <span style="font-weight: 700; color: #4CAF50; font-size: 1.1rem;">${modelData.totalMontantCommandes.toLocaleString('fr-FR')} MAD</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #e8f5e9; border-radius: 8px;">
+                  <span style="color: #2e7d32; font-size: 0.9rem;">Taux de Conversion</span>
+                  <span style="font-weight: 700; color: #2e7d32; font-size: 1.1rem;">${modelData.taux_conversion.toFixed(1)}%</span>
+                </div>
               </div>
             </div>
             
-            <div style="display: flex; gap: 15px; background: #f9f9f9; border-radius: 12px; padding: 20px;">
-              <div style="font-size: 1.8rem; color: #4CAF50;">⚡</div>
-              <div>
-                <h4 style="margin: 0 0 8px 0; color: #333; font-size: 1.2rem;">Traitement Temps Réel</h4>
-                <p style="margin: 0; color: #666; font-size: 0.95rem; line-height: 1.5;">
-                  Analyse effectuée en temps réel avec les <strong>dernières données</strong> disponibles dans votre système.
-                </p>
+            <!-- Métriques Produits -->
+            <div style="background: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+              <h3 style="display: flex; align-items: center; gap: 10px; color: #333; margin-top: 0; font-size: 1.1rem; margin-bottom: 20px;">
+                📦 Métriques Produits
+              </h3>
+              <div style="display: grid; gap: 15px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f8f9fc; border-radius: 8px;">
+                  <span style="color: #666; font-size: 0.9rem;">Produits dans le devis</span>
+                  <span style="font-weight: 700; color: #333; font-size: 1.1rem;">${modelData.nb_produits_devis}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f8f9fc; border-radius: 8px;">
+                  <span style="color: #666; font-size: 0.9rem;">Déjà achetés</span>
+                  <span style="font-weight: 700; color: #333; font-size: 1.1rem;">${modelData.nb_produits_deja_achetes}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #e3f2fd; border-radius: 8px;">
+                  <span style="color: #1976d2; font-size: 0.9rem;">Ratio d'achat</span>
+                  <span style="font-weight: 700; color: #1976d2; font-size: 1.1rem;">${(modelData.ratio_produits_achetes * 100).toFixed(1)}%</span>
+                </div>
               </div>
             </div>
             
-            <div style="display: flex; gap: 15px; background: #f9f9f9; border-radius: 12px; padding: 20px;">
-              <div style="font-size: 1.8rem; color: #4CAF50;">📊</div>
-              <div>
-                <h4 style="margin: 0 0 8px 0; color: #333; font-size: 1.2rem;">Algorithme Avancé</h4>
-                <p style="margin: 0; color: #666; font-size: 0.95rem; line-height: 1.5;">
-                  Utilisation de <strong>techniques de régression</strong> et d'apprentissage automatique pour une précision optimale.
-                </p>
-              </div>
-            </div>
-            
-            <div style="display: flex; gap: 15px; background: #f9f9f9; border-radius: 12px; padding: 20px;">
-              <div style="font-size: 1.8rem; color: #4CAF50;">🛡️</div>
-              <div>
-                <h4 style="margin: 0 0 8px 0; color: #333; font-size: 1.2rem;">Sécurité & Confidentialité</h4>
-                <p style="margin: 0; color: #666; font-size: 0.95rem; line-height: 1.5;">
-                  Toutes les données sont <strong>chiffrées</strong> et traitées selon les standards de sécurité les plus élevés.
-                </p>
+            <!-- Métriques Temporelles -->
+            <div style="background: white; border-radius: 12px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+              <h3 style="display: flex; align-items: center; gap: 10px; color: #333; margin-top: 0; font-size: 1.1rem; margin-bottom: 20px;">
+                ⏱️ Métriques Temporelles
+              </h3>
+              <div style="display: grid; gap: 15px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f8f9fc; border-radius: 8px;">
+                  <span style="color: #666; font-size: 0.9rem;">Temps dans l'app</span>
+                  <span style="font-weight: 700; color: #333; font-size: 1.1rem;">${modelData.temps_dans_application_min} min</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f8f9fc; border-radius: 8px;">
+                  <span style="color: #666; font-size: 0.9rem;">Réponse messagerie</span>
+                  <span style="font-weight: 700; color: #333; font-size: 1.1rem;">${modelData.temps_reponse_messagerie_min} min</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #fff3e0; border-radius: 8px;">
+                  <span style="color: #f57c00; font-size: 0.9rem;">Délai traitement</span>
+                  <span style="font-weight: 700; color: #f57c00; font-size: 1.1rem;">${modelData.delai_traitement_devis_hrs}h</span>
+                </div>
               </div>
             </div>
           </div>
         </section>
 
-        <footer style="display: flex; justify-content: space-between; padding: 20px; background: #f8f9fc; border-top: 1px solid #eaeef5; font-size: 0.9rem;">
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <div style="font-size: 1.2rem; color: #4CAF50;">🤖</div>
-            <div>
-              <div style="font-weight: bold; color: #333;">SofIMed AI</div>
-              <div style="color: #666;">Rapport généré par Intelligence Artificielle</div>
+        <!-- Pied de page -->
+        <footer style="padding: 25px 40px; background: #333; color: white; text-align: center;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
+            <div style="display: flex; align-items: center; gap: 15px;">
+              <div style="width: 40px; height: 40px; background: #4CAF50; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <span style="font-size: 1.2rem;">🤖</span>
+              </div>
+              <div>
+                <div style="font-weight: 600;">SofIMed AI v2.1</div>
+                <div style="font-size: 0.85rem; opacity: 0.8;">Précision: ${Math.round(response.data.details.confiance * 100)}%</div>
+              </div>
             </div>
-          </div>
-          <div style="display: flex; gap: 15px; color: #666;">
-            <div>
-              <div>Version:</div>
-              <div style="font-weight: bold; color: #333;">AI v2.1</div>
-            </div>
-            <div>
-              <div>Précision:</div>
-              <div style="font-weight: bold; color: #333;">95.7%</div>
+            <div style="font-size: 0.85rem; opacity: 0.8;">
+              Rapport généré par l'Intelligence Artificielle SofIMed
             </div>
           </div>
         </footer>
       </div>
+
+      <style>
+        @keyframes pulse {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.1); }
+        }
+        
+        @keyframes rotateIn {
+          from { transform: rotate(-180deg) scale(0.5); opacity: 0; }
+          to { transform: rotate(0deg) scale(1); opacity: 1; }
+        }
+        
+        .ai-report-container {
+          animation: slideInUp 0.6s ease-out;
+        }
+        
+        @keyframes slideInUp {
+          from { transform: translateY(30px); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
+        }
+      </style>
     `);
 
-    // Ajouter les styles CSS
-    const style = document.createElement('style');
-    style.textContent = `
-      .ai-loader {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 30px;
-        max-width: 500px;
-        margin: 0 auto;
-      }
-      
-      .linear-progress {
-        width: 100%;
-        margin-bottom: 20px;
-      }
-      
-      .progress-bar {
-        height: 8px;
-        background: #f0f0f0;
-        border-radius: 4px;
-        overflow: hidden;
-        position: relative;
-      }
-      
-      .progress-fill {
-        height: 100%;
-        background: #4CAF50;
-        width: 0%;
-        border-radius: 4px;
-        transition: width 0.5s ease;
-      }
-      
-      .progress-text {
-        margin-top: 8px;
-        font-weight: 600;
-        color: #4CAF50;
-        font-size: 1.1rem;
-        text-align: center;
-      }
-      
-      .ai-report h1, .ai-report h2, .ai-report h3 {
-        color: #333;
-      }
-    `;
-    document.head.appendChild(style);
-
-    // Animation pour la barre de confiance
+    // Animation de la barre de confiance
     setTimeout(() => {
-      const confidenceBar = modal.querySelector('.confidence-bar');
+      const confidenceBar = document.querySelector('.confidence-bar');
       if (confidenceBar) {
-        confidenceBar.style.transition = 'width 1s ease';
         confidenceBar.style.width = `${Math.round(response.data.details.confiance * 100)}%`;
       }
-    }, 300);
+    }, 500);
 
   } catch (error) {
-    if (progressInterval) {
-      clearInterval(progressInterval);
-    }
-    console.error('Erreur lors de l\'analyse:', error);
-    createModal('❌ Erreur IA', `
-      <div style="text-align: center; padding: 30px; max-width: 500px; margin: 0 auto; background: linear-gradient(135deg, #ff6b6b, #ee5a52); color: white; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.1);">
-        <div style="font-size: 4rem; margin-bottom: 20px; animation: shake 0.5s ease-in-out infinite alternate;">🤖💥</div>
-        <h3 style="color: white; margin-bottom: 15px;">Erreur lors de l'analyse IA</h3>
-        <p style="color: rgba(255,255,255,0.9); margin-bottom: 20px;">Une erreur est survenue lors de l'analyse :</p>
-        <p style="color: #fff; font-weight: bold; background: rgba(255,255,255,0.2); padding: 15px; border-radius: 10px; margin: 20px 0; backdrop-filter: blur(10px);">
-          ${error.response?.data?.message || error.message}
-        </p>
-        <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 15px; margin-top: 25px; backdrop-filter: blur(10px);">
-          <p style="font-weight: bold; color: white; margin-top: 0;">💡 Suggestions :</p>
-          <ul style="text-align: left; padding-left: 20px; color: rgba(255,255,255,0.9); margin-bottom: 0; line-height: 1.6;">
+    clearInterval(progressInterval);
+    console.error('Erreur lors de l\'analyse de probabilité:', error);
+    
+    // Modal d'erreur élégant
+    const errorModal = createModal('❌ Erreur d\'Analyse', `
+      <div style="text-align: center; padding: 40px; font-family: 'Inter', sans-serif;">
+        <div style="width: 80px; height: 80px; background: #ffebee; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+          <span style="font-size: 2rem; color: #f44336;">⚠️</span>
+        </div>
+        <h3 style="color: #333; margin-bottom: 15px;">Impossible d'effectuer l'analyse</h3>
+        <p style="color: #666; margin-bottom: 25px;">Une erreur s'est produite lors de l'analyse IA. Veuillez réessayer.</p>
+        <div style="background: #f5f5f5; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+          <p style="margin: 0; font-size: 0.9rem; color: #666;">💡 Suggestions:</p>
+          <ul style="text-align: left; margin: 10px 0 0 20px; color: #666; font-size: 0.9rem;">
             <li>Vérifiez votre connexion internet</li>
-            <li>Assurez-vous que le serveur IA est accessible</li>
-            <li>Réessayez dans quelques instants</li>
-            <li>Contactez le support technique</li>
+            <li>Actualisez la page et réessayez</li>
+            <li>Contactez le support si le problème persiste</li>
           </ul>
         </div>
-        
-        <style>
-          @keyframes shake {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(5px); }
-          }
-        </style>
+        <button onclick="this.closest('.modal').remove()" style="background: #f44336; color: white; border: none; padding: 12px 25px; border-radius: 6px; cursor: pointer; font-weight: 600;">Fermer</button>
       </div>
     `);
   }
@@ -3197,6 +3120,58 @@ const handleFormSubmit = async () => {
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'text/plain' }
     });
     // 🔼🔼🔼 FIN DE L'AJOUT 🔼🔼🔼
+
+    // ✅ NOUVELLE FONCTIONNALITÉ : Notification de modification de devis
+    try {
+      console.log('🔄 Début du processus de notification...');
+      console.log('📋 Devis ID:', devis.id);
+      console.log('📋 Devis reference:', devis.reference);
+      
+      // Récupérer les informations du commercial
+      console.log('👤 Récupération des informations du commercial...');
+      const commercialInfo = await getCurrentCommercialInfo();
+      console.log('👤 Commercial info:', commercialInfo);
+      
+      if (commercialInfo) {
+        console.log('✅ Informations commercial récupérées, envoi de la notification...');
+        
+        // Utiliser l'endpoint spécifique pour récupérer le client (comme dans handleViewClient)
+        const clientResponse = await axios.get(`http://localhost:8080/api/devis/${devis.id}/client`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        console.log('👥 Client response:', clientResponse.data);
+        
+        if (clientResponse.data && clientResponse.data.id) {
+          console.log('✅ Client trouvé:', clientResponse.data);
+          
+          // Récupérer l'ID utilisateur du client comme dans handleSendMessage
+          const clientUserId = await getClientUserId(clientResponse.data.id);
+          console.log('🆔 Client User ID:', clientUserId);
+          
+          // Envoyer la notification
+          await sendUnifiedNotification({
+            userId: clientUserId,
+            type: 'DEVIS_MODIFICATION',
+            title: 'Modification de devis',
+            message: `Votre devis ${devis.reference} a été modifié par ${commercialInfo.name}. Les prix et remises ont été mis à jour.`,
+            senderName: commercialInfo.name,
+            devisId: devis.id,
+            link: `/client/devis/${devis.id}`
+          });
+          
+          console.log('✅ Notification de modification de devis envoyée avec succès');
+        } else {
+          console.log('❌ Client non trouvé dans la réponse');
+        }
+      } else {
+        console.log('❌ Informations commercial non récupérées');
+      }
+    } catch (notificationError) {
+      console.error('❌ Erreur lors de l\'envoi de la notification de modification:', notificationError);
+      console.error('❌ Stack trace:', notificationError.stack);
+      // Ne pas faire échouer la modification principale si la notification échoue
+    }
 
     onUpdate();
     onClose();

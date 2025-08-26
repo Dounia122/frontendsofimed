@@ -79,8 +79,8 @@
 \newcommand{\institut}{École Supérieure du Génie Appliqué}
 \newcommand{\diplome}{Diplôme d'Ingénieur d'État en Informatique}
 \newcommand{\option}{Développement Logiciel et Technologies de l'Information}
-\newcommand{\titre}{Smart Business Platform}
-\newcommand{\soustitre}{Développement d'un Système Intégré d'Aide à la Décision\\Fondé sur l'Analyse Comportementale et la Veille Concurrentielle}
+\newcommand{\titre}{Plateforme Web Intelligente pour l’Aide à la Décision Commerciale}
+\newcommand{\soustitre}{Analyse Comportementale Client et Veille Concurrentielle via NLP et Machine Learning}
 
 % Correction de l'affichage des titres
 \renewcommand{\chaptermark}[1]{\markboth{\chaptername\ \thechapter. \ #1}{}}
@@ -92,24 +92,17 @@
 
 \begin{document}
 
-% Page de titre professionnelle et moderne
+% Page de titre améliorée
 \begin{titlepage}
-\newgeometry{top=2cm, bottom=2cm, left=2.5cm, right=2.5cm}
-\definecolor{sofiBlue}{RGB}{0, 102, 204}
-\definecolor{sofiGray}{RGB}{240, 240, 240}
+\newgeometry{top=2cm, bottom=2cm, left=2cm, right=2cm}
 \centering
 
-% Bandeau supérieur coloré
-\begin{tikzpicture}[remember picture,overlay]
-  \fill[sofiBlue] (current page.north west) rectangle ([xshift=\paperwidth,yshift=-1.5cm]current page.north west);
-\end{tikzpicture}
-
-% Logos et titre
-\vspace*{1cm}
+% En-tête avec logos
+\vspace*{-0.5cm}
 \begin{tabularx}{\textwidth}{@{}p{0.25\textwidth} X p{0.25\textwidth}@{}}
   \includegraphics[width=2.5cm, height=3cm, keepaspectratio]{idZGrLaVHO_1753349979859.jpeg} &
   \centering
-  {\color{sofiBlue}\textbf{\Large \institut}}\\[2pt]
+  \textbf{\Large \institut}\\[2pt]
   \centering \normalsize (IGA) &
   \hfill\includegraphics[width=4cm, height=5cm, keepaspectratio]{R.png}
 \end{tabularx}
@@ -117,7 +110,7 @@
 \vspace{1.5cm}
 
 % Titre principal
-{\color{sofiBlue}\textbf{\LARGE PROJET DE FIN D'ÉTUDES}}\\[0.4cm]
+\textbf{\LARGE PROJET DE FIN D'ÉTUDES}\\[0.4cm]
 {\large Pour l'obtention du \diplome}\\[0.25cm]
 {\large \textbf{Option : \option}}
 
@@ -130,7 +123,8 @@
 \vspace{2.5cm}
 
 % Informations des étudiants et encadrant
-\begin{tabularx}{0.9\textwidth}{@{}>{\raggedright\arraybackslash}X >{\raggedleft\arraybackslash}X@{}}
+\begin{tabularx}{0.9\textwidth}{@{}>{\raggedright\arraybackslash}X 
+    >{\raggedleft\arraybackslash}X@{}}
   \textbf{Réalisé par :} & \\
   Dounia ELMOUTAOUKIL & \\
   \textbf{\encadrant{} :} & \\
@@ -148,23 +142,21 @@
 \end{titlepage}
 \restoregeometry
 
-% Table des matières, figures, tableaux
+% Table des matières
 \tableofcontents
 \thispagestyle{empty}
 \newpage
+
+% Liste des figures
 \listoffigures
 \thispagestyle{empty}
 \newpage
-\listoftables
-\thispagestyle{empty}
-\newpage
 
-% Introduction générale dans une box colorée
+% Introduction
 \chapter*{Introduction Générale}
 \addcontentsline{toc}{chapter}{Introduction Générale}
 \markboth{Introduction Générale}{}
-\begin{center}
-\fcolorbox{sofiBlue}{sofiGray}{\parbox{0.95\textwidth}{%
+
 Du 10 mars 2025 au 10 août 2025, j'ai eu l'opportunité d'effectuer mon projet de fin d'études au sein de l'entreprise SOFIMED, acteur reconnu dans le domaine des solutions techniques pour l'industrie. Ce stage, d'une durée de cinq mois, a été une expérience enrichissante tant sur le plan professionnel que personnel, me permettant de m'intégrer dans un environnement structuré, en pleine évolution, et engagé dans une dynamique de modernisation de ses processus internes.
 
 L'objectif principal de mon stage était de contribuer à l'amélioration du système de gestion commerciale de l'entreprise à travers le développement d'une solution numérique adaptée à ses besoins spécifiques. Cette solution vise à faciliter les interactions entre les différents intervenants internes et externes, tout en assurant un meilleur suivi des opérations liées à la relation client et à la gestion des commandes. L'un des axes majeurs de ce projet consistait à introduire des mécanismes d'aide à la décision, afin de renforcer la réactivité et l'efficacité dans le traitement des demandes.
@@ -172,8 +164,9 @@ L'objectif principal de mon stage était de contribuer à l'amélioration du sys
 Au-delà de la réalisation du projet, cette expérience m'a permis d'acquérir une meilleure compréhension du fonctionnement d'une entreprise évoluant dans un secteur exigeant, où la qualité de service, la rigueur opérationnelle et la relation client jouent un rôle central. J'ai ainsi eu l'occasion de collaborer avec différentes équipes, d'assister à la coordination des services, et de m'imprégner des réalités organisationnelles et commerciales propres à SOFIMED.
 
 Ce rapport est structuré de manière à présenter le contexte dans lequel s'inscrit ce projet, les objectifs visés, les étapes de sa mise en œuvre, ainsi que les résultats obtenus au terme de cette expérience. Il se conclut par une analyse des compétences développées et des enseignements tirés de cette immersion professionnelle. Ce stage a représenté une véritable opportunité d'enrichir mes connaissances et de contribuer concrètement à un projet d'optimisation interne.
-}}
-\end{center}
+
+\newpage
+\chapter{Contexte Général du Projet}
 
 \section{Introduction}
 Le présent cahier des charges décrit les objectifs et les caractéristiques requises pour la conception et le développement d'une application web dédiée à la gestion commerciale au sein de l'entreprise SOFIMED. Cette application vise à fournir une plateforme en ligne permettant aux clients, commerciaux et administrateurs de gérer, suivre et structurer les processus liés aux devis et aux commandes. L'objectif est d'améliorer l'efficacité des échanges commerciaux et de faciliter la prise de décision en intégrant des outils d'analyse intelligents et de suivi avancé, adaptés au contexte et aux besoins spécifiques de l'entreprise, y compris des fonctionnalités d'intelligence artificielle et de veille concurrentielle.
@@ -225,7 +218,7 @@ L'objectif principal de cette application web est de surmonter les limitations d
 
 \section{Fonctionnalités Requises}
 
-\subsection{Gestion des Anomalies}
+\subsection{Gestion des devis}
 \begin{itemize}
   \item Création de Demandes de Devis : Permettre aux clients de formuler une demande de devis en sélectionnant les produits souhaités.
   \item Élaboration des Devis : Permettre aux commerciaux de générer, modifier et envoyer les devis aux clients en fonction des produits, quantités et tarifs.
@@ -787,4 +780,380 @@ Cette structuration présente trois avantages clés :
 \end{itemize}
 
 \textit{"La structuration triadique de notre dataset permet de capturer la complexité du processus décisionnel client tout en maintenant une forte adéquation avec les besoins métiers de SOFIMED. Cette approche assure que nos prédictions s'appuient sur une compréhension holistique du comportement client, combinant données historiques, interactions actuelles et signaux conversationnels."}
+
+\textit{realisation}
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{Capture d'écran 2025-07-31 185757.png}
+    \caption{Enter Caption}
+    \label{fig:placeholder}
+\end{figure}
+Cette interface représente le tableau de bord principal de l'utilisateur. Elle offre une vue synthétique sur les éléments clés de l’activité de l’utilisateur, tels que : le panier actuel, les demandes de consultations en cours, les commandes actives ainsi que les messages non lus.
+Le menu latéral permet une navigation fluide entre les différentes sections de la plateforme, notamment : l’accueil, les catégories de produits, le panier, les demandes de consultations, les demandes de vie, les réclamations, le suivi des commandes et la liste des favoris.
+Ce dashboard centralise les informations essentielles pour offrir à l’utilisateur une expérience rapide, intuitive et personnalisée.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{Capture d'écran 2025-07-31 193959.png}
+    \caption{Catalogue des produits}
+    \label{fig:placeholder}
+\end{figure}
+
+
+Cette interface permet au client de consulter l’ensemble des produits disponibles sur la plateforme. Elle intègre une barre de recherche ainsi que des filtres par catégorie et par marque afin de faciliter la navigation et affiner les résultats.
+Chaque produit est présenté sous forme de carte avec un aperçu visuel, un bouton « Voir en détail » pour accéder à sa fiche descriptive complète, et un bouton « Ajouter au panier » permettant au client de préparer son achat en quelques clics.
+
+
+
+\begin{figure}
+     \centering
+     \includegraphics[width=1\linewidth]{Capture d'écran 2025-07-31 194150.png}
+     \caption{Affichage détaillé du produit}
+     \label{fig:placeholder}
+ \end{figure}
+ Cette interface permet au client de consulter les détails du produit, y compris la référence, la description . Il peut également ajouter l'article directement au panier depuis cette vue.
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{panier.png}
+    \caption{Gestion du panier et génération de devis}
+    \label{fig:placeholder}
+\end{figure}
+Dans cette interface, le client peut consulter son panier, modifier les quantités des produits, et générer un devis. Il peut y ajouter un commentaire, choisir un mode de paiement, Après la demande, il peut visualiser le devis avec le détail des prix pour chaque article,
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{consultation.png}
+    \caption{Espace de gestion des consultations}
+    \label{fig:placeholder}
+\end{figure}
+Dans cette interface, le client peut soumettre une demande de consultation en joignant éventuellement une pièce jointe. Il a également la possibilité de consulter l’historique de ses demandes, avec un accès aux réponses reçues pour chacune d’elles.
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{devis.png}
+    \caption{Suivi des demandes de devis}
+    \label{fig:placeholder}
+\end{figure}
+Dans cette interface, le client retrouve l’ensemble de ses demandes de devis enregistrées. Il peut consulter les détails des prix pour chaque devis envoyé, ainsi que le statut associé : en attente, en cours (réponse du commercial), ou terminé (transformé en commande)
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{infocomm.png}
+    \caption{Consultation des informations du commercial}
+    \label{fig:placeholder}
+\end{figure}
+En cliquant sur le bouton "Voir Commercial", le client peut accéder aux informations du commercial en charge : son nom, prénom, adresse e-mail, ainsi que son numéro de téléphone.
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{message.png}
+    \caption{Contact et négociation avec le commercial}
+    \label{fig:placeholder}
+\end{figure}
+L’interface propose un bouton "Contacter" permettant au client d’entrer directement en communication avec le commercial assigné. Il peut ainsi engager une négociation sur les prix mentionnés dans le devis reçu, via un canal de discussion intégré (chat).
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{devissprix.png}
+    \caption{Détails du devis reçu}
+    \label{fig:placeholder}
+\end{figure}
+En cliquant sur "Voir Détails", le client peut consulter les informations complètes du devis envoyé par le commercial : les produits proposés, les quantités, les prix unitaires, les remises appliquées, ainsi que le prix final par article. Cette interface lui permet d’avoir une vision claire et précise du contenu du devis.
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{confirmee.png}
+    \caption{Confirmation de la commande}
+    \label{fig:placeholder}
+\end{figure}
+Grâce au bouton «Confirmer la commande», le client peut valider l’ensemble des produits et des prix finaux issus du devis. Une case lui permet également de sélectionner une date souhaitée pour la livraison. Cette étape marque la validation définitive de la commande avec les conditions négociées.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{recl.png}
+    \caption{Interface de gestion des réclamations}
+    \label{fig:placeholder}
+\end{figure}
+L’interface de réclamation permet au client de consulter le nombre total de ses réclamations, réparties par statut : nouvelles, en cours et résolues. Il peut effectuer des recherches par sujet ou par référence, et appliquer des filtres selon le statut ou la catégorie de la réclamation pour un suivi plus précis. Le client peut également consulter l’historique complet de ses réclamations précédentes.
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{ajoutrec.png}
+    \caption{ Ajout d’une nouvelle réclamation}
+    \label{fig:placeholder}
+\end{figure}
+
+En cliquant sur le bouton « Ajouter une réclamation », le client accède à un formulaire lui permettant de créer une nouvelle réclamation. Il doit renseigner le sujet, la catégorie, le niveau de priorité (normale, moyenne ou haute), ainsi qu’une description détaillée. Il a également la possibilité d’ajouter une pièce jointe pour illustrer ou appuyer sa demande.
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{suivicmd.png}
+    \caption{Suivi des commandes client}
+    \label{fig:placeholder}
+\end{figure}
+Depuis l’interface de suivi des commandes, le client peut accéder à l’ensemble des commandes déjà passées, accompagnées de leur statut (en attente, en cours, livrée, annulée). Il peut effectuer des filtres par statut ou par référence. Pour chaque commande, il a la possibilité de consulter les détails complets : informations du commercial, contenu de la commande, devis associé.
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{favoris.png}
+    \caption{Liste des produits favoris}
+    \label{fig:placeholder}
+\end{figure}
+Cette interface permet au client de consulter la liste de ses produits favoris préalablement enregistrés. Il peut facilement ajouter l’un de ces produits directement dans son panier depuis cette vue, sans devoir refaire une recherche.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{2025-08-05_00h40_16.png}
+    \caption{Tableau de bord du commercial}
+    \label{fig:placeholder}
+\end{figure}
+L’interface présente le tableau de bord principal après la connexion du commercial. Elle fournit un aperçu synthétique des indicateurs clés de performance : nombre de clients actifs, devis en attente, taux de conversion et volume des consultations.
+
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{1.png}
+    \caption{Tableau de bord – Statistiques globales}
+    \label{fig:placeholder}
+\end{figure}
+Cette interface affiche des statistiques clés par période (mois, semaine, trimestre, année) : chiffre d’affaires, nombre de clients, de commandes et de devis.
+On y trouve aussi la répartition des clients par territoire et type, ainsi que l’évolution des ventes. Elle permet un suivi rapide et clair des performances globales
+
+
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{2.png}
+    \caption{Statistiques sur les devis et top clients}
+    \label{fig:placeholder}
+\end{figure}
+Cette interface présente des statistiques sur les devis par période : devis générés, acceptés (convertis en commandes) et refusés.
+Elle affiche aussi les top clients classés par chiffre d’affaires et nombre total de commandes, avec quelques infos clés sur chaque client.
+
+
+
+
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{3.png}
+    \caption{Statistiques sur les devis et top clients}
+    \label{fig:placeholder}
+\end{figure}
+Cette interface présente des statistiques sur les devis par période : devis générés, acceptés (convertis en commandes) et refusés.
+Elle affiche aussi les top clients classés par chiffre d’affaires et nombre total de commandes, avec quelques infos clés sur chaque client.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{4.png}
+    \caption{Liste des clients par commercial}
+    \label{fig:placeholder}
+\end{figure}
+Cette interface affiche les clients rattachés à chaque commercial. Elle permet de rechercher un client spécifique et d’accéder à ses informations détaillées.
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{5.png}
+    \caption{Analyse de performance par territoire et type de client}
+    \label{fig:placeholder}
+\end{figure}
+Cette interface permet d’analyser la performance par territoire (chiffre d’affaires, total de commandes) et par type de client (chiffre d’affaires moyen, total, etc.).
+Elle identifie aussi des opportunités commerciales avec des indicateurs comme clients à fort potentiel et clients à risque
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{2025-08-05_00h53_13.png}
+    \caption{Gestion des devis par commercial}
+    \label{fig:placeholder}
+\end{figure}
+Cette interface permet de consulter les devis par commercial : référence, statut, client (potentiel ou régulier), date de création.
+On peut rechercher un devis par référence ou statut, voir les détails du devis et contacter le client directement.
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{2025-08-05_23h55_53.png}
+    \caption{ les informations du client }
+    \label{fig:placeholder}
+\end{figure}
+
+Cette fenêtre contextuelle affiche les informations du client ayant fait une demande de devis : nom, prénom et numéro de téléphone. Elle s’ouvre rapidement depuis une autre interface pour un accès direct aux données client.
+
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{2025-08-05_23h55_04.png}
+    \caption{Interface de messagerie client-commercial}
+    \label{fig:placeholder}
+\end{figure}
+Cette interface permet une communication directe entre le commercial et le client via un système de chat en temps réel, facilitant les échanges rapides et le suivi personnalisé.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{2025-08-05_23h50_46.png}
+    \caption{Détail et modification des devis}
+    \label{fig:placeholder}
+\end{figure}
+Le commercial peut consulter les détails des devis, saisir les prix unitaires, appliquer des remises, et voir le calcul automatique (quantité, TVA, prix TTC).
+Les modifications sont possibles tant que le devis n’est pas en statut terminé (converti en commande). Une fois terminé, le devis devient figé et ne peut plus être modifié.
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{2025-08-05_23h51_10.png}
+    \caption{Détail et modification des devis}
+    \label{fig:placeholder}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{2025-08-05_23h51_58.png}
+    \caption{Étude de marché intégrée au devis}
+    \label{fig:placeholder}
+\end{figure}
+Chaque produit du devis dispose d’un bouton « Étude de marché » qui permet au commercial de récupérer automatiquement les prix moyens trouvés en ligne.
+Cette fonction compare le prix saisi dans le devis avec les offres du marché, affiche le nombre d’offres trouvées et donne un aperçu rapide des prix concurrents.
+Peu importe la devise des prix récupérés, ils sont automatiquement convertis en dirhams avant d’être affichés au commercial.
+Cette fonctionnalité aide à ajuster les tarifs en connaissance de cause pour rester compétitif.
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{2025-08-05_23h52_41.png}
+    \caption{Accès direct aux offres produits}
+    \label{fig:placeholder}
+\end{figure}
+Le bouton « Voir l’offre » permet au commercial d’accéder directement à la page web où le produit est vendu, facilitant ainsi la consultation des détails et conditions de vente.
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{2025-08-05_23h53_21.png}
+    \caption{Prédiction de probabilité d’acceptation de devis}
+    \label{fig:placeholder}
+\end{figure}
+Le bouton « Probabilité IA » utilise un modèle préentraîné pour prédire le pourcentage d’acceptation d’un devis par le client.
+La prédiction se base sur plusieurs facteurs clés : historique des devis et commandes, chiffre d’affaires moyen, temps d’utilisation de l’application, réactivité en messagerie, comparaison des prix, et fréquence d’achat.
+Cette fonction aide le commercial à mieux évaluer ses chances avant d’envoyer le devis.
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{2025-08-05_23h54_18.png}
+    \caption{Prédiction de probabilité d’acceptation de devis}
+    \label{fig:placeholder}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{2025-08-05_23h56_05.png}
+    \caption{Gestion des demandes de consultation}
+    \label{fig:placeholder}
+\end{figure}
+Le client peut envoyer une demande de consultation.
+Le commercial concerné reçoit cette demande pour y répondre rapidement et personnaliser l’échange.
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{2025-08-07_21h12_48.png}
+    \caption{Tableau de bord administrateur}
+    \label{fig:placeholder}
+\end{figure}
+
+Une fois connecté, l’administrateur accède à un dashboard centralisé affichant des statistiques clés : utilisateurs actifs, nombre total de produits, commandes en attente, et consultations à traiter.
+Un menu de navigation lui permet de gérer les utilisateurs, produits, commandes, consultations, réclamations, et de consulter les statistiques globales.
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{11 (2).png}
+    \caption{Gestion des utilisateurs – Administrateur}
+    \label{fig:placeholder}
+\end{figure}
+
+L’administrateur peut consulter la liste complète des utilisateurs, effectuer des recherches par nom ou e-mail, et supprimer un utilisateur si nécessaire.
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{11 (3).png}
+    \caption{Création d’un administrateur avec gestion des permissions}
+    \label{fig:placeholder}
+\end{figure}
+Cette interface permet à l’administrateur de créer un nouvel utilisateur administrateur et de lui attribuer des permissions personnalisées : accès au tableau de bord, gestion des utilisateurs, des produits, des devis(des commandes), des réclamations ou encore aux statistiques.
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{11 (4).png}
+    \caption{Création d’un compte commercial}
+    \label{fig:placeholder}
+\end{figure}
+Cette interface permet à l’administrateur de créer un compte pour un commercial en saisissant le nom, prénom, nom d’utilisateur, e-mail, téléphone, mot de passe, ainsi que l’affectation à un département.
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{11 (5).png}
+    \caption{Gestion des permissions administrateur}
+    \label{fig:placeholder}
+\end{figure}
+L’administrateur peut consulter et modifier les permissions attribuées à chaque utilisateur administrateur, ou supprimer un utilisateur si nécessaire.
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{11 (6).png}
+    \caption{Gestion des produits}
+    \label{fig:placeholder}
+\end{figure}
+Cette interface permet à l’administrateur de rechercher un produit par référence, de consulter et modifier ses informations, ainsi que supprimer ou ajouter un nouveau produit.
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{11 (7).png}
+    \caption{ Suivi des commandes – Administrateur}
+    \label{fig:placeholder}
+\end{figure}
+L’administrateur peut consulter l’ensemble des commandes avec des indicateurs tels que : total des commandes, commandes en attente, en cours, livrées ou annulées, ainsi que le chiffre d’affaires généré.
+Il peut aussi filtrer par statut, période, ou effectuer une recherche par référence, nom client ou e-mail.
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{11 (8).png}
+    \caption{Détail des commandes}
+    \label{fig:placeholder}
+\end{figure}
+L’administrateur peut consulter chaque commande en détail : informations du client, produits commandés, prix unitaires, quantités, montant total, ainsi que les informations du commercial ayant traité le devis.
+Tous les éléments liés à la commande sont visibles pour un suivi précis et complet.
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{11 (9).png}
+    \caption{ Confirmation des livraisons}
+    \label{fig:placeholder}
+\end{figure}
+Pour confirmer une commande, l’administrateur doit d’abord saisir une date de livraison prévue.
+Chaque jour, le système identifie les commandes à livrer ce jour-là et demande à l’administrateur de confirmer si elles ont bien été livrées.
+Le statut de la commande est mis à jour uniquement après confirmation ; sinon, elle reste en cours.
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{11 (10).png}
+    \caption{Gestion des consultations – Administrateur}
+    \label{fig:placeholder}
+\end{figure}
+L’administrateur peut consulter toutes les demandes de consultation envoyées par les clients, lire les messages, récupérer les fichiers joints, et affecter chaque consultation au commercial responsable pour traitement.
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{11 (11).png}
+    \caption{Gestion des réclamations – Administrateur}
+    \label{fig:placeholder}
+\end{figure}
+L’administrateur consulte toutes les réclamations clients avec un tableau de bord affichant le nombre total, les réclamations nouvelles, en cours, et résolues.
+Il peut filtrer et rechercher par référence, client, statut (nouveau, en cours, résolu, fermé), période et priorité (normale, moyenne, haute).
+Toutes les réclamations sont consultables pour un suivi efficace.
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{11 (12).png}
+    \caption{Détail et gestion des réclamations}
+    \label{fig:placeholder}
+\end{figure}
+L’administrateur peut consulter le détail de chaque réclamation : informations client et contenu de la réclamation.
+Il a aussi la possibilité de répondre directement à la réclamation pour assurer un suivi efficace.
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{11 (13).png}
+    \caption{Statistiques et analyses – Administrateur}
+    \label{fig:placeholder}
+\end{figure}
+L’administrateur accède à des statistiques détaillées par période (hebdomadaire, mensuelle, trimestrielle) : ventes totales, nombre de vues, nombre de commandes, temps de conversion, évolution mensuelle des ventes, répartition des ventes par département, et performances des commerciaux avec un top 5 basé sur le chiffre d’affaires.
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{11 (14).png}
+    \caption{Produits les plus performants}
+    \label{fig:placeholder}
+\end{figure}
+
+Cette interface affiche les produits les plus vendus avec leur quantité vendue et le chiffre d’affaires généré, permettant d’identifier les meilleures performances commerciales.
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{2025-08-07_21h56_38.png}
+    \caption{Performance des commerciaux}
+    \label{fig:placeholder}
+\end{figure}
+Cette interface présente, pour chaque commercial, le nombre total de devis et de commandes, ainsi que le pourcentage de conversion (devis transformés en commandes).
+Elle affiche également le chiffre d’affaires réalisé, offrant une vue précise sur l’efficacité commerciale de chacun.
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{2025-08-07_21h56_53.png}
+    \caption{Performance par département}
+    \label{fig:placeholder}
+\end{figure}
+Cette interface affiche la performance de chaque département, avec le pourcentage de contribution de chaque département au chiffre d’affaires global des commerciaux.
+
 \end{document}

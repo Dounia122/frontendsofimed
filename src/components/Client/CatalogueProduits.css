@@ -699,11 +699,29 @@
   line-height: 1.3 !important;
 }
 
-.product-reference,
-.product-brand,
+.product-reference {
+  color: #6b7280;
+  margin-bottom: 16px !important;
+  text-align: left !important;
+  display: block;
+  width: 100%;
+  font-weight: 500;
+}
+
+.product-brand {
+  color: #6b7280;
+  margin-bottom: 12px !important;
+  text-align: left !important;
+  display: block;
+  width: 100%;
+}
+
 .product-category {
   color: #6b7280;
-  margin-bottom: 8px;
+  margin-bottom: 12px !important;
+  text-align: left !important;
+  display: block;
+  width: 100%;
 }
 
 .product-description {

@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import './CommercialConsultations.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import axios from 'axios'; // Ajouter axios
+import notificationService from '../../services/notificationService'; // Ajouter le service de notification
 import {
   faComments,
   faSearch,
@@ -15,6 +17,111 @@ import {
   faDownload,
   faReply
 } from '@fortawesome/free-solid-svg-icons';
+
+// Fonctions utilitaires pour les notifications (copier depuis CommercialDevis.js)
+const getClientUserId = async (clientId) => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('Token d\'authentification manquant');
+    }
+
+    const response = await axios.get(`http://localhost:8080/api/clients/${clientId}/user-id`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error('Erreur lors de la récupération de l\'ID utilisateur du client:', error);
+    throw error;
+  }
+};
+
+const getCurrentCommercialInfo = async () => {
+  try {
+    const token = localStorage.getItem('token');
+    const user = JSON.parse(localStorage.getItem('user'));
+    
+    if (!token || !user) {
+      throw new Error('Informations d\'authentification manquantes');
+    }
+
+    const response = await axios.get(`http://localhost:8080/api/commercials/user/${user.id}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error('Erreur lors de la récupération des informations du commercial:', error);
+    return null;
+  }
+};
+
+const sendUnifiedNotification = async (notificationData) => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('Token d\'authentification manquant');
+    }
+
+    // Validation des données obligatoires
+    const { userId, type, title, message, senderName } = notificationData;
+    if (!userId || !type || !title || !message || !senderName) {
+      throw new Error('Données de notification incomplètes');
+    }
+
+    // Structure de notification standardisée
+    const notification = {
+      userId: parseInt(userId),
+      type,
+      title,
+      message,
+      senderName,
+      ...(notificationData.consultationId && { consultationId: notificationData.consultationId }),
+      ...(notificationData.link && { link: notificationData.link })
+    };
+
+    console.log('📤 Envoi de notification:', notification);
+
+    // 1. Envoi via API REST
+    const restResponse = await axios.post('http://localhost:8080/api/notifications/', notification, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    console.log('✅ Notification REST envoyée:', restResponse.data);
+
+    // 2. Envoi via WebSocket (si connecté)
+    if (notificationService.isConnected()) {
+      notificationService.sendNotification(`/topic/notifications/${userId}`, {
+        ...notification,
+        timestamp: new Date().toISOString()
+      });
+      console.log('✅ Notification WebSocket envoyée');
+    } else {
+      console.warn('⚠️ WebSocket non connecté, notification envoyée via REST uniquement');
+      
+      // Tentative de reconnexion WebSocket
+      const currentUser = JSON.parse(localStorage.getItem('user'));
+      if (currentUser?.id) {
+        notificationService.connect(currentUser.id, () => {
+          console.log('🔄 Reconnexion WebSocket réussie');
+        });
+      }
+    }
+
+    return true;
+  } catch (error) {
+    console.error('❌ Erreur lors de l\'envoi de la notification:', error);
+    return false;
+  }
+};
 
 // Composants d'état
 const LoadingView = () => (
@@ -302,17 +409,57 @@ const CommercialConsultations = () => {
         },
         body: JSON.stringify({ response: replyText })
       });
-
+  
       if (!response.ok) {
         throw new Error('Erreur lors de l\'envoi de la réponse');
       }
-
+  
       const updatedConsultation = await response.json();
       setConsultations(prev =>
         prev.map(cons =>
           cons.id === consultationId ? updatedConsultation : cons
         )
       );
+  
+      // ✅ NOUVELLE FONCTIONNALITÉ : Notification de réponse à consultation
+      try {
+        console.log('🔄 Début du processus de notification de réponse...');
+        console.log('📋 Consultation ID:', consultationId);
+        
+        // Récupérer les informations du commercial
+        console.log('👤 Récupération des informations du commercial...');
+        const commercialInfo = await getCurrentCommercialInfo();
+        console.log('👤 Commercial info:', commercialInfo);
+        
+        if (commercialInfo && updatedConsultation.client) {
+          console.log('✅ Informations commercial récupérées, envoi de la notification...');
+          console.log('👥 Client:', updatedConsultation.client);
+          
+          // Récupérer l'ID utilisateur du client
+          const clientUserId = await getClientUserId(updatedConsultation.client.id);
+          console.log('🆔 Client User ID:', clientUserId);
+          
+          // Envoyer la notification
+          await sendUnifiedNotification({
+            userId: clientUserId,
+            type: 'CONSULTATION_RESPONSE',
+            title: 'Réponse à votre consultation',
+            message: `${commercialInfo.nom} a répondu à votre consultation "${updatedConsultation.subject || 'Sans objet'}".`,
+            senderName: commercialInfo.nom,
+            consultationId: consultationId,
+            link: `/client/consultations/${consultationId}`
+          });
+          
+          console.log('✅ Notification de réponse à consultation envoyée avec succès');
+        } else {
+          console.log('❌ Informations commercial ou client manquantes');
+        }
+      } catch (notificationError) {
+        console.error('❌ Erreur lors de l\'envoi de la notification de réponse:', notificationError);
+        console.error('❌ Stack trace:', notificationError.stack);
+        // Ne pas faire échouer la réponse principale si la notification échoue
+      }
+      
     } catch (error) {
       console.error('Erreur:', error);
       alert('Erreur lors de l\'envoi de la réponse');
@@ -369,8 +516,10 @@ const CommercialConsultations = () => {
               aria-label="Filtrer par statut"
             >
               <option value="all">Tous les statuts</option>
+              <option value="EN_ATTENTE">En attente</option>
               <option value="EN_COURS">En cours</option>
               <option value="TERMINE">Terminé</option>
+              <option value="ANNULE">Annulé</option>
             </select>
           </div>
         </div>

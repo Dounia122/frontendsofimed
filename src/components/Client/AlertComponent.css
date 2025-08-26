@@ -1,0 +1,142 @@
+.alert-overlay {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.animate-in {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.animate-out {
+  transform: translateX(100%);
+  opacity: 0;
+}
+
+.alert-container {
+  min-width: 400px;
+  max-width: 500px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  border-left: 5px solid;
+  position: relative;
+  overflow: hidden;
+}
+
+.alert-success {
+  border-left-color: #10b981;
+  background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);
+}
+
+.alert-error {
+  border-left-color: #ef4444;
+  background: linear-gradient(135deg, #fef2f2 0%, #ffffff 100%);
+}
+
+.alert-content {
+  display: flex;
+  align-items: flex-start;
+  padding: 20px;
+  gap: 16px;
+}
+
+.alert-icon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.alert-success .alert-icon {
+  background: #d1fae5;
+  color: #10b981;
+}
+
+.alert-error .alert-icon {
+  background: #fee2e2;
+  color: #ef4444;
+}
+
+.alert-message {
+  flex: 1;
+  min-width: 0;
+}
+
+.alert-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+  margin: 0 0 4px 0;
+  line-height: 1.4;
+}
+
+.alert-text {
+  font-size: 14px;
+  color: #4b5563;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.alert-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.alert-close:hover {
+  color: #6b7280;
+  background: #f3f4f6;
+}
+
+.alert-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  width: 100%;
+  animation: progress 5s linear forwards;
+}
+
+.alert-progress-success {
+  background: linear-gradient(90deg, #10b981, #059669);
+}
+
+.alert-progress-error {
+  background: linear-gradient(90deg, #ef4444, #dc2626);
+}
+
+@keyframes progress {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+@media (max-width: 640px) {
+  .alert-overlay {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+  }
+  
+  .alert-container {
+    min-width: auto;
+    max-width: none;
+  }
+}

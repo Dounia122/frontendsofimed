@@ -41,8 +41,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 40px;
-  padding: 25px;
+  margin-bottom: 20px; /* Réduit de 40px à 20px */
+  padding: 15px 25px; /* Réduit le padding vertical */
   background: white;
   border-radius: var(--card-radius);
   box-shadow: var(--shadow-md);
@@ -50,7 +50,7 @@
 }
 
 .page-title {
-  font-size: 32px;
+  font-size: 24px; /* Réduit de 32px à 24px */
   font-weight: 800;
   background: var(--primary-gradient);
   -webkit-background-clip: text;
@@ -58,7 +58,7 @@
   color: transparent;
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: 10px; /* Réduit de 15px à 10px */
   margin: 0;
 }
 

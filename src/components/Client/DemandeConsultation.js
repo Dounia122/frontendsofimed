@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import axios from 'axios';
 import './DemandeConsultation.css';
+import notificationService from '../../services/notificationService';
 
 const DemandeConsultation = () => {
   // États
@@ -145,12 +146,50 @@ const DemandeConsultation = () => {
       }
 
       const token = localStorage.getItem('token');
-      await axios.post('http://localhost:8080/api/consultations', data, {
+      const response = await axios.post('http://localhost:8080/api/consultations', data, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'multipart/form-data'
         }
       });
+
+      // Envoi des notifications à l'administrateur
+      try {
+        const senderName = userData?.username || 'Client';
+        
+        // Notification via API REST
+        await axios.post('http://localhost:8080/api/notifications/', {
+          userId: 22, // ID de l'administrateur
+          type: 'new_consultation',
+          title: 'Nouvelle demande de consultation',
+          message: `Nouvelle consultation créée : ${formData.subject}`,
+          senderName: senderName,
+          link: `/admin/consultations/${response.data.id}`
+        }, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        // Notification via WebSocket
+        if (notificationService.isConnected()) {
+          notificationService.sendNotification(
+            `/topic/notifications/22`,
+            {
+              type: 'new_consultation',
+              title: 'Nouvelle demande de consultation',
+              message: `Nouvelle consultation créée : ${formData.subject}`,
+              userId: 22,
+              senderId: userData?.id,
+              senderName: senderName,
+              data: response.data
+            }
+          );
+        }
+      } catch (notifError) {
+        console.error('Erreur lors de l\'envoi de la notification:', notifError);
+      }
       
       // Réinitialisation et feedback
       setSuccess(true);

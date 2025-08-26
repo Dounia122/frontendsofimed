@@ -6,6 +6,7 @@ import NewDevisForm from './NewDevisForm';
 import { Eye } from 'lucide-react';
 import noImage from '../../assets/no-image.png';
 import notificationService from '../../services/notificationService';
+import AlertComponent from './AlertComponent';
 
 const getCurrentUser = () => {
   const user = JSON.parse(localStorage.getItem('user'));
@@ -42,6 +43,7 @@ const DemandeDevis = () => {
   const fileInputRef = useRef(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('TOUS');
+  const [alert, setAlert] = useState(null);
 
   // Fonction pour récupérer l'userID du commercial
   const getCommercialUserId = async (commercialId) => {
@@ -596,7 +598,7 @@ const DemandeDevis = () => {
           senderName: senderName,
           deliveryDate: deliveryDate
         };
-  
+
         if (notificationService.isConnected()) {
           notificationService.sendNotification(
             `/topic/notifications/${commercialUserId}`,
@@ -615,15 +617,55 @@ const DemandeDevis = () => {
       } catch (wsError) {
         console.error('Erreur WebSocket:', wsError);
       }
+
+      // Notification pour l'administrateur
+      try {
+        // Notification via API REST
+        await axios.post('http://localhost:8080/api/notifications/', {
+          userId: 22, // ID de l'administrateur
+          type: 'order_confirmed',
+          title: 'Nouvelle commande confirmée',
+          message: `Commande confirmée pour le devis ${activeDevis.reference}`,
+          senderName: senderName,
+          link: `/admin/commandes/${activeDevis.id}`
+        }, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        // Notification via WebSocket pour l'administrateur
+        if (notificationService.isConnected()) {
+          notificationService.sendNotification(
+            `/topic/notifications/22`,
+            {
+              type: 'order_confirmed',
+              title: 'Nouvelle commande confirmée',
+              message: `Commande confirmée pour le devis ${activeDevis.reference}`,
+              userId: 22,
+              senderId: userData.id,
+              senderName: senderName,
+              data: {
+                devisId: activeDevis.id,
+                reference: activeDevis.reference,
+                deliveryDate: deliveryDate
+              }
+            }
+          );
+        }
+      } catch (notifError) {
+        console.error('Erreur lors de l\'envoi de la notification à l\'administrateur:', notifError);
+      }
   
       setShowConfirmModal(false);
       setDeliveryDate('');
       fetchDevisList();
-      alert('Commande envoyée avec succès');
+      setAlert({ type: 'success', message: 'Commande envoyée avec succès' });
   
     } catch (error) {
       console.error('Erreur globale:', error);
-      alert("Erreur lors de l'envoi de la commande");
+      setAlert({ type: 'error', message: "Erreur lors de l'envoi de la commande" });
     }
   };
 
@@ -636,6 +678,13 @@ const DemandeDevis = () => {
 
   return (
     <div className="content-wrapper">
+      {alert && (
+        <AlertComponent
+          type={alert.type}
+          message={alert.message}
+          onClose={() => setAlert(null)}
+        />
+      )}
       <div className="devis-container">
         <header className="devis-header">
           <h2>Demandes de Devis</h2>

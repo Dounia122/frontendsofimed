@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './ReclamationClient.css';
+import notificationService from '../../services/notificationService';
+import axios from 'axios';
 
 const ReclamationClient = () => {
   const [formData, setFormData] = useState({
@@ -134,10 +136,48 @@ const ReclamationClient = () => {
         fichierJoint: formData.fichierJoint ? formData.fichierJoint.name : null
       };
 
-      console.log('Nouvelle réclamation créée (simulation):', nouvelleReclamation);
-      
       // Ajout de la nouvelle réclamation en tête de liste
       setReclamations(prev => [nouvelleReclamation, ...prev]);
+      
+      // Envoi de la notification à l'administrateur
+      const token = localStorage.getItem('token');
+      const user = JSON.parse(localStorage.getItem('user'));
+      const senderName = user?.username || 'Client';
+
+      // Notification via API REST
+      try {
+        await axios.post('http://localhost:8080/api/notifications/', {
+          userId: 22, // ID de l'administrateur
+          type: 'new_complaint',
+          title: 'Nouvelle réclamation',
+          message: `Nouvelle réclamation créée : ${nouvelleReclamation.reference} - ${nouvelleReclamation.sujet}`,
+          senderName: senderName,
+          link: `/admin/reclamations/${nouvelleReclamation.id}`
+        }, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        // Notification via WebSocket
+        if (notificationService.isConnected()) {
+          notificationService.sendNotification(
+            `/topic/notifications/22`,
+            {
+              type: 'new_complaint',
+              title: 'Nouvelle réclamation',
+              message: `Nouvelle réclamation créée : ${nouvelleReclamation.reference} - ${nouvelleReclamation.sujet}`,
+              userId: 22,
+              senderId: user?.id,
+              senderName: senderName,
+              data: nouvelleReclamation
+            }
+          );
+        }
+      } catch (notifError) {
+        console.error('Erreur lors de l\'envoi de la notification:', notifError);
+      }
       
       // Réinitialisation du formulaire
       setFormData({
@@ -157,10 +197,8 @@ const ReclamationClient = () => {
       setShowForm(false);
       setMessage('✅ Réclamation ajoutée avec succès! (Simulation - non sauvegardée en base)');
       
-      // Effacer le message après 5 secondes
       setTimeout(() => setMessage(''), 5000);
       
-      console.log('Liste des réclamations mise à jour:', [nouvelleReclamation, ...reclamations]);
     } catch (error) {
       console.error('Erreur lors de la soumission:', error);
       setMessage('❌ Erreur lors de la soumission de la réclamation.');

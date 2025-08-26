@@ -53,8 +53,8 @@
 /* Reset et styles de base */
 * {
   box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+  margin: 20px;
+  padding: 20px;
 }
 
 body {
@@ -195,7 +195,7 @@ body {
   right: 12px;
   top: 50%;
   transform: translateY(-50%);
-  color: var(--gray-400);
+  color: #000000; /* Changé de #9ca3af à noir */
   pointer-events: none;
 }
 
@@ -246,16 +246,16 @@ body {
 /* Bouton Confirmer - Vert pastel */
 .confirm-btn {
   background-color: #6EE7B7; /* Vert clair et rafraîchissant */
-  color: #065F46; /* Texte foncé pour contraste */
+  color: #000000; /* Texte noir foncé */
   border: 1px solid #34D399;
   transition: all 0.2s ease;
 }
 
 .confirm-btn:hover {
   background-color: #A7F3D0;
-  color:  #38bdf8;
+  color: #000000; /* Texte noir au survol */
   transform: translateY(-1px);
-  box-shadow:  #38bdf8;
+  box-shadow: #38bdf8;
 }
 
 .confirm-btn:active {
@@ -266,16 +266,16 @@ body {
 /* Bouton Voir Commercial - Bleu ciel */
 .view-commercial-btn {
   background-color: #93C5FD; /* Bleu clair apaisant */
-  color: #6f88d7; /* Texte bleu foncé */
+  color: #000000; /* Texte noir foncé */
   border: 1px solid #60A5FA;
   transition: all 0.2s ease;
 }
 
 .view-commercial-btn:hover {
   background-color: #BFDBFE;
-  color: #60A5FA;
+  color: #000000; /* Texte noir au survol */
   transform: translateY(-1px);
-  box-shadow:  #38bdf8;
+  box-shadow: #38bdf8;
 
 }
 
@@ -288,16 +288,16 @@ body {
 /* Bouton Détails - Gris très clair */
 .details-btn {
   background-color: #F8FAFC;
-  color: #64748B; /* Gris bleuté */
+  color: #000000; /* Changé de #64748B à noir */
   border: 1px solid #E2E8F0;
   transition: all 0.2s ease;
 }
 
 .details-btn:hover {
   background-color: #F8FAFC;
-  color:  #38bdf8;
+  color: #000000; /* Changé de #38bdf8 à noir pour plus de contraste */
   transform: translateY(-1px);
-  box-shadow:  #38bdf8;
+  box-shadow: #38bdf8;
 }
 
 .details-btn:active {
@@ -308,14 +308,14 @@ body {
 /* Bouton Chat - Lilas clair */
 .chat-btn {
   background-color: #C4B5FD; /* Violet pastel */
-  color: #5B21B6; /* Texte violet foncé */
+  color: #000000; /* Texte noir foncé */
   border: 1px solid #A78BFA;
   transition: all 0.2s ease;
 }
 
 .chat-btn:hover {
   background-color: #DDD6FE;
-  color:  #38bdf8;
+  color: #000000; /* Texte noir au survol */
   transform: translateY(-1px);
   box-shadow: #38bdf8;
 }
@@ -330,7 +330,7 @@ body {
   opacity: 0.6;
   cursor: not-allowed;
   background-color: #e2e8f0;
-  color: #94a3b8;
+  color: #000000; /* Changé de #94a3b8 à noir */
   border-color: #cbd5e1;
   transform: none !important;
   box-shadow: none !important;
@@ -341,8 +341,8 @@ body {
   position: absolute;
   top: -6px;
   right: -6px;
-  background-color: #ef4444;
-  color: white;
+  background-color: #fef2f2;
+  color: #dc2626;
   font-size: 11px;
   font-weight: 600;
   min-width: 18px;
@@ -352,7 +352,7 @@ body {
   align-items: center;
   justify-content: center;
   padding: 0 4px;
-  border: 2px solid white;
+  border: 2px solid #dc2626;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
@@ -470,12 +470,14 @@ body {
 }
 
 .btn-primary {
-  background-color: var(--primary-600);
-  color: white;
+  background-color: #f3f4f6;
+  color: #1f2937;
+  border: 2px solid #6b7280;
 }
 
 .btn-primary:hover {
-  background-color: var(--primary-700);
+  background-color: #e5e7eb;
+  color: #111827;
   transform: translateY(-1px);
   box-shadow: var(--shadow);
 }
@@ -515,21 +517,21 @@ body {
 
 /* Badges de statut */
 .status-badge[data-status="en_attente"] {
-  background-color: #f97316;
-  color: white;
-  border: none;
+  background-color: #fed7aa;
+  color: #9a3412;
+  border: 1px solid #f97316;
 }
 
 .status-badge[data-status="en_cours"] {
-  background-color: #f59e0b;
-  color: white;
-  border: none;
+  background-color: #fef3c7;
+  color: #92400e;
+  border: 1px solid #f59e0b;
 }
 
 .status-badge[data-status="termine"] {
-  background-color: #3b82f6;
-  color: white;
-  border: none;
+  background-color: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #3b82f6;
 }
 
 /* Section principale des informations */
@@ -627,7 +629,7 @@ body {
 .info-label {
   display: block;
   font-size: 11px;
-  color: var(--gray-500);
+  color: #000000; /* Changé de var(--gray-500) à noir */
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-bottom: 2px;
@@ -692,13 +694,13 @@ body {
 /* Modal de confirmation */
 /* Bouton de confirmation amélioré */
 .confirm-btn {
-  background: linear-gradient(135deg, var(--success-500), var(--success-600));
-  color: white;
+  background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+  color: #1f2937;
   font-weight: 600;
   padding: 0.75rem 1.5rem;
-  border: none;
+  border: 2px solid #6b7280;
   border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(16, 185, 129, 0.2);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
@@ -716,9 +718,10 @@ body {
 }
 
 .confirm-btn:hover {
+  background: linear-gradient(135deg, #e5e7eb, #d1d5db);
+  color: #111827;
   transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(16, 185, 129, 0.3);
-  background: linear-gradient(135deg, var(--success-600), var(--success-700));
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
 .confirm-btn:hover::before {
@@ -1044,7 +1047,7 @@ body {
 }
 
 .message.received .message-time {
-  color: #6b7280;
+  color: #000000; /* Changé de #6b7280 à noir */
   text-align: left;
 }
 
@@ -1107,7 +1110,7 @@ body {
   align-items: center;
   justify-content: center;
   height: 100%;
-  color: #9ca3af;
+  color: #000000; /* Changé de #9ca3af à noir */
   font-size: 0.875rem;
   font-style: italic;
 }
@@ -1211,7 +1214,7 @@ body {
 }
 
 .devis-chat-message.devis-received .devis-message-time {
-  color: #6b7280;
+  color: #000000; /* Changé de #6b7280 à noir */
   text-align: left;
 }
 
@@ -1256,7 +1259,7 @@ body {
 }
 
 .devis-chat-input textarea::placeholder {
-  color: #9ca3af;
+  color: #000000; /* Changé de #9ca3af à noir */
   font-style: italic;
 }
 
@@ -2334,7 +2337,7 @@ body {
 .devis-container {
   max-width: 100%;
   margin: 0;
-  padding: 0;
+  padding: 0 0 0 40px; /* Ajout de 40px d'espace à gauche */
 }
 
 .devis-header {

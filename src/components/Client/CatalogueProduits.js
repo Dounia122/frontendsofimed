@@ -111,7 +111,7 @@ const CatalogueProduits = () => {
             marqueId: selectedBrand || undefined,
             page: currentPage - 1, // Backend pages start at 0
             size: itemsPerPage,
-            search: searchQuery || undefined
+            // (retrait) search: searchQuery || undefined
           },
         })
       ]);
@@ -179,20 +179,18 @@ const CatalogueProduits = () => {
     } finally {
       setLoading(false);
     }
-  }, [selectedCategory, selectedBrand, currentPage, itemsPerPage, searchQuery]); // Add currentPage, itemsPerPage and searchQuery as dependencies
+  }, [selectedCategory, selectedBrand, currentPage, itemsPerPage]); // (retrait) searchQuery
 
   const filterProducts = useMemo(() => debounce((query) => {
-    if (!query) {
+    const q = (query || '').trim().toLowerCase();
+    if (!q) {
       setFilteredProducts(products);
       return;
     }
-
     const filtered = products.filter(product =>
-      product.nom.toLowerCase().includes(query.toLowerCase()) ||
-      product.description?.toLowerCase().includes(query.toLowerCase()) ||
-      product.reference?.toLowerCase().includes(query.toLowerCase())
+      (product.nom || '').toLowerCase().includes(q) ||
+      (product.reference || '').toLowerCase().includes(q)
     );
-
     setFilteredProducts(filtered);
   }, 300), [products]);
 
@@ -686,7 +684,7 @@ const showCartNotification = (product) => {
                       <span className="product-category">
                         {product.categorie?.nom || 'Non catégorisé'}
                       </span>
-                      <span className="product-ref">Ref: {product.reference}</span>
+                      <span className="product-reff">Ref: {product.reference}</span>
                     </div>
 
                     <h3 className="product-title">{product.nom}</h3>

@@ -462,10 +462,10 @@ body {
   color: #94a3b8;
 }
 
-/* Correction de l'alignement du tableau */
+/* Correction de l'alignement du tableau - 7 colonnes */
 .table-header {
   display: grid;
-  grid-template-columns: 1.5fr 1.2fr 1.2fr 1.2fr 1.3fr 0.8fr;
+  grid-template-columns: 1.5fr 1.2fr 1.2fr 1.2fr 1.3fr 1.3fr 0.8fr;
   background-color: #f1f5f9;
   color: #475569;
   font-weight: 600;
@@ -474,30 +474,16 @@ body {
   align-items: center;
 }
 
-.header-cell {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  text-align: left;
-}
-
 .commande-row {
   display: grid;
-  grid-template-columns: 1.5fr 1.2fr 1.2fr 1.2fr 1.3fr 0.8fr;
+  grid-template-columns: 1.5fr 1.2fr 1.2fr 1.2fr 1.3fr 1.3fr 0.8fr;
   padding: 15px 20px;
   border-bottom: 1px solid #f1f5f9;
   transition: background-color 0.2s;
   align-items: center;
 }
 
-.data-cell {
-  display: flex;
-  align-items: center;
-  text-align: left;
-  min-height: 40px;
-}
-
-/* Alignement spécifique pour chaque colonne */
+/* Alignement spécifique pour chaque colonne - 7 colonnes */
 .data-cell:nth-child(1) { /* Référence */
   justify-content: flex-start;
 }
@@ -514,11 +500,15 @@ body {
   justify-content: flex-start;
 }
 
-.data-cell:nth-child(5) { /* Livraison */
+.data-cell:nth-child(5) { /* Livraison Souhaitée */
   justify-content: flex-start;
 }
 
-.data-cell:nth-child(6) { /* Actions */
+.data-cell:nth-child(6) { /* Livraison Admin */
+  justify-content: flex-start;
+}
+
+.data-cell:nth-child(7) { /* Actions */
   justify-content: flex-end;
 }
 

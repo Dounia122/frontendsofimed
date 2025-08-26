@@ -60,50 +60,93 @@ const Favorites = () => {
   };
 
   const showCartNotification = (product) => {
-    const notification = document.createElement('div');
-    notification.className = 'cart-notification';
+    // Vérifier si une notification existe déjà
+    const existingAlert = document.querySelector('.add-to-cart-alert');
+    if (existingAlert) {
+      existingAlert.remove();
+    }
+
+    // Créer l'élément de notification
+    const alertContainer = document.createElement('div');
+    alertContainer.className = 'add-to-cart-alert';
     
-    notification.innerHTML = `
-      <div class="notification-content">
-        <div class="notification-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    // Contenu de la notification avec gestion d'erreur pour le nom du produit
+    const productName = product?.nom || product?.name || 'Produit';
+    
+    alertContainer.innerHTML = `
+      <div class="alert-content-wrapper">
+        <div class="alert-icon-container">
+          <svg class="cart-success-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="9" cy="21" r="1"></circle>
             <circle cx="20" cy="21" r="1"></circle>
             <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
           </svg>
+          <div class="success-checkmark">✓</div>
         </div>
-        <div class="notification-message">
-          <p class="notification-title">Produit ajouté au panier</p>
-          <p class="notification-product">${product.nom}</p>
+        <div class="alert-text-content">
+          <p class="alert-main-title">Ajouté avec succès !</p>
+          <p class="alert-product-name">${productName}</p>
         </div>
-        <button class="notification-close">×</button>
+        <div class="alert-actions">
+          <button class="view-cart-btn" data-action="view-cart">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 3h2l.4 2m0 0h13l-1 7H6m0 0L5 6H3m3 6v6a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-6m-10 0h10"></path>
+            </svg>
+            Voir panier
+          </button>
+          <button class="alert-dismiss-btn" data-action="close" aria-label="Fermer la notification">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
       </div>
     `;
-    
-    document.body.appendChild(notification);
-    
-    const closeButton = notification.querySelector('.notification-close');
-    closeButton.addEventListener('click', () => {
-      notification.classList.add('notification-hiding');
+
+    // Ajouter au DOM
+    document.body.appendChild(alertContainer);
+
+    // Gestionnaires d'événements avec délégation
+    alertContainer.addEventListener('click', (event) => {
+      const action = event.target.closest('[data-action]')?.dataset.action;
+      
+      switch (action) {
+        case 'view-cart':
+          // Navigation vers le panier
+          try {
+            window.location.href = '/client/panier';
+          } catch (error) {
+            console.error('Erreur de navigation:', error);
+          }
+          break;
+        case 'close':
+          dismissAlert();
+          break;
+      }
+    });
+
+    // Fonction pour fermer l'alerte
+    const dismissAlert = () => {
+      alertContainer.classList.add('alert-fade-out');
       setTimeout(() => {
-        if (document.body.contains(notification)) {
-          document.body.removeChild(notification);
+        if (document.body.contains(alertContainer)) {
+          document.body.removeChild(alertContainer);
         }
       }, 300);
-    });
-    
+    };
+
+    // Animation d'entrée
     setTimeout(() => {
-      if (document.body.contains(notification)) {
-        notification.classList.add('notification-hiding');
-        setTimeout(() => {
-          if (document.body.contains(notification)) {
-            document.body.removeChild(notification);
-          }
-        }, 300);
+      alertContainer.classList.add('alert-slide-in');
+    }, 10);
+
+    // Auto-fermeture après 4 secondes
+    setTimeout(() => {
+      if (document.body.contains(alertContainer) && !alertContainer.classList.contains('alert-fade-out')) {
+        dismissAlert();
       }
-    }, 3000);
-    
-    setTimeout(() => notification.classList.add('notification-visible'), 10);
+    }, 4000);
   };
 
   if (isLoading) {

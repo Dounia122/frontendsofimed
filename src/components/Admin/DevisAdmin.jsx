@@ -15,6 +15,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import './DevisAdmin.css';
 import noImage from '../../assets/no-image.png';
+import notificationService from '../../services/notificationService';
 
 const API_BASE_URL = 'http://localhost:8080/api';
 
@@ -51,6 +52,136 @@ const DevisAdmin = () => {
   const [showDateModal, setShowDateModal] = useState(false);
   const [dateLivraisonAdmin, setDateLivraisonAdmin] = useState('');
 
+  // Helper pour récupérer l'userId du client via l'endpoint dédié
+  const getClientUserId = async (clientId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`${API_BASE_URL}/clients/${clientId}/user-id`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+        withCredentials: true
+      });
+      const userId = response.data;
+      if (!userId) {
+        throw new Error('userId du client introuvable');
+      }
+      return userId;
+    } catch (error) {
+      console.error('❌ Erreur lors de la récupération du userId client:', error);
+      return null;
+    }
+  };
+
+  const sendCommandeStatusNotification = async (commande, newStatus, additionalInfo = {}) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.error('❌ Token d\'authentification manquant');
+        return false;
+      }
+
+      // Récupérer l'ID utilisateur du client (priorité à la propriété déjà présente)
+      let clientUserId = commande.client?.userId;
+      if (!clientUserId) {
+        clientUserId = await getClientUserId(commande.client?.id);
+        if (!clientUserId) {
+          console.error('❌ ID utilisateur du client non trouvé');
+          return false;
+        }
+      }
+
+      // Définir le message selon le statut
+      const getStatusMessage = (status) => {
+        switch (status) {
+          case 'EN_COURS':
+            return {
+              title: 'Commande validée',
+              message: `Votre commande ${commande.reference} a été validée et est maintenant en cours de préparation.${additionalInfo.dateLivraison ? ` Date de livraison prévue : ${new Date(additionalInfo.dateLivraison).toLocaleDateString('fr-FR')}` : ''}`,
+              type: 'COMMANDE_VALIDEE'
+            };
+          case 'PRETE_LIVRAISON':
+            return {
+              title: 'Commande prête pour livraison',
+              message: `Votre commande ${commande.reference} est prête et sera bientôt livrée.`,
+              type: 'COMMANDE_PRETE_LIVRAISON'
+            };
+          case 'LIVREE':
+            return {
+              title: 'Commande livrée',
+              message: `Votre commande ${commande.reference} a été livrée avec succès. Merci pour votre confiance !`,
+              type: 'COMMANDE_LIVREE'
+            };
+          case 'ANNULEE':
+            return {
+              title: 'Commande annulée',
+              message: `Votre commande ${commande.reference} a été annulée. Contactez-nous pour plus d'informations.`,
+              type: 'COMMANDE_ANNULEE'
+            };
+          default:
+            return {
+              title: 'Mise à jour de commande',
+              message: `Le statut de votre commande ${commande.reference} a été mis à jour.`,
+              type: 'COMMANDE_UPDATE'
+            };
+        }
+      };
+
+      const statusInfo = getStatusMessage(newStatus);
+      const adminName = 'Administration Sofimed';
+
+      const notification = {
+        userId: parseInt(clientUserId, 10),
+        type: statusInfo.type,
+        title: statusInfo.title,
+        message: statusInfo.message,
+        senderName: adminName,
+        commandeId: commande.id,
+        link: `/client/commandes/${commande.id}`
+      };
+
+      console.log('📤 Envoi de notification de changement de statut:', notification);
+
+      // 1) REST: utiliser l’URL avec slash final + withCredentials
+      const restResponse = await axios.post(`${API_BASE_URL}/notifications/`, notification, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        withCredentials: true
+      });
+      console.log('✅ Notification REST envoyée:', restResponse.data);
+
+      // 2) WebSocket: envoi + tentative de reconnexion si nécessaire
+      try {
+        if (notificationService.isConnected()) {
+          notificationService.sendNotification(`/topic/notifications/${clientUserId}`, {
+            ...notification,
+            timestamp: new Date().toISOString()
+          });
+          console.log('✅ Notification WebSocket envoyée');
+        } else {
+          console.warn('⚠️ WebSocket non connecté, tentative de reconnexion...');
+          const currentUser = JSON.parse(localStorage.getItem('user'));
+          if (currentUser?.id) {
+            notificationService.connect(currentUser.id, () => {
+              notificationService.sendNotification(`/topic/notifications/${clientUserId}`, {
+                ...notification,
+                timestamp: new Date().toISOString()
+              });
+              console.log('✅ Notification WebSocket envoyée après reconnexion');
+            });
+          }
+        }
+      } catch (wsError) {
+        console.error('❌ Erreur WebSocket:', wsError);
+      }
+
+      return true;
+    } catch (error) {
+      console.error('❌ Erreur lors de l\'envoi de la notification de changement de statut:', error);
+      return false;
+    }
+  };
+
   const formatDate = useCallback((dateString) => {
     if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString('fr-FR', {
@@ -65,73 +196,80 @@ const DevisAdmin = () => {
       setLoading(true);
       setError(null);
 
-      const formatDateForAPI = (dateString) => {
-        if (!dateString) return null;
-        return new Date(dateString).toISOString().split('T')[0];
-      };
-
       const token = localStorage.getItem('token');
-      let endpoint = `${API_BASE_URL}/commandes`;
-      let params = new URLSearchParams({
+      
+      // Tableau des statuts disponibles
+      const statutsDisponibles = ['EN_ATTENTE', 'EN_COURS', 'LIVREE', 'ANNULEE'];
+      
+      let endpoint;
+      let params = {
         page: currentPage,
         size: itemsPerPage
-      });
-
-      if (selectedStatus !== 'all') {
+      };
+      
+      // Logique simplifiée pour les endpoints DTO
+      if (selectedStatus !== 'all' && statutsDisponibles.includes(selectedStatus)) {
         endpoint = `${API_BASE_URL}/commandes/status/${selectedStatus}`;
+        console.log('🚀 Filtrage par statut:', selectedStatus);
       } else if (dateRange.startDate && dateRange.endDate) {
         endpoint = `${API_BASE_URL}/commandes/dates`;
-        params.append('startDate', formatDateForAPI(dateRange.startDate));
-        params.append('endDate', formatDateForAPI(dateRange.endDate));
+        params.startDate = dateRange.startDate;
+        params.endDate = dateRange.endDate;
+        console.log('🚀 Filtrage par dates:', dateRange);
+      } else {
+        endpoint = `${API_BASE_URL}/commandes`;
+        console.log('🚀 Récupération de toutes les commandes');
       }
 
+      console.log('🔍 Endpoint appelé:', endpoint);
+      console.log('🔍 Paramètres:', params);
+
       const response = await axios.get(endpoint, {
-        params,
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
-        }
+        },
+        params: params
       });
 
-      if (response.data) {
-        let commandesData;
-        let totalElements;
+      console.log('✅ Réponse reçue:', response.data);
 
-        if (Array.isArray(response.data)) {
-          commandesData = response.data;
-          totalElements = response.data.length;
-        } else if (response.data.content) {
-          commandesData = response.data.content;
-          totalElements = response.data.totalElements;
-        } else {
-          throw new Error('Format de réponse non reconnu');
-        }
+      // Traitement simplifié des DTOs
+      let commandesData = [];
+      let totalElements = 0;
 
-        const transformedData = commandesData.map(commande => ({
-          ...commande,
-          client: {
-            ...commande.client,
-            nom: `${commande.client?.firstName || ''} ${commande.client?.lastName || ''}`.trim(),
-            telephone: commande.client?.phone || '',
-            email: commande.client?.email || 'N/A',
-            adresse: commande.client?.adresse || 'N/A'
-          },
-          reference: commande.reference || `CMD-${commande.id}`,
-          status: commande.status || 'EN_ATTENTE',
-          produits: commande.produits || [],
-          totalHT: commande.totalHT || calculateTotalHT(commande.produits),
-          tva: commande.montantTVA || (commande.totalHT * 0.2) || calculateTotalHT(commande.produits) * 0.2,
-          totalTTC: commande.totalTTC || (commande.totalHT * 1.2) || calculateTotalHT(commande.produits) * 1.2,
-          createdAt: commande.dateCreation || commande.devis?.createdAt,
-          dateLivraisonSouhaitee: commande.dateLivraisonSouhaitee,
-          dateLivraisonAdmin: commande.dateLivraisonAdmin // Nouveau champ
-        }));
-
-        setCommandes(transformedData);
-        setTotalCommandes(totalElements || 0);
-      } else {
-        throw new Error('Réponse invalide du serveur');
+      if (response.data && response.data.content) {
+        // Format paginé (DTOs)
+        commandesData = response.data.content;
+        totalElements = response.data.totalElements;
+      } else if (Array.isArray(response.data)) {
+        // Format tableau direct (DTOs)
+        commandesData = response.data;
+        totalElements = response.data.length;
+      } else if (response.data) {
+        // Format objet unique (DTO)
+        commandesData = [response.data];
+        totalElements = 1;
       }
+
+      // Transformation minimale car les DTOs sont déjà propres
+      const transformedData = commandesData.map(commande => ({
+        ...commande,
+        // Les DTOs ont déjà les bonnes propriétés, juste quelques ajustements
+        client: {
+          ...commande.client,
+          nom: commande.client?.nom || `${commande.client?.firstName || ''} ${commande.client?.lastName || ''}`.trim()
+        },
+        reference: commande.reference || `CMD-${commande.id}`,
+        status: commande.status || 'EN_ATTENTE',
+        // Ajouter le mapping des dates
+        createdAt: commande.dateCreation || commande.createdAt,
+        dateCreation: commande.dateCreation || commande.createdAt
+      }));
+
+      setCommandes(transformedData);
+      setTotalCommandes(totalElements);
+
     } catch (err) {
       const errorMessage = err.response?.data?.message || 
                           err.response?.data || 
@@ -159,10 +297,10 @@ const DevisAdmin = () => {
     try {
       setProcessingId(commandeId);
       const token = localStorage.getItem('token');
+      const commande = commandes.find(c => c.id === commandeId);
 
       if (newStatus === 'VALIDEE') {
         // Préparer la validation avec date de livraison
-        const commande = commandes.find(c => c.id === commandeId);
         setActiveCommande(commande);
         setShowDateModal(true);
         return;
@@ -186,8 +324,13 @@ const DevisAdmin = () => {
         )
       );
       
-      await fetchCommandes();
-      alert(`Statut mis à jour: ${newStatus === 'ANNULEE' ? 'Annulée' : newStatus}`);
+      // Envoyer la notification au client
+      if (commande) {
+        await sendCommandeStatusNotification(commande, newStatus);
+      }
+      
+      // Recharger toute la page
+      window.location.reload();
       
     } catch (err) {
       const errorMessage = err.response?.data?.message || 
@@ -199,6 +342,7 @@ const DevisAdmin = () => {
       setProcessingId(null);
     }
   };
+
 
   // Nouvelle fonction pour gérer la validation avec date
   const handleValidateWithDate = async () => {
@@ -226,14 +370,15 @@ const DevisAdmin = () => {
       setCommandes(prevCommandes =>
         prevCommandes.map(commande =>
           commande.id === activeCommande.id
-            ? { 
-                ...commande, 
-                status: 'VALIDEE',
-                dateLivraisonAdmin: dateLivraisonAdmin
-              }
+            ? { ...commande, status: 'EN_COURS', dateLivraisonAdmin: dateLivraisonAdmin }
             : commande
         )
       );
+
+      // Envoyer la notification au client avec la date de livraison
+      await sendCommandeStatusNotification(activeCommande, 'EN_COURS', {
+        dateLivraison: dateLivraisonAdmin
+      });
 
       setShowDateModal(false);
       setDateLivraisonAdmin('');
@@ -247,25 +392,78 @@ const DevisAdmin = () => {
     }
   };
 
-  const filteredCommandes = useMemo(() => {
-    if (!searchTerm) return commandes;
-    const searchLower = searchTerm.toLowerCase();
-    return commandes.filter(
-      (commande) =>
-        commande?.reference?.toLowerCase().includes(searchLower) ||
-        commande?.client?.nom?.toLowerCase().includes(searchLower)
-    );
-  }, [commandes, searchTerm]);
+  // Fonction pour confirmer la livraison
+  const handleConfirmDelivery = async (commandeId) => {
+    try {
+      setProcessingId(commandeId);
+      const token = localStorage.getItem('token');
+      const commande = commandes.find(c => c.id === commandeId);
+      
+      await axios.patch(`${API_BASE_URL}/commandes/${commandeId}/confirm-delivery`, null, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      // Mettre à jour l'état local
+      setCommandes(prevCommandes =>
+        prevCommandes.map(commande =>
+          commande.id === commandeId
+            ? { ...commande, status: 'LIVREE' }
+            : commande
+        )
+      );
+      
+      // Envoyer la notification au client
+      if (commande) {
+        await sendCommandeStatusNotification(commande, 'LIVREE');
+      }
+      
+      fetchCommandes();
+      alert('Livraison confirmée avec succès');
+      
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || 
+                          err.response?.data || 
+                          err.message || 
+                          'Erreur lors de la confirmation de livraison';
+      setError(errorMessage);
+    } finally {
+      setProcessingId(null);
+    }
+  };
 
+  // Simplifier le filtrage local pour ne garder que la recherche texte
+  const filteredCommandes = useMemo(() => {
+    return commandes.filter(commande => {
+      const searchLower = searchTerm.toLowerCase().trim();
+      return !searchTerm || [
+        commande.reference,
+        commande.client?.nom,
+        commande.client?.email,
+        commande.commercial?.firstName,
+        commande.commercial?.lastName,
+        commande.commercial?.employeeCode
+      ].some(field => field?.toLowerCase().includes(searchLower));
+    });
+  }, [commandes, searchTerm]);
   const stats = useMemo(() => ({
     total: totalCommandes,
     enAttente: commandes.filter(c => c?.status === 'EN_ATTENTE').length,
-    valide: commandes.filter(c => c?.status === 'VALIDEE').length,
+    enCours: commandes.filter(c => c?.status === 'EN_COURS').length,
+    livree: commandes.filter(c => c?.status === 'LIVREE').length,
     annulee: commandes.filter(c => c?.status === 'ANNULEE').length,
     montantTotal: commandes.reduce((sum, c) => sum + (c?.totalHT || 0), 0),
   }), [commandes, totalCommandes]);
 
-  const totalPages = Math.ceil(totalCommandes / itemsPerPage);
+  const paginatedCommandes = useMemo(() => {
+    const start = currentPage * itemsPerPage;
+    const end = start + itemsPerPage;
+    return filteredCommandes.slice(start, end);
+  }, [filteredCommandes, currentPage, itemsPerPage]);
+
+  const totalPages = Math.ceil(filteredCommandes.length / itemsPerPage);
 
   if (loading) return (
     <div className="loading-container">
@@ -313,7 +511,7 @@ const DevisAdmin = () => {
         ...commande,
         clientDetails: {
           firstName: commande.client?.firstName || commande.client?.nom?.split(' ')[0] || '',
-          lastName: commande.client?.lastName || commande.client?.nom?.split(' ').slice(1).join(' ') || '',
+          lastName: commande.client?.lastName || commande?.client?.nom?.split(' ').slice(1).join(' ') || '',
           email: commande.client?.email || 'N/A',
           phone: commande.client?.phone || commande.client?.telephone || '',
           address: commande.client?.address || commande.client?.adresse || 'N/A'
@@ -338,10 +536,12 @@ const DevisAdmin = () => {
 
   return (
     <div className="commandes-admin-container">
-      <h2 className="page-title">
-        <FontAwesomeIcon icon={faClipboardList} className="title-icon" />
-        Gestion des Commandes
-      </h2>
+      <header className="admin-header">
+        <h2 className="page-title">
+          <FontAwesomeIcon icon={faClipboardList} className="title-icon" />
+          Gestion des Commandes
+        </h2>
+      </header>
 
       {error && (
         <div className="alert alert-error">
@@ -367,9 +567,15 @@ const DevisAdmin = () => {
           className="stat-card-warning"
         />
         <StatCard 
-          title="Validées" 
-          value={stats.valide} 
+          title="En Cours" 
+          value={stats.enCours} 
           icon={faCheckCircle}
+          className="stat-card-info"
+        />
+        <StatCard 
+          title="Livrées" 
+          value={stats.livree} 
+          icon={faTruck}
           className="stat-card-success"
         />
         <StatCard 
@@ -387,16 +593,18 @@ const DevisAdmin = () => {
       </div>
 
       <div className="filters-section">
+        {/* Filtre existant de recherche */}
         <div className="search-filter">
           <input
             type="text"
-            placeholder="Rechercher une commande..."
+            placeholder="Référence, nom client, email..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
           <FontAwesomeIcon icon={faSearch} className="search-icon" />
         </div>
 
+        {/* Filtre de statut amélioré */}
         <div className="filter-group">
           <label>
             <FontAwesomeIcon icon={faFilter} className="filter-icon" />
@@ -409,35 +617,48 @@ const DevisAdmin = () => {
               setCurrentPage(0);
             }}
           >
-            <option value="all">Tous</option>
+            <option value="all">Tous les statuts</option>
             <option value="EN_ATTENTE">En attente</option>
-            <option value="VALIDEE">Validée</option>
+            <option value="EN_COURS">En cours</option>
+            <option value="LIVREE">Livrée</option>
             <option value="ANNULEE">Annulée</option>
           </select>
         </div>
 
-        <div className="filter-group">
+        {/* Filtre de date amélioré */}
+        <div className="filter-group date-filter">
           <label>
             <FontAwesomeIcon icon={faCalendarAlt} className="filter-icon" />
             Période :
           </label>
-          <input
-            type="date"
-            value={dateRange.startDate}
-            onChange={(e) => {
-              setDateRange(prev => ({ ...prev, startDate: e.target.value }));
-              setCurrentPage(0);
-            }}
-          />
-          <span>à</span>
-          <input
-            type="date"
-            value={dateRange.endDate}
-            onChange={(e) => {
-              setDateRange(prev => ({ ...prev, endDate: e.target.value }));
-              setCurrentPage(0);
-            }}
-          />
+          <div className="date-inputs">
+            <input
+              type="date"
+              value={dateRange.startDate}
+              onChange={(e) => {
+                setDateRange(prev => ({ ...prev, startDate: e.target.value }));
+                setCurrentPage(0);
+              }}
+            />
+            <span>à</span>
+            <input
+              type="date"
+              value={dateRange.endDate}
+              onChange={(e) => {
+                setDateRange(prev => ({ ...prev, endDate: e.target.value }));
+                setCurrentPage(0);
+              }}
+            />
+            <button 
+              className="clear-dates"
+              onClick={() => {
+                setDateRange({ startDate: '', endDate: '' });
+                setCurrentPage(0);
+              }}
+            >
+              <FontAwesomeIcon icon={faTimes} />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -450,15 +671,15 @@ const DevisAdmin = () => {
               <th>Commercial</th>
               <th>Date de création</th>
               <th>Date Livraison Souhaitée</th>
-              
+              <th>Date Livraison </th>
               <th>Statut</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {filteredCommandes.length === 0 ? (
+            {paginatedCommandes.length === 0 ? (
               <tr><td colSpan="8" className="no-data">Aucune commande trouvée</td></tr>
-            ) : filteredCommandes.map((commande) => (
+            ) : paginatedCommandes.map((commande) => (
               <tr key={commande.id} className="table-row">
                 <td className="reference-cell">
                   <span className="reference-badge">{commande.reference || 'N/A'}</span>
@@ -481,7 +702,7 @@ const DevisAdmin = () => {
                 </td>
                 <td className="date-cell">{formatDate(commande.createdAt)}</td>
                 <td className="date-cell">{formatDate(commande.dateLivraisonSouhaitee)}</td>
-                
+                <td className="date-cell">{formatDate(commande.dateLivraisonAdmin)}</td>
                 <td><StatusBadge status={commande.status} /></td>
                 <td>
                   <div className="action-buttons">
@@ -507,6 +728,18 @@ const DevisAdmin = () => {
                           {processingId === commande.id ? '...' : 'Annuler'}
                         </button>
                       </>
+                    )}
+                    
+                    {commande.status === 'PRETE_LIVRAISON' && (
+                    <button
+                    className="btn-confirm-delivery"
+                    onClick={() => handleConfirmDelivery(commande.id)}
+                    disabled={processingId === commande.id}
+                    title="Confirmer la livraison"
+                    >
+                    <FontAwesomeIcon icon={faCheck} />
+                    {processingId === commande.id ? 'Confirmation...' : 'Confirmer Livraison'}
+                    </button>
                     )}
                   </div>
                 </td>
@@ -728,8 +961,12 @@ const StatusBadge = ({ status }) => {
     switch (status) {
       case 'EN_ATTENTE':
         return { className: 'status-pending', text: 'En attente' };
-      case 'VALIDEE':
-        return { className: 'status-validated', text: 'Validée' };
+      case 'EN_COURS':
+        return { className: 'status-progress', text: 'En cours' };
+      case 'PRETE_LIVRAISON':
+        return { className: 'status-ready', text: 'Prête à livrer' };
+      case 'LIVREE':
+        return { className: 'status-delivered', text: 'Livrée' };
       case 'ANNULEE':
         return { className: 'status-rejected', text: 'Annulée' };
       default:
@@ -746,3 +983,6 @@ StatusBadge.propTypes = {
 };
 
 export default DevisAdmin;
+
+
+

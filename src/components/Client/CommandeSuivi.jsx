@@ -117,17 +117,25 @@ const CommandeSuivi = () => {
         const params = new URLSearchParams();
         params.append('page', pagination.currentPage - 1);
         params.append('size', pagination.pageSize);
-        
         params.append('sort', `${sortConfig.field},${sortConfig.direction}`);
         
+        // Amélioration : validation des filtres
         if (statusFilter && statusFilter !== 'TOUS') {
-          params.append('status', statusFilter);
-          console.log('Applied status filter:', statusFilter);
+          // Vérifier que le statut est valide
+          const validStatuses = ['EN_ATTENTE', 'EN_COURS', 'LIVREE', 'ANNULEE'];
+          if (validStatuses.includes(statusFilter)) {
+            params.append('status', statusFilter);
+            console.log('Applied status filter:', statusFilter);
+          }
         }
         
         if (debouncedSearchTerm && debouncedSearchTerm.trim()) {
-          params.append('reference', debouncedSearchTerm.trim());
-          console.log('Applied search term:', debouncedSearchTerm.trim());
+          // Amélioration : validation de la recherche
+          const cleanSearchTerm = debouncedSearchTerm.trim();
+          if (cleanSearchTerm.length >= 1) { // Changé de 2 à 1
+            params.append('reference', cleanSearchTerm);
+            console.log('Applied search term:', cleanSearchTerm);
+          }
         }
         
         const apiUrl = `${COMMANDES_API_URL}/client/${clientId}?${params.toString()}`;
@@ -140,7 +148,8 @@ const CommandeSuivi = () => {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
-          }
+          },
+          timeout: 10000 // Timeout de 10 secondes
         });
         
         console.log('API Response:', response.data);
@@ -149,17 +158,25 @@ const CommandeSuivi = () => {
           setCommandes(response.data.content || []);
           setPagination(prev => ({
             ...prev,
-            currentPage: (response.data.number || 0) + 1,
             totalPages: response.data.totalPages || 0,
             totalElements: response.data.totalElements || 0
           }));
           setLastUpdated(new Date());
-        } else {
-          throw new Error('Réponse invalide du serveur');
         }
+        
       } catch (err) {
         console.error('Erreur lors de la récupération des commandes:', err);
-        setError(err.response?.data?.message || err.message || 'Erreur lors du chargement des commandes');
+        
+        // Amélioration : gestion d'erreurs plus précise
+        if (err.code === 'ECONNABORTED') {
+          setError('Délai d\'attente dépassé. Veuillez réessayer.');
+        } else if (err.response?.status === 404) {
+          setError('Aucune commande trouvée pour ce client.');
+        } else if (err.response?.status === 403) {
+          setError('Accès non autorisé. Veuillez vous reconnecter.');
+        } else {
+          setError(err.response?.data?.message || err.message || 'Erreur lors du chargement des commandes');
+        }
       } finally {
         setLoading(false);
       }
@@ -259,23 +276,27 @@ const CommandeSuivi = () => {
     }));
   };
 
-  const resetFilters = () => {
-    console.log('Resetting filters');
-    setSearchTerm('');
-    setStatusFilter('TOUS');
-    setSortConfig({ field: 'dateCreation', direction: 'desc' });
-    setPagination(prev => ({ ...prev, currentPage: 1 }));
-  };
-
   const handleStatusFilterChange = (newStatus) => {
     console.log('Status filter changed to:', newStatus);
     setStatusFilter(newStatus);
+    // Reset à la première page lors du changement de filtre
+    setPagination(prev => ({ ...prev, currentPage: 1 }));
   };
 
   const handleSearchChange = (e) => {
     const value = e.target.value;
     console.log('Search term changed to:', value);
     setSearchTerm(value);
+    // Reset à la première page lors du changement de recherche
+    setPagination(prev => ({ ...prev, currentPage: 1 }));
+  };
+
+  const resetFilters = () => {
+    console.log('Resetting filters');
+    setSearchTerm('');
+    setStatusFilter('TOUS');
+    setSortConfig({ field: 'dateCreation', direction: 'desc' });
+    setPagination(prev => ({ ...prev, currentPage: 1 }));
   };
 
   if (loading && !clientId) {
@@ -395,6 +416,7 @@ const CommandeSuivi = () => {
         )}
         
         <div className="commandes-table">
+         
           <div className="table-header">
             <div 
               className="header-cell sortable" 
@@ -439,7 +461,8 @@ const CommandeSuivi = () => {
                 <FontAwesomeIcon icon={faSort} className="sort-icon inactive" />
               )}
             </div>
-            <div className="header-cell">Livraison</div>
+            <div className="header-cell">Livraison Souhaitée</div>
+            <div className="header-cell">Livraison Admin</div>
             <div className="header-cell">Actions</div>
           </div>
 
@@ -484,6 +507,11 @@ const CommandeSuivi = () => {
                       <span className="mobile-label">Livraison:</span>
                       {formatDate(commande.dateLivraisonSouhaitee)}
                     </div>
+                    <div className="data-cell">
+                      <span className="mobile-label">Livraison Admin:</span>
+                      {formatDate(commande.dateLivraisonAdmin)}
+                    </div>
+                    
                     <div className="data-cell action-cell">
                       <button 
                         className={`btn-view ${expandedRow === commande.id ? 'active' : ''}`}

@@ -99,3 +99,29 @@
 .welcome-card, .stats-grid, .recent-activity {
   animation: fadeIn 0.4s ease-out forwards;
 }
+
+/* Style d'en-tête unifié pour toutes les pages admin */
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 15px 25px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.page-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #4361ee;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.title-icon {
+  font-size: 24px;
+  color: #4361ee;
+}
